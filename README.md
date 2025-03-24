@@ -49,7 +49,7 @@
 - [ ] SDL3/SDL_surface.h
 - [ ] SDL3/SDL_system.h
 - [x] SDL3/SDL_thread.h
-- [ ] SDL3/SDL_time.h
+- [x] SDL3/SDL_time.h
 - [x] SDL3/SDL_timer.h
 - [ ] SDL3/SDL_tray.h
 - [x] SDL3/SDL_touch.h

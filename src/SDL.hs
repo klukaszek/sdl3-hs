@@ -18,6 +18,7 @@ module SDL
     module SDL.Properties,
     module SDL.Stdinc,
     module SDL.Thread,
+    module SDL.Time,
     module SDL.Timer,
     module SDL.Touch,
     module SDL.Version
@@ -37,6 +38,7 @@ import SDL.Pixels
 import SDL.Properties
 import SDL.Stdinc
 import SDL.Thread
+import SDL.Time
 import SDL.Timer
 import SDL.Touch
 import SDL.Version
