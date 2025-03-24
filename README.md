@@ -52,6 +52,6 @@
 - [ ] SDL3/SDL_time.h
 - [x] SDL3/SDL_timer.h
 - [ ] SDL3/SDL_tray.h
-- [ ] SDL3/SDL_touch.h
+- [x] SDL3/SDL_touch.h
 - [x] SDL3/SDL_version.h
 - [ ] SDL3/SDL_video.h

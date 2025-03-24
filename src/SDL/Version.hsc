@@ -2,7 +2,7 @@
 {-|
 Module      : SDL.Version
 Description : SDL version querying and management
-Copyright   : (c) The SDL3 team
+Copyright   : (c) Kyle Lukaszek, 2025
 License     : BSD3
 
 SDL provides functionality to query the current SDL version, both as headers
@@ -16,6 +16,7 @@ linked library version might differ from the version used at compile time.
 The version information can be used to ensure compatibility or to log details for
 debugging purposes.
 -}
+
 module SDL.Version
   ( -- * Version Constants
     sdlMajorVersion

@@ -19,6 +19,7 @@ module SDL
     module SDL.Stdinc,
     module SDL.Thread,
     module SDL.Timer,
+    module SDL.Touch,
     module SDL.Version
   ) where
 
@@ -37,5 +38,6 @@ import SDL.Properties
 import SDL.Stdinc
 import SDL.Thread
 import SDL.Timer
+import SDL.Touch
 import SDL.Version
 
