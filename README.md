@@ -1,0 +1,57 @@
+# SDL3 Haskell Bindings
+
+## SDL.h Header File Support Checklist
+- [x] SDL3/SDL_stdinc.h
+- [x] SDL3/SDL_assert.h
+- [x] SDL3/SDL_asyncio.h
+- [x] SDL3/SDL_atomic.h
+- [ ] SDL3/SDL_audio.h
+- [x] SDL3/SDL_bits.h
+- [x] SDL3/SDL_blendmode.h
+- [ ] SDL3/SDL_camera.h
+- [ ] SDL3/SDL_clipboard.h
+- [ ] SDL3/SDL_cpuinfo.h
+- [ ] SDL3/SDL_dialog.h
+- [x] SDL3/SDL_endian.h
+- [x] SDL3/SDL_error.h
+- [ ] SDL3/SDL_events.h
+- [ ] SDL3/SDL_filesystem.h
+- [ ] SDL3/SDL_gamepad.h
+- [ ] SDL3/SDL_gpu.h
+- [ ] SDL3/SDL_guid.h
+- [ ] SDL3/SDL_haptic.h
+- [ ] SDL3/SDL_hidapi.h
+- [ ] SDL3/SDL_hints.h
+- [x] SDL3/SDL_init.h
+- [x] SDL3/SDL_iostream.h
+- [ ] SDL3/SDL_joystick.h
+- [ ] SDL3/SDL_keyboard.h
+- [ ] SDL3/SDL_keycode.h
+- [ ] SDL3/SDL_loadso.h
+- [ ] SDL3/SDL_locale.h
+- [ ] SDL3/SDL_log.h
+- [ ] SDL3/SDL_messagebox.h
+- [ ] SDL3/SDL_metal.h
+- [ ] SDL3/SDL_misc.h
+- [ ] SDL3/SDL_mouse.h
+- [x] SDL3/SDL_mutex.h
+- [ ] SDL3/SDL_pen.h
+- [x] SDL3/SDL_pixels.h
+- [ ] SDL3/SDL_platform.h
+- [ ] SDL3/SDL_power.h
+- [ ] SDL3/SDL_process.h
+- [x] SDL3/SDL_properties.h
+- [ ] SDL3/SDL_rect.h
+- [ ] SDL3/SDL_render.h
+- [ ] SDL3/SDL_scancode.h
+- [ ] SDL3/SDL_sensor.h
+- [ ] SDL3/SDL_storage.h
+- [ ] SDL3/SDL_surface.h
+- [ ] SDL3/SDL_system.h
+- [x] SDL3/SDL_thread.h
+- [ ] SDL3/SDL_time.h
+- [x] SDL3/SDL_timer.h
+- [ ] SDL3/SDL_tray.h
+- [ ] SDL3/SDL_touch.h
+- [x] SDL3/SDL_version.h
+- [ ] SDL3/SDL_video.h
