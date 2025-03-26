@@ -15,7 +15,7 @@
 - [x] SDL3/SDL_endian.h
 - [x] SDL3/SDL_error.h
 - [ ] SDL3/SDL_events.h
-- [ ] SDL3/SDL_filesystem.h
+- [x] SDL3/SDL_filesystem.h
 - [ ] SDL3/SDL_gamepad.h
 - [ ] SDL3/SDL_gpu.h
 - [ ] SDL3/SDL_guid.h

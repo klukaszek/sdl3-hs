@@ -8,6 +8,7 @@ module SDL
     module SDL.BlendMode,
     module SDL.Endian,
     module SDL.Error,
+    module SDL.Filesystem,
     module SDL.IOStream,
     module SDL.Init,
     module SDL.Mutex,
@@ -34,6 +35,7 @@ import SDL.Bits
 import SDL.BlendMode
 import SDL.Endian
 import SDL.Error
+import SDL.Filesystem
 import SDL.IOStream
 import SDL.Init
 import SDL.Mutex
