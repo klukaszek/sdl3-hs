@@ -41,17 +41,17 @@
 - [ ] SDL3/SDL_power.h
 - [ ] SDL3/SDL_process.h
 - [x] SDL3/SDL_properties.h
-- [ ] SDL3/SDL_rect.h
+- [x] SDL3/SDL_rect.h
 - [ ] SDL3/SDL_render.h
 - [ ] SDL3/SDL_scancode.h
 - [ ] SDL3/SDL_sensor.h
 - [ ] SDL3/SDL_storage.h
-- [ ] SDL3/SDL_surface.h
+- [x] SDL3/SDL_surface.h
 - [ ] SDL3/SDL_system.h
 - [x] SDL3/SDL_thread.h
 - [x] SDL3/SDL_time.h
 - [x] SDL3/SDL_timer.h
-- [ ] SDL3/SDL_tray.h
+- [x] SDL3/SDL_tray.h
 - [x] SDL3/SDL_touch.h
 - [x] SDL3/SDL_version.h
-- [ ] SDL3/SDL_video.h
+- [x] SDL3/SDL_video.h

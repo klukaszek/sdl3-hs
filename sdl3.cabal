@@ -75,12 +75,17 @@ library
         SDL.Mutex
         SDL.Pixels
         SDL.Properties
+        SDL.Rect
         SDL.Stdinc
+        SDL.Surface
+        SDL.System
         SDL.Thread
         SDL.Time
         SDL.Timer
         SDL.Touch
+        SDL.Tray
         SDL.Version
+        SDL.Video
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -117,6 +122,23 @@ executable init-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
+executable rect-example
+    main-is: RectExample.hs
+    build-depends:
+        base,
+        sdl3
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+    
+executable system-example
+    main-is: SystemExample.hs
+    build-depends:
+        base,
+        sdl3
+
+    hs-source-dirs:    examples
+    default-language: Haskell2010
+    
 executable time-example
     main-is: TimeExample.hs
     build-depends:
@@ -143,3 +165,21 @@ executable touch-device-example
 
     hs-source-dirs:    examples
     default-language: Haskell2010
+
+executable tray-example
+    main-is: TrayExample.hs
+    build-depends:
+        base,
+        sdl3
+
+    hs-source-dirs:    examples
+    default-language: Haskell2010
+
+-- executable video-example
+--     main-is: VideoExample.hs
+--     build-depends:
+--         base,
+--         sdl3
+
+--     hs-source-dirs:    examples
+--     default-language: Haskell2010

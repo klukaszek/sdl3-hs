@@ -59,6 +59,7 @@ module SDL.Pixels
   , sdlIsPixelFormatFloat
   , sdlIsPixelFormatAlpha
   , sdlIsPixelFormatFourCC
+  , pixelFormatToWord32
     
     -- * Color Types
   , SDLColorType(..)
@@ -446,7 +447,97 @@ data SDLPixelFormat
   | SDLPixelFormatXRGB32
   | SDLPixelFormatBGRX32
   | SDLPixelFormatXBGR32
-  deriving (Eq, Ord, Show, Read, Enum, Bounded)
+  deriving (Eq, Ord, Show, Read, Bounded)
+
+instance Enum SDLPixelFormat where
+  fromEnum = fromIntegral . pixelFormatToWord32
+  toEnum n = case fromIntegral n :: Word32 of
+    0           -> SDLPixelFormatUnknown
+    0x11100100  -> SDLPixelFormatIndex1LSB
+    0x11200100  -> SDLPixelFormatIndex1MSB
+    0x1c100200  -> SDLPixelFormatIndex2LSB
+    0x1c200200  -> SDLPixelFormatIndex2MSB
+    0x12100400  -> SDLPixelFormatIndex4LSB
+    0x12200400  -> SDLPixelFormatIndex4MSB
+    0x13000801  -> SDLPixelFormatIndex8
+    0x14110801  -> SDLPixelFormatRGB332
+    0x15120c02  -> SDLPixelFormatXRGB4444
+    0x15520c02  -> SDLPixelFormatXBGR4444
+    0x15130f02  -> SDLPixelFormatXRGB1555
+    0x15530f02  -> SDLPixelFormatXBGR1555
+    0x15321002  -> SDLPixelFormatARGB4444
+    0x15421002  -> SDLPixelFormatRGBA4444
+    0x15721002  -> SDLPixelFormatABGR4444
+    0x15821002  -> SDLPixelFormatBGRA4444
+    0x15331002  -> SDLPixelFormatARGB1555
+    0x15441002  -> SDLPixelFormatRGBA5551
+    0x15731002  -> SDLPixelFormatABGR1555
+    0x15841002  -> SDLPixelFormatBGRA5551
+    0x15151002  -> SDLPixelFormatRGB565
+    0x15551002  -> SDLPixelFormatBGR565
+    0x17101803  -> SDLPixelFormatRGB24
+    0x17401803  -> SDLPixelFormatBGR24
+    0x16161804  -> SDLPixelFormatXRGB8888
+    0x16261804  -> SDLPixelFormatRGBX8888
+    0x16561804  -> SDLPixelFormatXBGR8888
+    0x16661804  -> SDLPixelFormatBGRX8888
+    0x16362004  -> SDLPixelFormatARGB8888
+    0x16462004  -> SDLPixelFormatRGBA8888
+    0x16762004  -> SDLPixelFormatABGR8888
+    0x16862004  -> SDLPixelFormatBGRA8888
+    0x16172004  -> SDLPixelFormatXRGB2101010
+    0x16572004  -> SDLPixelFormatXBGR2101010
+    0x16372004  -> SDLPixelFormatARGB2101010
+    0x16772004  -> SDLPixelFormatABGR2101010
+    0x18103006  -> SDLPixelFormatRGB48
+    0x18403006  -> SDLPixelFormatBGR48
+    0x18204008  -> SDLPixelFormatRGBA64
+    0x18304008  -> SDLPixelFormatARGB64
+    0x18504008  -> SDLPixelFormatBGRA64
+    0x18604008  -> SDLPixelFormatABGR64
+    0x1a103006  -> SDLPixelFormatRGB48Float
+    0x1a403006  -> SDLPixelFormatBGR48Float
+    0x1a204008  -> SDLPixelFormatRGBA64Float
+    0x1a304008  -> SDLPixelFormatARGB64Float
+    0x1a504008  -> SDLPixelFormatBGRA64Float
+    0x1a604008  -> SDLPixelFormatABGR64Float
+    0x1b10600c  -> SDLPixelFormatRGB96Float
+    0x1b40600c  -> SDLPixelFormatBGR96Float
+    0x1b208010  -> SDLPixelFormatRGBA128Float
+    0x1b308010  -> SDLPixelFormatARGB128Float
+    0x1b508010  -> SDLPixelFormatBGRA128Float
+    0x1b608010  -> SDLPixelFormatABGR128Float
+    0x32315659  -> SDLPixelFormatYV12
+    0x56555949  -> SDLPixelFormatIYUV
+    0x32595559  -> SDLPixelFormatYUY2
+    0x59565955  -> SDLPixelFormatUYVY
+    0x55595659  -> SDLPixelFormatYVYU
+    0x3231564e  -> SDLPixelFormatNV12
+    0x3132564e  -> SDLPixelFormatNV21
+    0x30313050  -> SDLPixelFormatP010
+    0x2053454f  -> SDLPixelFormatExternalOES
+    0x47504a4d  -> SDLPixelFormatMJPG
+    -- Platform-dependent aliases for RGBA byte arrays
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    v | v == pixelFormatToWord32 SDLPixelFormatRGBA8888 -> SDLPixelFormatRGBA32
+    v | v == pixelFormatToWord32 SDLPixelFormatARGB8888 -> SDLPixelFormatARGB32
+    v | v == pixelFormatToWord32 SDLPixelFormatBGRA8888 -> SDLPixelFormatBGRA32
+    v | v == pixelFormatToWord32 SDLPixelFormatABGR8888 -> SDLPixelFormatABGR32
+    v | v == pixelFormatToWord32 SDLPixelFormatRGBX8888 -> SDLPixelFormatRGBX32
+    v | v == pixelFormatToWord32 SDLPixelFormatXRGB8888 -> SDLPixelFormatXRGB32
+    v | v == pixelFormatToWord32 SDLPixelFormatBGRX8888 -> SDLPixelFormatBGRX32
+    v | v == pixelFormatToWord32 SDLPixelFormatXBGR8888 -> SDLPixelFormatXBGR32
+#else
+    v | v == pixelFormatToWord32 SDLPixelFormatABGR8888 -> SDLPixelFormatRGBA32
+    v | v == pixelFormatToWord32 SDLPixelFormatBGRA8888 -> SDLPixelFormatARGB32
+    v | v == pixelFormatToWord32 SDLPixelFormatARGB8888 -> SDLPixelFormatBGRA32
+    v | v == pixelFormatToWord32 SDLPixelFormatRGBA8888 -> SDLPixelFormatABGR32
+    v | v == pixelFormatToWord32 SDLPixelFormatXBGR8888 -> SDLPixelFormatRGBX32
+    v | v == pixelFormatToWord32 SDLPixelFormatBGRX8888 -> SDLPixelFormatXRGB32
+    v | v == pixelFormatToWord32 SDLPixelFormatXRGB8888 -> SDLPixelFormatBGRX32
+    v | v == pixelFormatToWord32 SDLPixelFormatRGBX8888 -> SDLPixelFormatXBGR32
+#endif
+    _ -> SDLPixelFormatUnknown  -- Default case for unrecognized values
 
 -- | The numeric value of the pixel format
 pixelFormatToWord32 :: SDLPixelFormat -> Word32

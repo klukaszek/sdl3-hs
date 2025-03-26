@@ -27,16 +27,16 @@ module SDL.Init
   , pattern InitCamera
   
   -- ** Basic Initialization Functions
-  , init
-  , initSubSystem
-  , quitSubSystem
-  , wasInit
-  , quit
+  , sdlInit
+  , sdlInitSubSystem
+  , sdlQuitSubSystem
+  , sdlWasInit
+  , sdlQuit
   
   -- ** Thread Functions
-  , isMainThread
+  , sdlIsMainThread
   , MainThreadCallback
-  , runOnMainThread
+  , sdlRunOnMainThread
   
   -- ** App Result Types
   , AppResult(..)
@@ -46,9 +46,9 @@ module SDL.Init
   , AppQuitFunc
   
   -- ** App Metadata
-  , setAppMetadata
-  , setAppMetadataProperty
-  , getAppMetadataProperty
+  , sdlSetAppMetadata
+  , sdlSetAppMetadataProperty
+  , sdlGetAppMetadataProperty
   
   -- *** App Metadata Properties
   , propAppMetadataName
@@ -170,42 +170,50 @@ wrapAppQuitFunc :: AppQuitFunc -> (Ptr () -> CInt -> IO ())
 wrapAppQuitFunc f appstate result = f appstate (appResultFromC result)
 
 -- | Initialize the SDL library.
-foreign import ccall unsafe "SDL_Init" sdlInit :: Word32 -> IO Bool
+foreign import ccall unsafe "SDL_Init" sdlInit_ :: Word32 -> IO Bool
 
 -- | Initialize the SDL library.
-init :: [InitFlag] -> IO Bool
-init flags = sdlInit (foldr (.|.) 0 flags)
+sdlInit :: [InitFlag] -> IO Bool
+sdlInit flags = sdlInit_ (foldr (.|.) 0 flags)
 
 -- | Initialize specific SDL subsystems.
-foreign import ccall unsafe "SDL_InitSubSystem" sdlInitSubSystem :: Word32 -> IO Bool
+foreign import ccall unsafe "SDL_InitSubSystem" sdlInitSubSystem_ :: Word32 -> IO Bool
 
 -- | Initialize specific SDL subsystems.
-initSubSystem :: [InitFlag] -> IO Bool
-initSubSystem flags = sdlInitSubSystem (foldr (.|.) 0 flags)
+sdlInitSubSystem :: [InitFlag] -> IO Bool
+sdlInitSubSystem flags = sdlInitSubSystem_ (foldr (.|.) 0 flags)
 
 -- | Shut down specific SDL subsystems.
-foreign import ccall unsafe "SDL_QuitSubSystem" sdlQuitSubSystem :: Word32 -> IO ()
+foreign import ccall unsafe "SDL_QuitSubSystem" sdlQuitSubSystem_ :: Word32 -> IO ()
 
 -- | Shut down specific SDL subsystems.
-quitSubSystem :: [InitFlag] -> IO ()
-quitSubSystem flags = sdlQuitSubSystem (foldr (.|.) 0 flags)
+sdlQuitSubSystem :: [InitFlag] -> IO ()
+sdlQuitSubSystem flags = sdlQuitSubSystem_ (foldr (.|.) 0 flags)
 
 -- | Get a mask of the specified subsystems which are currently initialized.
-foreign import ccall unsafe "SDL_WasInit" sdlWasInit :: Word32 -> IO Word32
+foreign import ccall unsafe "SDL_WasInit" sdlWasInit_ :: Word32 -> IO Word32
 
 -- | Get a mask of the specified subsystems which are currently initialized.
-wasInit :: [InitFlag] -> IO [InitFlag]
-wasInit flags = do
-  result <- sdlWasInit (foldr (.|.) 0 flags)
+sdlWasInit :: [InitFlag] -> IO [InitFlag]
+sdlWasInit flags = do
+  result <- sdlWasInit_ (foldr (.|.) 0 flags)
   -- Create list of initialized flags
   return $ filter (\flag -> (result .&. flag) /= 0) 
     [InitAudio, InitVideo, InitJoystick, InitHaptic, InitGamepad, InitEvents, InitSensor, InitCamera]
 
 -- | Clean up all initialized subsystems.
-foreign import ccall unsafe "SDL_Quit" quit :: IO ()
+foreign import ccall unsafe "SDL_Quit" sdlQuit_ :: IO ()
+
+-- | Clean up all initialized subsystems.
+sdlQuit :: IO ()
+sdlQuit = sdlQuit_
 
 -- | Return whether this is the main thread.
-foreign import ccall unsafe "SDL_IsMainThread" isMainThread :: IO Bool
+foreign import ccall unsafe "SDL_IsMainThread" sdlIsMainThread_ :: IO Bool
+
+-- | Return whether this is the main thread.
+sdlIsMainThread :: IO Bool
+sdlIsMainThread = sdlIsMainThread_
 
 -- | Type for main thread callback
 type MainThreadCallback = Ptr () -> IO ()
@@ -215,50 +223,46 @@ foreign import ccall "wrapper"
   makeMainThreadCallback :: MainThreadCallback -> IO (FunPtr MainThreadCallback)
 
 -- | Call a function on the main thread during event processing.
-foreign import ccall safe "SDL_RunOnMainThread"
-  sdlRunOnMainThread :: FunPtr MainThreadCallback -> Ptr () -> Bool -> IO Bool
+foreign import ccall safe "SDL_RunOnMainThread" sdlRunOnMainThread_ :: FunPtr MainThreadCallback -> Ptr () -> Bool -> IO Bool
 
 -- | Call a function on the main thread during event processing.
-runOnMainThread :: MainThreadCallback -> Ptr () -> Bool -> IO Bool
-runOnMainThread callback userdata waitComplete = do
+sdlRunOnMainThread :: MainThreadCallback -> Ptr () -> Bool -> IO Bool
+sdlRunOnMainThread callback userdata waitComplete = do
   callbackPtr <- makeMainThreadCallback callback
-  result <- sdlRunOnMainThread callbackPtr userdata waitComplete
+  result <- sdlRunOnMainThread_ callbackPtr userdata waitComplete
   -- Note: In a real implementation, we would need to free the callback pointer
   -- This is a simplification
   return result
 
 -- | Specify basic metadata about your app.
-foreign import ccall unsafe "SDL_SetAppMetadata"
-  sdlSetAppMetadata :: CString -> CString -> CString -> IO Bool
+foreign import ccall unsafe "SDL_SetAppMetadata" sdlSetAppMetadata_ :: CString -> CString -> CString -> IO Bool
 
 -- | Set basic app metadata
-setAppMetadata :: String -> String -> String -> IO Bool
-setAppMetadata appname appversion appidentifier = 
+sdlSetAppMetadata :: String -> String -> String -> IO Bool
+sdlSetAppMetadata appname appversion appidentifier = 
   withCString appname $ \appnamePtr ->
   withCString appversion $ \appversionPtr ->
   withCString appidentifier $ \appidentifierPtr ->
-    sdlSetAppMetadata appnamePtr appversionPtr appidentifierPtr
+    sdlSetAppMetadata_ appnamePtr appversionPtr appidentifierPtr
 
 -- | Specify metadata about your app through a set of properties.
-foreign import ccall unsafe "SDL_SetAppMetadataProperty"
-  sdlSetAppMetadataProperty :: CString -> CString -> IO Bool
+foreign import ccall unsafe "SDL_SetAppMetadataProperty" sdlSetAppMetadataProperty_ :: CString -> CString -> IO Bool
 
 -- | Set an app metadata property
-setAppMetadataProperty :: String -> String -> IO Bool
-setAppMetadataProperty name value = 
+sdlSetAppMetadataProperty :: String -> String -> IO Bool
+sdlSetAppMetadataProperty name value = 
   withCString name $ \namePtr ->
   withCString value $ \valuePtr ->
-    sdlSetAppMetadataProperty namePtr valuePtr
+    sdlSetAppMetadataProperty_ namePtr valuePtr
 
 -- | Get metadata about your app.
-foreign import ccall unsafe "SDL_GetAppMetadataProperty"
-  sdlGetAppMetadataProperty :: CString -> IO CString
+foreign import ccall unsafe "SDL_GetAppMetadataProperty" sdlGetAppMetadataProperty_ :: CString -> IO CString
 
 -- | Get an app metadata property
-getAppMetadataProperty :: String -> IO (Maybe String)
-getAppMetadataProperty name =
+sdlGetAppMetadataProperty :: String -> IO (Maybe String)
+sdlGetAppMetadataProperty name =
   withCString name $ \namePtr -> do
-    valuePtr <- sdlGetAppMetadataProperty namePtr
+    valuePtr <- sdlGetAppMetadataProperty_ namePtr
     if valuePtr == nullPtr
       then return Nothing
       else do
