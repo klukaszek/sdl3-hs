@@ -21,7 +21,7 @@
 - [ ] SDL3/SDL_guid.h
 - [ ] SDL3/SDL_haptic.h
 - [ ] SDL3/SDL_hidapi.h
-- [ ] SDL3/SDL_hints.h
+- [x] SDL3/SDL_hints.h
 - [x] SDL3/SDL_init.h
 - [x] SDL3/SDL_iostream.h
 - [ ] SDL3/SDL_joystick.h

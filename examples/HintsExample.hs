@@ -32,9 +32,6 @@ main = do
       err <- sdlGetError
       putStrLn $ "Error: " ++ err
 
-  -- Query the hint
-  mHintValue <- sdlGetHint sdlHintVideoAllowScreensaver
-  putStrLn $ "SDL_VIDEO_ALLOW_SCREENSAVER value: " ++ maybe "Not set" id mHintValue
 
   -- Initialize SDL with video and events subsystems
   initSuccess <- sdlInit [InitVideo]
@@ -47,21 +44,9 @@ main = do
   putStrLn "Initialized subsystems:"
   mapM_ printSubsystem initializedSystems
 
-  putStrLn "Checking power state..."
-  alloca $ \secondsPtr ->
-    alloca $ \percentPtr -> do
-      mState <- sdlGetPowerInfo (Just secondsPtr) (Just percentPtr)
-      case mState of
-        Nothing -> do
-          putStrLn "Failed to get power info!"
-          err <- sdlGetError
-          putStrLn $ "Error: " ++ err
-        Just state -> do
-          seconds <- peek secondsPtr
-          percent <- peek percentPtr
-          putStrLn $ "Power State: " ++ show state
-          putStrLn $ "Seconds remaining: " ++ (if seconds == -1 then "Unknown" else show seconds)
-          putStrLn $ "Percent remaining: " ++ (if percent == -1 then "Unknown" else show percent ++ "%")
+  -- Query the hint
+  mHintValue <- sdlGetHint sdlHintVideoAllowScreensaver
+  putStrLn $ "SDL_VIDEO_ALLOW_SCREENSAVER value: " ++ maybe "Not set" id mHintValue
 
   sdlQuit
 
