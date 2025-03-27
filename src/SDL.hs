@@ -16,6 +16,7 @@ module SDL
     module SDL.Hints,
     module SDL.IOStream,
     module SDL.Init,
+    module SDL.Mouse,
     module SDL.Mutex,
     module SDL.Pixels,
     module SDL.Platform,
@@ -52,6 +53,7 @@ import SDL.Filesystem
 import SDL.Hints
 import SDL.IOStream
 import SDL.Init
+import SDL.Mouse
 import SDL.Mutex
 import SDL.Pixels
 import SDL.Platform

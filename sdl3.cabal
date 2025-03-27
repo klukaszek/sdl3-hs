@@ -78,6 +78,7 @@ library
         SDL.Hints
         SDL.IOStream
         SDL.Init
+        SDL.Mouse
         SDL.Mutex
         SDL.Pixels
         SDL.Platform
