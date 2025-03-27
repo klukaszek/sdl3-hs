@@ -75,9 +75,11 @@ library
         SDL.Endian
         SDL.Error
         SDL.Filesystem
+        SDL.Hidapi
         SDL.Hints
         SDL.IOStream
         SDL.Init
+        SDL.Misc
         SDL.Mouse
         SDL.Mutex
         SDL.Pixels

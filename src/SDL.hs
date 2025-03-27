@@ -13,9 +13,11 @@ module SDL
     module SDL.Endian,
     module SDL.Error,
     module SDL.Filesystem,
+    module SDL.Hidapi,
     module SDL.Hints,
     module SDL.IOStream,
     module SDL.Init,
+    module SDL.Misc,
     module SDL.Mouse,
     module SDL.Mutex,
     module SDL.Pixels,
@@ -50,9 +52,11 @@ import SDL.Dialog
 import SDL.Endian
 import SDL.Error
 import SDL.Filesystem
+import SDL.Hidapi
 import SDL.Hints
 import SDL.IOStream
 import SDL.Init
+import SDL.Misc
 import SDL.Mouse
 import SDL.Mutex
 import SDL.Pixels

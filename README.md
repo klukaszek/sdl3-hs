@@ -20,7 +20,7 @@
 - [ ] SDL3/SDL_gpu.h
 - [ ] SDL3/SDL_guid.h
 - [ ] SDL3/SDL_haptic.h
-- [ ] SDL3/SDL_hidapi.h
+- [x] SDL3/SDL_hidapi.h
 - [x] SDL3/SDL_hints.h
 - [x] SDL3/SDL_init.h
 - [x] SDL3/SDL_iostream.h
@@ -32,8 +32,8 @@
 - [ ] SDL3/SDL_log.h
 - [ ] SDL3/SDL_messagebox.h
 - [ ] SDL3/SDL_metal.h
-- [ ] SDL3/SDL_misc.h
-- [ ] SDL3/SDL_mouse.h
+- [x] SDL3/SDL_misc.h
+- [x] SDL3/SDL_mouse.h
 - [x] SDL3/SDL_mutex.h
 - [ ] SDL3/SDL_pen.h
 - [x] SDL3/SDL_pixels.h
