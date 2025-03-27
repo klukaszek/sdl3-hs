@@ -4,9 +4,8 @@
 {-|
 Module      : SDL.Filesystem
 Description : Filesystem manipulation functions for SDL3.
-Copyright   : (c) Your Name, 2025
+Copyright   : (c) Kyle Lukaszek, 2025
 License     : BSD3
-Maintainer  : your@email.com
 
 This module provides Haskell bindings to the SDL3 filesystem functionality.
 -}

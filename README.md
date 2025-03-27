@@ -39,7 +39,7 @@
 - [x] SDL3/SDL_pixels.h
 - [ ] SDL3/SDL_platform.h
 - [ ] SDL3/SDL_power.h
-- [ ] SDL3/SDL_process.h
+- [x] SDL3/SDL_process.h
 - [x] SDL3/SDL_properties.h
 - [x] SDL3/SDL_rect.h
 - [ ] SDL3/SDL_render.h

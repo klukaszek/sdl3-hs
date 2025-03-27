@@ -75,6 +75,7 @@ library
         SDL.Init
         SDL.Mutex
         SDL.Pixels
+        SDL.Process
         SDL.Properties
         SDL.Rect
         SDL.Stdinc
@@ -125,6 +126,14 @@ executable filesystem-example
 
 executable init-example
     main-is: InitExample.hs
+    build-depends:
+        base,
+        sdl3
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
+executable process-example
+    main-is: ProcessExample.hs
     build-depends:
         base,
         sdl3
