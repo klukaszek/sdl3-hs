@@ -7,6 +7,7 @@ module SDL
     module SDL.Bits,
     module SDL.BlendMode,
     module SDL.Camera,
+    module SDL.Clipboard,
     module SDL.Endian,
     module SDL.Error,
     module SDL.Filesystem,
@@ -39,6 +40,7 @@ import SDL.Atomic
 import SDL.Bits
 import SDL.BlendMode
 import SDL.Camera
+import SDL.Clipboard
 import SDL.Endian
 import SDL.Error
 import SDL.Filesystem

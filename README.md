@@ -9,7 +9,7 @@
 - [x] SDL3/SDL_bits.h
 - [x] SDL3/SDL_blendmode.h
 - [x] SDL3/SDL_camera.h
-- [ ] SDL3/SDL_clipboard.h
+- [x] SDL3/SDL_clipboard.h
 - [ ] SDL3/SDL_cpuinfo.h
 - [ ] SDL3/SDL_dialog.h
 - [x] SDL3/SDL_endian.h

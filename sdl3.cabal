@@ -69,6 +69,7 @@ library
         SDL.Bits
         SDL.BlendMode
         SDL.Camera
+        SDL.Clipboard
         SDL.Endian
         SDL.Error
         SDL.Filesystem
@@ -100,8 +101,10 @@ library
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.17.2.1
-
+    build-depends:
+        base ^>=4.17.2.1,
+        bytestring
+        
     -- Directories containing source files.
     hs-source-dirs:   src
 
@@ -122,6 +125,14 @@ library
 
 executable camera-example
     main-is: CameraExample.hs
+    build-depends:
+        base,
+        sdl3
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
+executable clipboard-example
+    main-is: ClipboardExample.hs
     build-depends:
         base,
         sdl3
