@@ -13,10 +13,12 @@ module SDL
     module SDL.Init,
     module SDL.Mutex,
     module SDL.Pixels,
+    module SDL.Power,
     module SDL.Process,
     module SDL.Properties,
     module SDL.Rect,
     module SDL.Stdinc,
+    module SDL.Storage,
     module SDL.Surface,
     module SDL.System,
     module SDL.Thread,
@@ -41,10 +43,12 @@ import SDL.IOStream
 import SDL.Init
 import SDL.Mutex
 import SDL.Pixels
+import SDL.Power
 import SDL.Process
 import SDL.Properties
 import SDL.Rect
 import SDL.Stdinc
+import SDL.Storage
 import SDL.Surface
 import SDL.System
 import SDL.Thread

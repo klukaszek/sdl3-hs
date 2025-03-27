@@ -75,10 +75,12 @@ library
         SDL.Init
         SDL.Mutex
         SDL.Pixels
+        SDL.Power
         SDL.Process
         SDL.Properties
         SDL.Rect
         SDL.Stdinc
+        SDL.Storage
         SDL.Surface
         SDL.System
         SDL.Thread
@@ -132,6 +134,14 @@ executable init-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
+executable power-example
+    main-is: PowerExample.hs
+    build-depends:
+        base,
+        sdl3
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
 executable process-example
     main-is: ProcessExample.hs
     build-depends:
@@ -146,6 +156,15 @@ executable rect-example
         base,
         sdl3
     hs-source-dirs:   examples
+    default-language: Haskell2010
+
+executable storage-example
+    main-is: StorageExample.hs
+    build-depends:
+        base,
+        sdl3
+
+    hs-source-dirs:    examples
     default-language: Haskell2010
     
 executable system-example
