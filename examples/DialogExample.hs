@@ -102,7 +102,18 @@ main = do
         nullPtr
         props
 
-      -- Cleanup
+      -- -- Event loop to keep program alive
+      -- let eventLoop = do
+      --       sdlPumpEvents  -- Process events
+      --       threadDelay 100000  -- Small delay to prevent CPU spinning
+      --       -- You might want to add a way to exit the loop
+      --       -- For example, checking for a quit event or after all dialogs are done
+      --       eventLoop
+
+      -- -- Run the event loop
+      -- putStrLn "Running event loop... (Press Ctrl+C to exit)"
+      -- eventLoop `finally` do
+      --   -- Cleanup
       sdlDestroyProperties props
       sdlDestroyWindow window
       sdlQuit

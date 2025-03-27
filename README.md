@@ -37,7 +37,7 @@
 - [x] SDL3/SDL_mutex.h
 - [ ] SDL3/SDL_pen.h
 - [x] SDL3/SDL_pixels.h
-- [ ] SDL3/SDL_platform.h
+- [x] SDL3/SDL_platform.h
 - [x] SDL3/SDL_power.h
 - [x] SDL3/SDL_process.h
 - [x] SDL3/SDL_properties.h

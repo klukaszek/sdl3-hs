@@ -80,6 +80,7 @@ library
         SDL.Init
         SDL.Mutex
         SDL.Pixels
+        SDL.Platform
         SDL.Power
         SDL.Process
         SDL.Properties
@@ -175,6 +176,14 @@ executable hints-example
     
 executable init-example
     main-is: InitExample.hs
+    build-depends:
+        base,
+        sdl3
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
+executable platform-example
+    main-is: PlatformExample.hs
     build-depends:
         base,
         sdl3

@@ -18,6 +18,7 @@ module SDL
     module SDL.Init,
     module SDL.Mutex,
     module SDL.Pixels,
+    module SDL.Platform,
     module SDL.Power,
     module SDL.Process,
     module SDL.Properties,
@@ -53,6 +54,7 @@ import SDL.IOStream
 import SDL.Init
 import SDL.Mutex
 import SDL.Pixels
+import SDL.Platform
 import SDL.Power
 import SDL.Process
 import SDL.Properties
