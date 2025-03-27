@@ -70,6 +70,7 @@ library
         SDL.BlendMode
         SDL.Camera
         SDL.Clipboard
+        SDL.CPUInfo
         SDL.Endian
         SDL.Error
         SDL.Filesystem
@@ -133,6 +134,14 @@ executable camera-example
 
 executable clipboard-example
     main-is: ClipboardExample.hs
+    build-depends:
+        base,
+        sdl3
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
+executable cpu-info-example
+    main-is: CPUInfoExample.hs
     build-depends:
         base,
         sdl3
