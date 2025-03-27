@@ -18,7 +18,19 @@ module SDL.Video
     SDLWindow(..),
     SDLDisplayMode(..),
     SDLDisplayOrientation(..),
+    
     SDLWindowFlags(..),
+    sdlWindowFullscreen,
+    sdlWindowOpenGL,
+    sdlWindowHidden,
+    sdlWindowBorderless,
+    sdlWindowResizable,
+    sdlWindowMinimized,
+    sdlWindowMaximized,
+    sdlWindowMouseGrabbed,
+    sdlWindowHighPixelDensity,
+    sdlWindowAlwaysOnTop,
+
     SDLFlashOperation(..),
     SDLGLContext,
     SDLSystemTheme(..),
@@ -65,7 +77,7 @@ import SDL.Rect (SDLRect(..))
 import SDL.Pixels (SDLPixelFormat(..))
 import SDL.Properties (SDLPropertiesID(..))
 import SDL.Surface (SDLSurface)
-import Data.Bits (Bits)
+import Data.Bits
 
 -- | A unique ID for a display.
 newtype SDLDisplayID = SDLDisplayID { unSDLDisplayID :: CUInt }
@@ -76,7 +88,7 @@ newtype SDLWindowID = SDLWindowID { unSDLWindowID :: CUInt }
   deriving (Show, Eq, Ord)
 
 -- | An opaque handle to an SDL window.
-newtype SDLWindow = SDLWindow (Ptr SDLWindow)
+newtype SDLWindow = SDLWindow { unSDLWindow :: Ptr SDLWindow }
   deriving (Show, Eq)
 
 -- | System theme enumeration.
@@ -237,9 +249,10 @@ sdlGetDisplayBounds (SDLDisplayID did) = alloca $ \rectPtr -> do
 foreign import ccall "SDL_CreateWindow"
   sdlCreateWindow_c :: CString -> CInt -> CInt -> CUInt -> IO (Ptr SDLWindow)
 
-sdlCreateWindow :: String -> Int -> Int -> SDLWindowFlags -> IO (Maybe SDLWindow)
-sdlCreateWindow title w h (SDLWindowFlags flags) = withCString title $ \cTitle -> do
-  ptr <- sdlCreateWindow_c cTitle (fromIntegral w) (fromIntegral h) flags
+sdlCreateWindow :: String -> Int -> Int -> [SDLWindowFlags] -> IO (Maybe SDLWindow)
+sdlCreateWindow title w h flags = withCString title $ \cTitle -> do
+  let combinedFlags = foldr (.|.) 0 (map unSDLWindowFlags flags) -- combine CUInt flags using bitwise AND.
+  ptr <- sdlCreateWindow_c cTitle (fromIntegral w) (fromIntegral h) combinedFlags
   return $ if ptr == nullPtr then Nothing else Just (SDLWindow ptr)
 
 -- | Destroy a window.
