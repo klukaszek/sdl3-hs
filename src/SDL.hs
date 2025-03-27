@@ -6,6 +6,7 @@ module SDL
     module SDL.Atomic,
     module SDL.Bits,
     module SDL.BlendMode,
+    module SDL.Camera,
     module SDL.Endian,
     module SDL.Error,
     module SDL.Filesystem,
@@ -37,6 +38,7 @@ import SDL.AsyncIO
 import SDL.Atomic
 import SDL.Bits
 import SDL.BlendMode
+import SDL.Camera
 import SDL.Endian
 import SDL.Error
 import SDL.Filesystem

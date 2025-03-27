@@ -68,6 +68,7 @@ library
         SDL.Atomic
         SDL.Bits
         SDL.BlendMode
+        SDL.Camera
         SDL.Endian
         SDL.Error
         SDL.Filesystem
@@ -118,6 +119,14 @@ library
     default-language: Haskell2010
 
 -- ** Examples:
+
+executable camera-example
+    main-is: CameraExample.hs
+    build-depends:
+        base,
+        sdl3
+    hs-source-dirs:   examples
+    default-language: Haskell2010
 
 executable filesystem-example
     main-is: FilesystemExample.hs

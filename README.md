@@ -8,7 +8,7 @@
 - [ ] SDL3/SDL_audio.h
 - [x] SDL3/SDL_bits.h
 - [x] SDL3/SDL_blendmode.h
-- [ ] SDL3/SDL_camera.h
+- [x] SDL3/SDL_camera.h
 - [ ] SDL3/SDL_clipboard.h
 - [ ] SDL3/SDL_cpuinfo.h
 - [ ] SDL3/SDL_dialog.h

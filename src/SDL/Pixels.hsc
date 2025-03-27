@@ -83,6 +83,7 @@ module SDL.Pixels
   , sdlIsColorspaceMatrixBT2020NCL
   , sdlIsColorspaceLimitedRange
   , sdlIsColorspaceFullRange
+  , colorspaceToWord32
     
     -- * Color Structures
   , SDLColor(..)
