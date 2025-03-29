@@ -48,6 +48,8 @@ module SDL.Stdinc
   , sdlMinTime
   , sdlFltEpsilon
   , sdlInvalidUnicodeCodepoint
+  , sdlTrue
+  , sdlFalse
   
   -- * Memory Management
   , malloc
@@ -362,6 +364,13 @@ sdlPiD = 3.141592653589793238462643383279502884
 
 sdlPiF :: CFloat
 sdlPiF = 3.141592653589793238462643383279502884
+
+-- True / False
+sdlTrue :: SDLBool
+sdlTrue = 1
+
+sdlFalse :: SDLBool
+sdlFalse = 0
 
 -- Memory Management
 foreign import ccall unsafe "SDL_malloc" malloc :: CSize -> IO (Ptr a)

@@ -27,6 +27,7 @@ module SDL
     module SDL.Process,
     module SDL.Properties,
     module SDL.Rect,
+    module SDL.Sensor,
     module SDL.Stdinc,
     module SDL.Storage,
     module SDL.Surface,
@@ -67,6 +68,7 @@ import SDL.Power
 import SDL.Process
 import SDL.Properties
 import SDL.Rect
+import SDL.Sensor
 import SDL.Stdinc
 import SDL.Storage
 import SDL.Surface

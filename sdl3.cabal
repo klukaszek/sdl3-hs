@@ -93,6 +93,7 @@ library
         SDL.Process
         SDL.Properties
         SDL.Rect
+        SDL.Sensor
         SDL.Stdinc
         SDL.Storage
         SDL.Surface
@@ -235,6 +236,15 @@ executable rect-example
         base,
         sdl3
     hs-source-dirs:   examples
+    default-language: Haskell2010
+
+executable sensor-example
+    main-is: SensorExample.hs
+    build-depends:
+        base,
+        sdl3
+
+    hs-source-dirs:    examples
     default-language: Haskell2010
 
 executable storage-example

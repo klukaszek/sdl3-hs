@@ -44,7 +44,7 @@
 - [x] SDL3/SDL_rect.h
 - [ ] SDL3/SDL_render.h
 - [ ] SDL3/SDL_scancode.h
-- [ ] SDL3/SDL_sensor.h
+- [x] SDL3/SDL_sensor.h
 - [x] SDL3/SDL_storage.h
 - [x] SDL3/SDL_surface.h
 - [ ] SDL3/SDL_system.h
