@@ -8,17 +8,17 @@ import Foreign.Ptr (nullPtr)
 main :: IO ()
 main = do
   -- Check compiled version
-  putStrLn $ "Compiled SDL Version: " ++ show sdlVersion
+  sdlLog $ "Compiled SDL Version: " ++ show sdlVersion
   when (sdlVersionAtLeast 3 2 0) $
-    putStrLn "Compiled with at least SDL 3.2.0"
+    sdlLog "Compiled with at least SDL 3.2.0"
 
   -- Get linked version
   linkedVersion <- sdlGetVersion
-  putStrLn $ "Linked SDL Version: " ++ show linkedVersion
+  sdlLog $ "Linked SDL Version: " ++ show linkedVersion
 
   -- Get revision
   revision <- sdlGetRevision
-  putStrLn $ "SDL Revision: " ++ revision
+  sdlLog $ "SDL Revision: " ++ revision
 
   -- Set some basic metadata about our application
   appMetadataSuccess <- sdlSetAppMetadata 
@@ -27,7 +27,7 @@ main = do
     "com.example.sdlapp"
   
   unless appMetadataSuccess $ do
-    putStrLn "Failed to set app metadata!"
+    sdlLog "Failed to set app metadata!"
   
   -- Add some additional metadata
   _ <- sdlSetAppMetadataProperty propAppMetadataCreator "Kyle Lukaszek"
@@ -36,48 +36,48 @@ main = do
   
   -- Print some metadata to verify it was set
   name <- sdlGetAppMetadataProperty propAppMetadataName
-  putStrLn $ "App Name: " ++ maybe "Not set" id name
+  sdlLog $ "App Name: " ++ maybe "Not set" id name
   
   -- Initialize SDL with video and events subsystems
   initSuccess <- sdlInit [InitVideo]
   
   unless initSuccess $ do
-    putStrLn "Failed to initialize SDL!"
+    sdlLog "Failed to initialize SDL!"
     exitFailure
   
   -- Check what subsystems are initialized
   initializedSystems <- sdlWasInit []
-  putStrLn "Initialized subsystems:"
+  sdlLog "Initialized subsystems:"
   mapM_ printSubsystem initializedSystems
   
-  putStrLn "Would create window here..."
-  putStrLn "Application running..."
+  sdlLog "Would create window here..."
+  sdlLog "Application running..."
   
   -- For the main thread callback, let's use a simpler callback
   -- that doesn't try to print to avoid potential issues
   isMain <- sdlIsMainThread
-  putStrLn $ "Are we on the main thread? " ++ show isMain
+  sdlLog $ "Are we on the main thread? " ++ show isMain
   
   -- If we're already on the main thread, running on main thread is redundant
   -- but we'll do it for demonstration
   if isMain
-    then putStrLn "Already on main thread, calling directly:"
-    else putStrLn "Running callback on main thread:"
+    then sdlLog "Already on main thread, calling directly:"
+    else sdlLog "Running callback on main thread:"
   
   -- Use the simpler callback that doesn't do IO operations
   _ <- sdlRunOnMainThread (\_ -> pure ()) nullPtr True
-  putStrLn "Callback completed"
+  sdlLog "Callback completed"
   
   -- When done, clean up and quit
-  putStrLn "Shutting down SDL..."
+  sdlLog "Shutting down SDL..."
   sdlQuit
  
-  putStrLn "Application terminated successfully"
+  sdlLog "Application terminated successfully"
   exitSuccess
 
 -- Helper function to print subsystem names
 printSubsystem :: InitFlag -> IO ()
-printSubsystem flag = putStrLn $ "  - " ++ case flag of
+printSubsystem flag = sdlLog $ "  - " ++ case flag of
   InitAudio    -> "Audio"
   InitVideo    -> "Video"
   InitJoystick -> "Joystick"

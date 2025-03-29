@@ -1,4 +1,4 @@
-import SDL.CPUInfo
+import SDL
 
 -- Really simple test.
 
@@ -7,6 +7,6 @@ main = do
   cores <- sdlGetNumLogicalCPUCores
   hasSSE <- sdlHasSSE
   ram <- sdlGetSystemRAM
-  putStrLn $ "System has " ++ show cores ++ " logical cores"
-  putStrLn $ "SSE support: " ++ show hasSSE
-  putStrLn $ "RAM: " ++ show ram ++ " MiB"
+  sdlLog $ "System has " ++ show cores ++ " logical cores"
+  sdlLog $ "SSE support: " ++ show hasSSE
+  sdlLog $ "RAM: " ++ show ram ++ " MiB"

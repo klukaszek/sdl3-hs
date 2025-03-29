@@ -10,50 +10,50 @@ import System.Exit (exitFailure, exitSuccess)
 main :: IO ()
 main = do
   -- Check compiled version
-  putStrLn $ "Compiled SDL Version: " ++ show sdlVersion
+  sdlLog $ "Compiled SDL Version: " ++ show sdlVersion
   when (sdlVersionAtLeast 3 2 0) $
-    putStrLn "Compiled with at least SDL 3.2.0"
+    sdlLog "Compiled with at least SDL 3.2.0"
 
   -- Get linked version
   linkedVersion <- sdlGetVersion
-  putStrLn $ "Linked SDL Version: " ++ show linkedVersion
+  sdlLog $ "Linked SDL Version: " ++ show linkedVersion
 
   -- Get revision
   revision <- sdlGetRevision
-  putStrLn $ "SDL Revision: " ++ revision
+  sdlLog $ "SDL Revision: " ++ revision
 
   -- Set a hint before initialization
-  putStrLn "Setting hint SDL_VIDEO_ALLOW_SCREENSAVER to enable screensaver..."
+  sdlLog "Setting hint SDL_VIDEO_ALLOW_SCREENSAVER to enable screensaver..."
   success <- sdlSetHint sdlHintVideoAllowScreensaver "1"
   if success
-    then putStrLn "Hint set successfully."
+    then sdlLog "Hint set successfully."
     else do
-      putStrLn "Failed to set hint!"
+      sdlLog "Failed to set hint!"
       err <- sdlGetError
-      putStrLn $ "Error: " ++ err
+      sdlLog $ "Error: " ++ err
 
 
   -- Initialize SDL with video and events subsystems
   initSuccess <- sdlInit [InitVideo]
   unless initSuccess $ do
-    putStrLn "Failed to initialize SDL!"
+    sdlLog "Failed to initialize SDL!"
     exitFailure
 
   -- Check initialized subsystems
   initializedSystems <- sdlWasInit []
-  putStrLn "Initialized subsystems:"
+  sdlLog "Initialized subsystems:"
   mapM_ printSubsystem initializedSystems
 
   -- Query the hint
   mHintValue <- sdlGetHint sdlHintVideoAllowScreensaver
-  putStrLn $ "SDL_VIDEO_ALLOW_SCREENSAVER value: " ++ maybe "Not set" id mHintValue
+  sdlLog $ "SDL_VIDEO_ALLOW_SCREENSAVER value: " ++ maybe "Not set" id mHintValue
 
   sdlQuit
 
 
 -- Helper function to print subsystem names
 printSubsystem :: InitFlag -> IO ()
-printSubsystem flag = putStrLn $ "  - " ++ case flag of
+printSubsystem flag = sdlLog $ "  - " ++ case flag of
   InitAudio    -> "Audio"
   InitVideo    -> "Video"
   InitJoystick -> "Joystick"

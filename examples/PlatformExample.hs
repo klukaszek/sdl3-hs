@@ -6,14 +6,14 @@ import Control.Monad (when)
 main :: IO ()
 main = do
   platform <- sdlGetPlatform
-  putStrLn $ "Running on platform: " ++ platform
+  sdlLog $ "Running on platform: " ++ platform
   
   -- Check compile-time platform constants
   when sdlPlatformWindows $
-    putStrLn "Compiled for Windows"
+    sdlLog "Compiled for Windows"
   
   when sdlPlatformLinux $
-    putStrLn "Compiled for Linux"
+    sdlLog "Compiled for Linux"
   
   when sdlPlatformMacOS $
-    putStrLn "Compiled for macOS"
+    sdlLog "Compiled for macOS"

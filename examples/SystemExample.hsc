@@ -1,17 +1,17 @@
-import SDL.System
+import SDL
 
 main :: IO ()
 main = do
 #ifdef SDL_PLATFORM_ANDROID
   -- Check if running on a Chromebook
   isChromebook <- sdlIsChromebook
-  putStrLn $ "Running on Chromebook: " ++ show isChromebook
+  sdlLog $ "Running on Chromebook: " ++ show isChromebook
 
   -- Show a toast notification
   success <- sdlShowAndroidToast "Hello from Haskell!" 1 (-1) 0 0
-  putStrLn $ "Toast shown: " ++ show success
+  sdlLog $ "Toast shown: " ++ show success
 #endif
 
   -- Check sandbox environment
   sandbox <- sdlGetSandbox
-  putStrLn $ "Sandbox: " ++ show sandbox
+  sdlLog $ "Sandbox: " ++ show sandbox

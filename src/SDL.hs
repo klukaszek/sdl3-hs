@@ -18,6 +18,7 @@ module SDL
     module SDL.Hints,
     module SDL.IOStream,
     module SDL.Init,
+    module SDL.Log,
     module SDL.MessageBox,
     module SDL.Metal,
     module SDL.Misc,
@@ -62,6 +63,7 @@ import SDL.Hidapi
 import SDL.Hints
 import SDL.IOStream
 import SDL.Init
+import SDL.Log
 import SDL.MessageBox
 import SDL.Metal
 import SDL.Misc

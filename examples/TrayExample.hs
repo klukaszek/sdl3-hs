@@ -12,38 +12,38 @@ main = do
   
   unless initSuccess $ do
     err <- sdlGetError
-    putStrLn $ "Failed to initialize SDL: " ++ err
+    sdlLog $ "Failed to initialize SDL: " ++ err
     exitFailure
   
   -- Check what subsystems are initialized
   initializedSystems <- sdlWasInit []
-  putStrLn "Initialized subsystems:"
+  sdlLog "Initialized subsystems:"
   mapM_ printSubsystem initializedSystems
 
   mSurfacePtr <- sdlLoadBMP "assets/ravioli.bmp"
   case mSurfacePtr of
     Nothing -> do
       err <- sdlGetError
-      putStrLn $ "Failed to load ravioli.bmp: " ++ err
+      sdlLog $ "Failed to load ravioli.bmp: " ++ err
       sdlQuit
       exitFailure
     Just surfacePtr -> do
       -- Inspect the surface
       surface <- peek surfacePtr
-      putStrLn $ "Surface details: " ++ show surface
+      sdlLog $ "Surface details: " ++ show surface
       
       mTray <- sdlCreateTray (Just surfacePtr) (Just "My Tray Icon")
       case mTray of
         Nothing -> do
           err <- sdlGetError
-          putStrLn $ "Failed to create tray: " ++ err
+          sdlLog $ "Failed to create tray: " ++ err
           sdlDestroySurface surfacePtr
           sdlQuit
           exitFailure
         Just tray -> do
           sdlSetTrayIcon tray (Just surfacePtr)
           -- Keep the program running to observe the tray
-          putStrLn "Tray created. Press Enter to exit..."
+          sdlLog "Tray created. Press Enter to exit..."
           _ <- getLine
           sdlDestroyTray tray
           sdlDestroySurface surfacePtr
@@ -53,7 +53,7 @@ main = do
 
 -- Helper function to print subsystem names
 printSubsystem :: InitFlag -> IO ()
-printSubsystem flag = putStrLn $ "  - " ++ case flag of
+printSubsystem flag = sdlLog $ "  - " ++ case flag of
   InitAudio    -> "Audio"
   InitVideo    -> "Video"
   InitJoystick -> "Joystick"

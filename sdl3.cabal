@@ -84,6 +84,7 @@ library
         SDL.Hints
         SDL.IOStream
         SDL.Init
+        SDL.Log
         SDL.MessageBox
         SDL.Metal
         SDL.Misc

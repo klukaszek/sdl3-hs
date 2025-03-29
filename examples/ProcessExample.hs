@@ -1,7 +1,6 @@
 module Main where
 
-import SDL.Init
-import SDL.Process
+import SDL
 import Control.Monad (unless)
 import System.Exit (exitFailure, exitSuccess)
 
@@ -10,7 +9,7 @@ main = do
   -- Initialize SDL
   initSuccess <- sdlInit []
   unless initSuccess $ do
-    putStrLn "Failed to initialize SDL!"
+    sdlLog "Failed to initialize SDL!"
     exitFailure
 
   -- Create a process to run 'ls' (or 'dir' on Windows)
@@ -18,22 +17,22 @@ main = do
   process <- sdlCreateProcess args True  -- Pipe stdio
   case process of
     Nothing -> do
-      putStrLn "Failed to create process!"
+      sdlLog "Failed to create process!"
       sdlQuit
       exitFailure
     Just proc -> do
       -- Read process output
       output <- sdlReadProcess proc
       case output of
-        Nothing -> putStrLn "Failed to read process output!"
+        Nothing -> sdlLog "Failed to read process output!"
         Just (out, exitcode) -> do
-          putStrLn $ "Process output:\n" ++ out
-          putStrLn $ "Exit code: " ++ show exitcode
+          sdlLog $ "Process output:\n" ++ out
+          sdlLog $ "Exit code: " ++ show exitcode
 
       -- Clean up
       sdlDestroyProcess proc
 
   -- Shutdown SDL
   sdlQuit
-  putStrLn "Application terminated successfully"
+  sdlLog "Application terminated successfully"
   exitSuccess

@@ -10,7 +10,7 @@ main = do
   -- Initialize SDL
   initSuccess <- sdlInit [InitVideo]
   unless initSuccess $ do
-    putStrLn "Failed to initialize SDL!"
+    sdlLog "Failed to initialize SDL!"
     exitFailure
 
   -- Create a window for our dialog
@@ -20,28 +20,28 @@ main = do
     600 
     [sdlWindowResizable]
 
-  putStrLn "SDL Initialized. Testing message boxes..."
+  sdlLog "SDL Initialized. Testing message boxes..."
 
   -- Simple information message box
   res1 <- showMessageBox "Info" "This is an information message box." maybeWindow [SDLMessageBoxInformation]
-  putStrLn $ "User clicked: " ++ show res1
+  sdlLog $ "User clicked: " ++ show res1
 
   -- Warning message box
   res2 <- showMessageBox "Warning" "This is a warning message box." maybeWindow [SDLMessageBoxWarning]
-  putStrLn $ "User clicked: " ++ show res2
+  sdlLog $ "User clicked: " ++ show res2
 
   -- Error message box
   res3 <- showMessageBox "Error" "This is an error message box." maybeWindow [SDLMessageBoxError]
-  putStrLn $ "User clicked: " ++ show res3
+  sdlLog $ "User clicked: " ++ show res3
 
   -- Message box with custom buttons
   res4 <- showCustomMessageBox "Custom" "Choose an option:" maybeWindow [("OK", 1), ("Cancel", 2)]
-  putStrLn $ "User clicked: " ++ show res4
+  sdlLog $ "User clicked: " ++ show res4
 
   -- Shutdown SDL
-  putStrLn "Shutting down SDL..."
+  sdlLog "Shutting down SDL..."
   sdlQuit
-  putStrLn "Test completed."
+  sdlLog "Test completed."
   exitSuccess
 
 -- Function to show a standard message box

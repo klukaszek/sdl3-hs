@@ -14,7 +14,7 @@ main = do
   -- Initialize SDL
   initSuccess <- sdlInit [InitVideo]
   unless initSuccess $ do
-    putStrLn "Failed to initialize SDL!"
+    sdlLog "Failed to initialize SDL!"
     exitFailure
 
   -- Create a window for our dialog
@@ -26,7 +26,7 @@ main = do
 
   case maybeWindow of
     Nothing -> do
-      putStrLn "Failed to create window!"
+      sdlLog "Failed to create window!"
       sdlQuit
       exitFailure
     Just window -> do
@@ -46,19 +46,19 @@ main = do
       let dialogCallback :: Ptr () -> Ptr CString -> CInt -> IO ()
           dialogCallback userdata filelist filterIndex = do
             if filelist == nullPtr 
-              then putStrLn "Dialog was cancelled or error occurred"
+              then sdlLog "Dialog was cancelled or error occurred"
               else do
                 -- Get the list of files
                 files <- peekArray0 nullPtr filelist
                 fileNames <- mapM peekCString files
-                putStrLn $ "Selected files (filter index " ++ show filterIndex ++ "):"
-                mapM_ (putStrLn . ("  - " ++)) fileNames
+                sdlLog $ "Selected files (filter index " ++ show filterIndex ++ "):"
+                mapM_ (sdlLog . ("  - " ++)) fileNames
 
       -- Convert callback to stable pointer for C
       callbackPtr <- wrapDialogCallback dialogCallback
 
       -- Show different types of dialogs
-      putStrLn "\nShowing Open File Dialog..."
+      sdlLog "\nShowing Open File Dialog..."
       withFilters filters $ \filtersPtr nfilters ->
         sdlShowOpenFileDialog 
           callbackPtr
@@ -69,7 +69,7 @@ main = do
           nullPtr       
           1            -- allow multiple selection (1 for True)
 
-      putStrLn "\nShowing Save File Dialog..."
+      sdlLog "\nShowing Save File Dialog..."
       withFilters filters $ \filtersPtr nfilters ->
         sdlShowSaveFileDialog
           callbackPtr
@@ -79,7 +79,7 @@ main = do
           nfilters      
           nullPtr       
 
-      putStrLn "\nShowing Folder Dialog..."
+      sdlLog "\nShowing Folder Dialog..."
       sdlShowOpenFolderDialog
         callbackPtr
         nullPtr        
@@ -88,7 +88,7 @@ main = do
         0             -- single selection only (0 for False)
 
       -- Show a dialog with custom properties
-      putStrLn "\nShowing Custom Dialog..."
+      sdlLog "\nShowing Custom Dialog..."
       props <- sdlCreateProperties
       
       -- Set some custom properties
@@ -111,7 +111,7 @@ main = do
       --       eventLoop
 
       -- -- Run the event loop
-      -- putStrLn "Running event loop... (Press Ctrl+C to exit)"
+      -- sdlLog "Running event loop... (Press Ctrl+C to exit)"
       -- eventLoop `finally` do
       --   -- Cleanup
       sdlDestroyProperties props

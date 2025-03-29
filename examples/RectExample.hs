@@ -1,5 +1,5 @@
 import Foreign.Marshal.Utils (with)
-import SDL.Rect
+import SDL
 
 
 main :: IO ()
@@ -8,12 +8,12 @@ main = do
       rect2 = SDLRect 5 5 10 10
       point = SDLPoint 5 5
 
-  putStrLn $ "Point in rect1: " ++ show (sdlPointInRect point rect1)
-  putStrLn $ "Rect1 empty: " ++ show (sdlRectEmpty rect1)
-  putStrLn $ "Rects equal: " ++ show (sdlRectsEqual rect1 rect2)
+  sdlLog $ "Point in rect1: " ++ show (sdlPointInRect point rect1)
+  sdlLog $ "Rect1 empty: " ++ show (sdlRectEmpty rect1)
+  sdlLog $ "Rects equal: " ++ show (sdlRectsEqual rect1 rect2)
 
   -- Cast our rectangles to pointers and pass them to the sdlHasRectIntersection function
   intersects <- with rect1 $ \rect1Ptr -> 
                 with rect2 $ \rect2Ptr -> 
                 sdlHasRectIntersection rect1Ptr rect2Ptr
-  putStrLn $ "Rectangles intersect: " ++ show intersects
+  sdlLog $ "Rectangles intersect: " ++ show intersects

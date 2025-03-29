@@ -1,4 +1,4 @@
-import SDL.Time
+import SDL
 
 main :: IO ()
 main = do
@@ -6,15 +6,15 @@ main = do
   maybeTicks <- sdlGetCurrentTime
   case maybeTicks of
     Just ticks -> do
-      putStrLn $ "Current ticks: " ++ show ticks
+      sdlLog $ "Current ticks: " ++ show ticks
       maybeDt <- sdlTimeToDateTime ticks True
-      putStrLn $ "Local DateTime: " ++ show maybeDt
-    Nothing -> putStrLn "Failed to get current time"
+      sdlLog $ "Local DateTime: " ++ show maybeDt
+    Nothing -> sdlLog "Failed to get current time"
 
   -- Get locale preferences
   maybePrefs <- sdlGetDateTimeLocalePreferences
-  putStrLn $ "Locale Preferences: " ++ show maybePrefs
+  sdlLog $ "Locale Preferences: " ++ show maybePrefs
 
   -- Example date calculation
   days <- sdlGetDaysInMonth 2025 3
-  putStrLn $ "Days in March 2025: " ++ show days
+  sdlLog $ "Days in March 2025: " ++ show days

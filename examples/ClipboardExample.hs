@@ -9,46 +9,46 @@ main = do
   -- Initialize SDL with video and events subsystems
   initSuccess <- sdlInit [InitVideo]
   unless initSuccess $ do
-    putStrLn "Failed to initialize SDL!"
+    sdlLog "Failed to initialize SDL!"
     exitFailure
 
   -- Check initialized subsystems
   initializedSystems <- sdlWasInit []
-  putStrLn "Initialized subsystems:"
+  sdlLog "Initialized subsystems:"
   mapM_ printSubsystem initializedSystems
 
   -- Set some text to the clipboard
   success <- sdlSetClipboardText "Hello, Clipboard!"
-  when success $ putStrLn "Successfully set clipboard text"
+  when success $ sdlLog "Successfully set clipboard text"
 
   -- Check if clipboard has text
   hasText <- sdlHasClipboardText
-  putStrLn $ "Clipboard has text: " ++ show hasText
+  sdlLog $ "Clipboard has text: " ++ show hasText
 
   -- Retrieve text from clipboard
   clipboardContent <- sdlGetClipboardText
   case clipboardContent of
-    Just text -> putStrLn $ "Clipboard contents: " ++ text
-    Nothing -> putStrLn "Failed to retrieve clipboard text"
+    Just text -> sdlLog $ "Clipboard contents: " ++ text
+    Nothing -> sdlLog "Failed to retrieve clipboard text"
 
   -- Demonstrate primary selection (on systems that support it)
   _ <- sdlSetPrimarySelectionText "Primary Selection Text"
   primaryText <- sdlGetPrimarySelectionText
   case primaryText of
-    Just text -> putStrLn $ "Primary selection: " ++ text
-    Nothing -> putStrLn "Failed to retrieve primary selection"
+    Just text -> sdlLog $ "Primary selection: " ++ text
+    Nothing -> sdlLog "Failed to retrieve primary selection"
 
   -- Get clipboard MIME types
   mimeTypes <- sdlGetClipboardMimeTypes
-  putStrLn "Available MIME types:"
-  mapM_ putStrLn mimeTypes
+  sdlLog "Available MIME types:"
+  mapM_ sdlLog mimeTypes
 
   sdlQuit
   exitSuccess
 
 -- Helper function to print subsystem names
 printSubsystem :: InitFlag -> IO ()
-printSubsystem flag = putStrLn $ "  - " ++ case flag of
+printSubsystem flag = sdlLog $ "  - " ++ case flag of
   InitAudio    -> "Audio"
   InitVideo    -> "Video"
   InitJoystick -> "Joystick"
