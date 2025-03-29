@@ -30,7 +30,7 @@
 - [ ] SDL3/SDL_loadso.h
 - [ ] SDL3/SDL_locale.h
 - [ ] SDL3/SDL_log.h
-- [ ] SDL3/SDL_messagebox.h
+- [x] SDL3/SDL_messagebox.h
 - [x] SDL3/SDL_metal.h
 - [x] SDL3/SDL_misc.h
 - [x] SDL3/SDL_mouse.h

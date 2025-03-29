@@ -84,6 +84,7 @@ library
         SDL.Hints
         SDL.IOStream
         SDL.Init
+        SDL.MessageBox
         SDL.Metal
         SDL.Misc
         SDL.Mouse
@@ -202,6 +203,14 @@ executable hints-example
     
 executable init-example
     main-is: InitExample.hs
+    build-depends:
+        base,
+        sdl3
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
+executable messagebox-example
+    main-is: MessageBoxExample.hs
     build-depends:
         base,
         sdl3
