@@ -24,7 +24,7 @@ import Foreign.C
 
 -- | The basic state for the system's power supply.
 newtype SDLPowerState = SDLPowerState CInt
-  deriving (Eq, Bits)
+  deriving (Eq, Bits, Enum)
 
 instance Show SDLPowerState where
   show (SDLPowerState n) = case n of

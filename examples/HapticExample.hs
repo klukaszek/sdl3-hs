@@ -153,7 +153,3 @@ printSubsystem flag = sdlLog $ "  - " ++ case flag of
   InitSensor   -> "Sensor"
   InitCamera   -> "Camera"
   _            -> "Unknown subsystem"
-
--- Helper to unwrap SDLJoystick
-unSDLJoystick :: SDLJoystick -> Ptr SDLJoystick
-unSDLJoystick (SDLJoystick ptr) = ptr

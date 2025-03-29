@@ -119,12 +119,18 @@ import SDL.Properties (SDLPropertiesID(..))
 import Data.Bits
 
 -- | Opaque type representing a joystick device
-newtype SDLJoystick = SDLJoystick (Ptr SDLJoystick)
+newtype SDLJoystick = SDLJoystick { unSDLJoystick :: Ptr SDLJoystick }
   deriving (Eq)
 
 -- | Unique ID for a joystick
 newtype SDLJoystickID = SDLJoystickID Word32
   deriving (Eq, Show)
+
+instance Storable SDLJoystickID where
+  sizeOf _ = sizeOf (undefined :: Word32)
+  alignment _ = alignment (undefined :: Word32)
+  peek ptr = SDLJoystickID <$> peek (castPtr ptr :: Ptr Word32)
+  poke ptr (SDLJoystickID w) = poke (castPtr ptr :: Ptr Word32) w
 
 -- | Joystick type enumeration
 data SDLJoystickType

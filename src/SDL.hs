@@ -1,5 +1,4 @@
--- |
--- You should probably just import this as SDL
+-- Main module
 module SDL
   ( module SDL.Assert,
     module SDL.AsyncIO,
@@ -13,6 +12,7 @@ module SDL
     module SDL.Endian,
     module SDL.Error,
     module SDL.Filesystem,
+    module SDL.Gamepad,
     module SDL.GUID,
     module SDL.Haptic,
     module SDL.Hidapi,
@@ -62,6 +62,7 @@ import SDL.Dialog
 import SDL.Endian
 import SDL.Error
 import SDL.Filesystem
+import SDL.Gamepad
 import SDL.GUID
 import SDL.Haptic
 import SDL.Hidapi

@@ -10,7 +10,7 @@ offers functions to manage haptic devices, create and run effects, and control
 rumble features.
 
 Basic usage:
-- Initialize the subsystem (SDL_INIT_HAPTIC)
+- Initialize the subsystem (INIT_HAPTIC)
 - Open a haptic device using 'sdlOpenHaptic' or 'sdlOpenHapticFromJoystick'
 - Create effects with 'sdlCreateHapticEffect'
 - Run effects with 'sdlRunHapticEffect'
@@ -508,17 +508,11 @@ sdlOpenHaptic (SDLHapticID id) = do
 
 -- | Get haptic from ID
 foreign import ccall "SDL_GetHapticFromID"
-  sdlGetHapticFromID_ :: SDLHapticID -> IO (Ptr SDLHaptic)
-
-sdlGetHapticFromID :: SDLHapticID -> IO (Ptr SDLHaptic)
-sdlGetHapticFromID = sdlGetHapticFromID_
+  sdlGetHapticFromID :: SDLHapticID -> IO (Ptr SDLHaptic)
 
 -- | Get haptic ID
 foreign import ccall "SDL_GetHapticID"
-  sdlGetHapticID_ :: Ptr SDLHaptic -> IO SDLHapticID
-
-sdlGetHapticID :: Ptr SDLHaptic -> IO SDLHapticID
-sdlGetHapticID = sdlGetHapticID_
+  sdlGetHapticID :: Ptr SDLHaptic -> IO SDLHapticID
 
 -- | Get haptic name
 foreign import ccall "SDL_GetHapticName"
@@ -542,7 +536,10 @@ sdlOpenHapticFromMouse = do
 
 -- | Check if joystick is haptic
 foreign import ccall "SDL_IsJoystickHaptic"
-  sdlIsJoystickHaptic :: Ptr SDLJoystick -> IO CBool
+  sdlIsJoystickHaptic_ :: Ptr SDLJoystick -> IO CBool
+
+sdlIsJoystickHaptic :: Ptr SDLJoystick -> IO Bool
+sdlIsJoystickHaptic joy = toBool <$> sdlIsJoystickHaptic_ joy
 
 -- | Open haptic from joystick
 foreign import ccall "SDL_OpenHapticFromJoystick"
