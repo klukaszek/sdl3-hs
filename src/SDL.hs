@@ -3,6 +3,7 @@ module SDL
   ( module SDL.Assert,
     module SDL.AsyncIO,
     module SDL.Atomic,
+    module SDL.Audio,
     module SDL.Bits,
     module SDL.BlendMode,
     module SDL.Camera,
@@ -57,6 +58,7 @@ where
 import SDL.Assert
 import SDL.AsyncIO
 import SDL.Atomic
+import SDL.Audio
 import SDL.Bits
 import SDL.BlendMode
 import SDL.Camera

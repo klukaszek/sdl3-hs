@@ -13,7 +13,7 @@ abstract interfaces to read/write data.
 
 module SDL.IOStream
   ( -- * I/O Stream Types
-    SDLIOStream
+    SDLIOStream(..)
   , SDLIOStatus(..)
   , SDLIOWhence(..)
   , SDLIOStreamInterface(..)
@@ -151,7 +151,8 @@ data SDLIOStreamInterface = SDLIOStreamInterface
   }
 
 -- | The read/write operation structure
-data SDLIOStream
+newtype SDLIOStream = SDLIOStream (Ptr SDLIOStream)
+  deriving (Eq, Show)
 
 -- | Property constants
 sdlPropIOStreamWindowsHandle :: String
