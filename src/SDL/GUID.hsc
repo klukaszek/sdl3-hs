@@ -14,7 +14,7 @@ The GUID functionality allows conversion between binary GUID structures and thei
 ASCII string representations.
 -}
 
-module SDL.Guid
+module SDL.GUID
   ( -- * Types
     SDLGUID(..)
     
@@ -42,15 +42,15 @@ newtype SDLGUID = SDLGUID { unSDLGUID :: [Word8] }
   deriving (Show, Eq)
 
 -- Define the storable instance for SDL_GUID to properly handle marshalling
-instance Storable SDL_GUID where
+instance Storable SDLGUID where
   sizeOf _ = 16  -- Size of the SDL_GUID struct (16 bytes)
   alignment _ = alignment (undefined :: Word8)
   
   peek ptr = do
     bytes <- peekArray 16 (castPtr ptr)
-    return $ SDL_GUID bytes
+    return $ SDLGUID bytes
     
-  poke ptr (SDL_GUID bytes) = do
+  poke ptr (SDLGUID bytes) = do
     pokeArray (castPtr ptr) (take 16 $ bytes ++ repeat 0)
 
 -- Foreign declarations around wrappers

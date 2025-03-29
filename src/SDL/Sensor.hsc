@@ -71,6 +71,14 @@ data SDLSensorType
   | SDL_SENSOR_GYRO_R     -- ^ Right Joy-Con gyroscope
   deriving (Show, Eq, Enum)
 
+instance Storable SDLSensorType where
+  sizeOf _ = sizeOf (undefined :: CInt)  -- SDL_SensorType is an int in C
+  alignment _ = alignment (undefined :: CInt)
+  peek ptr = do
+    val <- peek (castPtr ptr :: Ptr CInt)
+    return $ toEnum $ fromIntegral val
+  poke ptr val = poke (castPtr ptr :: Ptr CInt) (fromIntegral $ fromEnum val)
+
 -- | Get a list of currently connected sensors
 foreign import ccall "SDL_GetSensors" sdlGetSensors_ :: Ptr CInt -> IO (Ptr SDLSensorID)
 

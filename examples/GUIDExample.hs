@@ -1,7 +1,7 @@
 module Main where
 
 import SDL
-import SDL.Guid
+import SDL.GUID
 import Control.Monad
 import System.Exit (exitFailure, exitSuccess)
 import Foreign.Ptr (nullPtr)

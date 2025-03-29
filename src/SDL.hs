@@ -13,11 +13,13 @@ module SDL
     module SDL.Endian,
     module SDL.Error,
     module SDL.Filesystem,
-    module SDL.Guid,
+    module SDL.GUID,
+    module SDL.Haptic,
     module SDL.Hidapi,
     module SDL.Hints,
     module SDL.IOStream,
     module SDL.Init,
+    module SDL.Joystick,
     module SDL.Locale,
     module SDL.LoadSO,
     module SDL.Log,
@@ -60,11 +62,13 @@ import SDL.Dialog
 import SDL.Endian
 import SDL.Error
 import SDL.Filesystem
-import SDL.Guid
+import SDL.GUID
+import SDL.Haptic
 import SDL.Hidapi
 import SDL.Hints
 import SDL.IOStream
 import SDL.Init
+import SDL.Joystick
 import SDL.Locale
 import SDL.LoadSO
 import SDL.Log

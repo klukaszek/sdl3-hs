@@ -19,15 +19,15 @@
 - [ ] SDL3/SDL_gamepad.h
 - [ ] SDL3/SDL_gpu.h
 - [x] SDL3/SDL_guid.h
-- [ ] SDL3/SDL_haptic.h
+- [x] SDL3/SDL_haptic.h
 - [x] SDL3/SDL_hidapi.h
 - [x] SDL3/SDL_hints.h
 - [x] SDL3/SDL_init.h
 - [x] SDL3/SDL_iostream.h
-- [ ] SDL3/SDL_joystick.h
+- [x] SDL3/SDL_joystick.h
 - [ ] SDL3/SDL_keyboard.h
 - [ ] SDL3/SDL_keycode.h
-- [ ] SDL3/SDL_loadso.h
+- [x] SDL3/SDL_loadso.h
 - [x] SDL3/SDL_locale.h
 - [x] SDL3/SDL_log.h
 - [x] SDL3/SDL_messagebox.h
