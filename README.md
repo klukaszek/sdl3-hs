@@ -28,7 +28,7 @@
 - [ ] SDL3/SDL_keyboard.h
 - [ ] SDL3/SDL_keycode.h
 - [ ] SDL3/SDL_loadso.h
-- [ ] SDL3/SDL_locale.h
+- [x] SDL3/SDL_locale.h
 - [x] SDL3/SDL_log.h
 - [x] SDL3/SDL_messagebox.h
 - [x] SDL3/SDL_metal.h
