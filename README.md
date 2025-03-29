@@ -31,11 +31,11 @@
 - [ ] SDL3/SDL_locale.h
 - [ ] SDL3/SDL_log.h
 - [ ] SDL3/SDL_messagebox.h
-- [ ] SDL3/SDL_metal.h
+- [x] SDL3/SDL_metal.h
 - [x] SDL3/SDL_misc.h
 - [x] SDL3/SDL_mouse.h
 - [x] SDL3/SDL_mutex.h
-- [ ] SDL3/SDL_pen.h
+- [x] SDL3/SDL_pen.h
 - [x] SDL3/SDL_pixels.h
 - [x] SDL3/SDL_platform.h
 - [x] SDL3/SDL_power.h

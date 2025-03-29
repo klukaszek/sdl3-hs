@@ -20,7 +20,7 @@ filter out mouse events with this ID.
 
 module SDL.Touch
   ( -- * Types
-    SDLTouchID
+    SDLTouchID(..)
   , SDLFingerID
   , SDLTouchDeviceType(..)
   , SDLFinger(..)
@@ -39,16 +39,18 @@ module SDL.Touch
 #include <SDL3/SDL_touch.h>
 
 import Foreign.C.Types
-import Foreign.Ptr (Ptr, nullPtr)
+import Foreign.Ptr (Ptr, nullPtr, castPtr)
 import Foreign.C.String (CString, peekCString)
 import Foreign.Storable (Storable(..))
 import Foreign.Marshal.Alloc (free, alloca)  -- Added alloca
 import Foreign.Marshal.Array (peekArray)
 import Data.Word (Word32, Word64)
 import Control.Monad (when)
+import SDL.Mouse
 
 -- | A unique ID for a touch device (SDL_TouchID).
-type SDLTouchID = Word64
+newtype SDLTouchID = SDLTouchID { unSDLTouchID :: Word64 }
+  deriving (Show, Eq, Ord)
 
 -- | A unique ID for a single finger on a touch device (SDL_FingerID).
 type SDLFingerID = Word64
@@ -93,31 +95,27 @@ instance Storable SDLFinger where
 
 -- | The SDL_MouseID for mouse events simulated with touch input (SDL_TOUCH_MOUSEID).
 sdlTouchMouseID :: SDLMouseID
-sdlTouchMouseID = #const SDL_TOUCH_MOUSEID
+sdlTouchMouseID = SDLMouseID(#const SDL_TOUCH_MOUSEID)
 
 -- | The SDL_TouchID for touch events simulated with mouse input (SDL_MOUSE_TOUCHID).
 sdlMouseTouchID :: SDLTouchID
-sdlMouseTouchID = #const SDL_MOUSE_TOUCHID
-
--- | Placeholder for SDL_MouseID (assuming it's defined elsewhere, e.g., in SDL.Mouse).
-type SDLMouseID = Word32  -- Adjust based on actual SDL.Mouse definition
+sdlMouseTouchID = SDLTouchID(#const SDL_MOUSE_TOUCHID)
 
 -- | Get a list of registered touch devices (SDL_GetTouchDevices).
 foreign import ccall "SDL_GetTouchDevices"
-  sdlGetTouchDevicesRaw :: Ptr CInt -> IO (Ptr SDLTouchID)
+  sdlGetTouchDevicesRaw :: Ptr CInt -> IO (Ptr Word64)
 
 -- | Haskell wrapper for SDL_GetTouchDevices.
 sdlGetTouchDevices :: IO [SDLTouchID]
 sdlGetTouchDevices = alloca $ \countPtr -> do
-  poke countPtr 0  -- Initialize count to 0
-  devicesPtr <- sdlGetTouchDevicesRaw countPtr
-  if devicesPtr == nullPtr
+  pArr <- sdlGetTouchDevicesRaw countPtr
+  if pArr == nullPtr
     then return []
     else do
       count <- peek countPtr
-      devices <- peekArray (fromIntegral count) devicesPtr
-      free devicesPtr
-      return devices
+      arr <- peekArray (fromIntegral count) pArr
+      free (castPtr pArr)
+      return $ map SDLTouchID arr
 
 -- | Get the touch device name as reported from the driver (SDL_GetTouchDeviceName).
 foreign import ccall "SDL_GetTouchDeviceName"

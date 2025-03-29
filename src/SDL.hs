@@ -18,9 +18,11 @@ module SDL
     module SDL.Hints,
     module SDL.IOStream,
     module SDL.Init,
+    module SDL.Metal,
     module SDL.Misc,
     module SDL.Mouse,
     module SDL.Mutex,
+    module SDL.Pen,
     module SDL.Pixels,
     module SDL.Platform,
     module SDL.Power,
@@ -59,9 +61,11 @@ import SDL.Hidapi
 import SDL.Hints
 import SDL.IOStream
 import SDL.Init
+import SDL.Metal
 import SDL.Misc
 import SDL.Mouse
 import SDL.Mutex
+import SDL.Pen
 import SDL.Pixels
 import SDL.Platform
 import SDL.Power

@@ -20,10 +20,10 @@ permission status and handle approval or denial events.
 
 module SDL.Camera
   ( -- * Camera Types
-    SDL_CameraID
-  , SDL_Camera
-  , SDL_CameraSpec(..)
-  , SDL_CameraPosition(..)
+    SDLCamera
+  , SDLCameraID(..)
+  , SDLCameraSpec(..)
+  , SDLCameraPosition(..)
 
     -- * Camera Driver Functions
   , sdlGetNumCameraDrivers
@@ -62,17 +62,17 @@ import SDL.Surface (SDLSurface)
 -- The value 0 is invalid.
 --
 -- @since 3.2.0
-type SDL_CameraID = Word32
+type SDLCameraID = Word32
 
 -- | An opaque structure representing an opened camera device.
 --
 -- @since 3.2.0
-data SDL_Camera = SDL_Camera
+data SDLCamera = SDLCamera
 
 -- | Specification of an output format for a camera device.
 --
 -- @since 3.2.0
-data SDL_CameraSpec = SDL_CameraSpec
+data SDLCameraSpec = SDLCameraSpec
   { cameraFormat         :: SDLPixelFormat     -- ^ Frame pixel format
   , cameraColorspace     :: SDLColorspace      -- ^ Frame colorspace
   , cameraWidth          :: Int                -- ^ Frame width
@@ -81,7 +81,7 @@ data SDL_CameraSpec = SDL_CameraSpec
   , cameraFramerateDenom :: Int                -- ^ Frame rate denominator (duration = denom / num)
   } deriving (Eq, Show)
 
-instance Storable SDL_CameraSpec where
+instance Storable SDLCameraSpec where
   sizeOf _ = 24  -- sizeof(SDL_PixelFormat) + sizeof(SDL_Colorspace) + 4 * sizeof(int)
   alignment _ = 4
   peek ptr = do
@@ -91,9 +91,9 @@ instance Storable SDL_CameraSpec where
     h      <- peekByteOff ptr 12 :: IO Int32  -- Specify Int32
     num    <- peekByteOff ptr 16 :: IO Int32  -- Specify Int32
     denom  <- peekByteOff ptr 20 :: IO Int32  -- Specify Int32
-    return $ SDL_CameraSpec (toEnum $ fromIntegral fmt) (toEnum $ fromIntegral cspace)
+    return $ SDLCameraSpec (toEnum $ fromIntegral fmt) (toEnum $ fromIntegral cspace)
                             (fromIntegral w) (fromIntegral h) (fromIntegral num) (fromIntegral denom)
-  poke ptr (SDL_CameraSpec fmt cspace w h num denom) = do
+  poke ptr (SDLCameraSpec fmt cspace w h num denom) = do
     pokeByteOff ptr 0 (pixelFormatToWord32 fmt)
     pokeByteOff ptr 4 (colorspaceToWord32 cspace)
     pokeByteOff ptr 8 (fromIntegral w :: CInt)
@@ -104,7 +104,7 @@ instance Storable SDL_CameraSpec where
 -- | Position of a camera relative to the system device.
 --
 -- @since 3.2.0
-data SDL_CameraPosition
+data SDLCameraPosition
   = SDL_CameraPositionUnknown
   | SDL_CameraPositionFrontFacing
   | SDL_CameraPositionBackFacing
@@ -152,9 +152,9 @@ sdlGetCurrentCameraDriver = do
 --
 -- @since 3.2.0
 foreign import ccall "SDL_GetCameras"
-  sdlGetCamerasRaw :: Ptr CInt -> IO (Ptr SDL_CameraID)
+  sdlGetCamerasRaw :: Ptr CInt -> IO (Ptr SDLCameraID)
 
-sdlGetCameras :: IO [SDL_CameraID]
+sdlGetCameras :: IO [SDLCameraID]
 sdlGetCameras = alloca $ \countPtr -> do
   poke countPtr 0
   idsPtr <- sdlGetCamerasRaw countPtr
@@ -169,9 +169,9 @@ sdlGetCameras = alloca $ \countPtr -> do
 --
 -- @since 3.2.0
 foreign import ccall "SDL_GetCameraSupportedFormats"
-  sdlGetCameraSupportedFormatsRaw :: SDL_CameraID -> Ptr CInt -> IO (Ptr (Ptr SDL_CameraSpec))
+  sdlGetCameraSupportedFormatsRaw :: SDLCameraID -> Ptr CInt -> IO (Ptr (Ptr SDLCameraSpec))
 
-sdlGetCameraSupportedFormats :: SDL_CameraID -> IO [SDL_CameraSpec]
+sdlGetCameraSupportedFormats :: SDLCameraID -> IO [SDLCameraSpec]
 sdlGetCameraSupportedFormats instance_id = alloca $ \countPtr -> do
   poke countPtr 0
   specsPtr <- sdlGetCameraSupportedFormatsRaw instance_id countPtr
@@ -186,9 +186,9 @@ sdlGetCameraSupportedFormats instance_id = alloca $ \countPtr -> do
 --
 -- @since 3.2.0
 foreign import ccall "SDL_GetCameraName"
-  sdlGetCameraNameRaw :: SDL_CameraID -> IO CString
+  sdlGetCameraNameRaw :: SDLCameraID -> IO CString
 
-sdlGetCameraName :: SDL_CameraID -> IO (Maybe String)
+sdlGetCameraName :: SDLCameraID -> IO (Maybe String)
 sdlGetCameraName instance_id = do
   cstr <- sdlGetCameraNameRaw instance_id
   if cstr == nullPtr
@@ -199,18 +199,18 @@ sdlGetCameraName instance_id = do
 --
 -- @since 3.2.0
 foreign import ccall "SDL_GetCameraPosition"
-  sdlGetCameraPosition :: SDL_CameraID -> IO CInt
+  sdlGetCameraPosition :: SDLCameraID -> IO CInt
 
-sdlGetCameraPositionEnum :: SDL_CameraID -> IO SDL_CameraPosition
+sdlGetCameraPositionEnum :: SDLCameraID -> IO SDLCameraPosition
 sdlGetCameraPositionEnum instance_id = toEnum . fromIntegral <$> sdlGetCameraPosition instance_id
 
 -- | Open a camera device for video capture.
 --
 -- @since 3.2.0
 foreign import ccall "SDL_OpenCamera"
-  sdlOpenCameraRaw :: SDL_CameraID -> Ptr SDL_CameraSpec -> IO (Ptr SDL_Camera)
+  sdlOpenCameraRaw :: SDLCameraID -> Ptr SDLCameraSpec -> IO (Ptr SDLCamera)
 
-sdlOpenCamera :: SDL_CameraID -> Maybe SDL_CameraSpec -> IO (Maybe (Ptr SDL_Camera))
+sdlOpenCamera :: SDLCameraID -> Maybe SDLCameraSpec -> IO (Maybe (Ptr SDLCamera))
 sdlOpenCamera instance_id mspec =
   case mspec of
     Just spec -> alloca $ \specPtr -> do
@@ -228,27 +228,27 @@ sdlOpenCamera instance_id mspec =
 --
 -- @since 3.2.0
 foreign import ccall "SDL_GetCameraPermissionState"
-  sdlGetCameraPermissionState :: Ptr SDL_Camera -> IO CInt
+  sdlGetCameraPermissionState :: Ptr SDLCamera -> IO CInt
 
 -- | Get the instance ID of an opened camera.
 --
 -- @since 3.2.0
 foreign import ccall "SDL_GetCameraID"
-  sdlGetCameraID :: Ptr SDL_Camera -> IO SDL_CameraID
+  sdlGetCameraID :: Ptr SDLCamera -> IO SDLCameraID
 
 -- | Get the properties associated with an opened camera.
 --
 -- @since 3.2.0
 foreign import ccall "SDL_GetCameraProperties"
-  sdlGetCameraProperties :: Ptr SDL_Camera -> IO Word32
+  sdlGetCameraProperties :: Ptr SDLCamera -> IO Word32
 
 -- | Get the format specification of an opened camera.
 --
 -- @since 3.2.0
 foreign import ccall "SDL_GetCameraFormat"
-  sdlGetCameraFormatRaw :: Ptr SDL_Camera -> Ptr SDL_CameraSpec -> IO Bool
+  sdlGetCameraFormatRaw :: Ptr SDLCamera -> Ptr SDLCameraSpec -> IO Bool
 
-sdlGetCameraFormat :: Ptr SDL_Camera -> IO (Maybe SDL_CameraSpec)
+sdlGetCameraFormat :: Ptr SDLCamera -> IO (Maybe SDLCameraSpec)
 sdlGetCameraFormat camera = alloca $ \specPtr -> do
   success <- sdlGetCameraFormatRaw camera specPtr
   if success
@@ -259,9 +259,9 @@ sdlGetCameraFormat camera = alloca $ \specPtr -> do
 --
 -- @since 3.2.0
 foreign import ccall "SDL_AcquireCameraFrame"
-  sdlAcquireCameraFrameRaw :: Ptr SDL_Camera -> Ptr Word64 -> IO (Ptr SDLSurface)
+  sdlAcquireCameraFrameRaw :: Ptr SDLCamera -> Ptr Word64 -> IO (Ptr SDLSurface)
 
-sdlAcquireCameraFrame :: Ptr SDL_Camera -> IO (Maybe (Ptr SDLSurface, Word64))
+sdlAcquireCameraFrame :: Ptr SDLCamera -> IO (Maybe (Ptr SDLSurface, Word64))
 sdlAcquireCameraFrame camera = alloca $ \tsPtr -> do
   surfPtr <- sdlAcquireCameraFrameRaw camera tsPtr
   if surfPtr == nullPtr
@@ -274,10 +274,10 @@ sdlAcquireCameraFrame camera = alloca $ \tsPtr -> do
 --
 -- @since 3.2.0
 foreign import ccall "SDL_ReleaseCameraFrame"
-  sdlReleaseCameraFrame :: Ptr SDL_Camera -> Ptr SDLSurface -> IO ()
+  sdlReleaseCameraFrame :: Ptr SDLCamera -> Ptr SDLSurface -> IO ()
 
 -- | Close an opened camera device.
 --
 -- @since 3.2.0
 foreign import ccall "SDL_CloseCamera"
-  sdlCloseCamera :: Ptr SDL_Camera -> IO ()
+  sdlCloseCamera :: Ptr SDLCamera -> IO ()

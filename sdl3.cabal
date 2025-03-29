@@ -84,9 +84,11 @@ library
         SDL.Hints
         SDL.IOStream
         SDL.Init
+        SDL.Metal
         SDL.Misc
         SDL.Mouse
         SDL.Mutex
+        SDL.Pen
         SDL.Pixels
         SDL.Platform
         SDL.Power
