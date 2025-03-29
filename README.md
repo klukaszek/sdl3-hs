@@ -18,7 +18,7 @@
 - [x] SDL3/SDL_filesystem.h
 - [ ] SDL3/SDL_gamepad.h
 - [ ] SDL3/SDL_gpu.h
-- [ ] SDL3/SDL_guid.h
+- [x] SDL3/SDL_guid.h
 - [ ] SDL3/SDL_haptic.h
 - [x] SDL3/SDL_hidapi.h
 - [x] SDL3/SDL_hints.h

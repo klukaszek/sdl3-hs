@@ -49,10 +49,14 @@ build-type:         Simple
 extra-doc-files:    CHANGELOG.md
 
 -- Extra source files to be distributed with the package, such as examples, or a tutorial module.
--- extra-source-files:
+extra-source-files:
+    ChangeLog.md,
+    cbits/sdlhelper.c,
+    include/helper.h
+
 
 common warnings
-    ghc-options: -Wall
+    ghc-options: -Wall -g
 
 flag pkgconfig
   description:       Use pkgconfig to sort out sdl3 dependency
@@ -75,6 +79,7 @@ library
         SDL.Endian
         SDL.Error
         SDL.Filesystem
+        SDL.Guid
         SDL.Hidapi
         SDL.Hints
         SDL.IOStream
@@ -114,8 +119,15 @@ library
     -- Directories containing source files.
     hs-source-dirs:   src
 
+    include-dirs:
+        include/
+
     includes:
         SDL3/SDL.h
+        include/helpers.h
+
+    c-sources:
+        cbits/helpers.c
 
     extra-libraries:
         SDL3
@@ -163,6 +175,14 @@ executable dialog-example
 
 executable filesystem-example
     main-is: FilesystemExample.hs
+    build-depends:
+        base,
+        sdl3
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
+executable guid-example
+    main-is: GUIDExample.hs
     build-depends:
         base,
         sdl3

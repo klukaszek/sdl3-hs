@@ -13,6 +13,7 @@ module SDL
     module SDL.Endian,
     module SDL.Error,
     module SDL.Filesystem,
+    module SDL.Guid,
     module SDL.Hidapi,
     module SDL.Hints,
     module SDL.IOStream,
@@ -52,6 +53,7 @@ import SDL.Dialog
 import SDL.Endian
 import SDL.Error
 import SDL.Filesystem
+import SDL.Guid
 import SDL.Hidapi
 import SDL.Hints
 import SDL.IOStream
