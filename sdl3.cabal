@@ -85,6 +85,7 @@ library
         SDL.IOStream
         SDL.Init
         SDL.Locale
+        SDL.LoadSO
         SDL.Log
         SDL.MessageBox
         SDL.Metal

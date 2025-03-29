@@ -19,6 +19,7 @@ module SDL
     module SDL.IOStream,
     module SDL.Init,
     module SDL.Locale,
+    module SDL.LoadSO,
     module SDL.Log,
     module SDL.MessageBox,
     module SDL.Metal,
@@ -65,6 +66,7 @@ import SDL.Hints
 import SDL.IOStream
 import SDL.Init
 import SDL.Locale
+import SDL.LoadSO
 import SDL.Log
 import SDL.MessageBox
 import SDL.Metal
