@@ -49,8 +49,7 @@ import Control.Monad (when)
 import SDL.Mouse
 
 -- | A unique ID for a touch device (SDL_TouchID).
-newtype SDLTouchID = SDLTouchID { unSDLTouchID :: Word64 }
-  deriving (Show, Eq, Ord)
+type SDLTouchID = Word64
 
 -- | A unique ID for a single finger on a touch device (SDL_FingerID).
 type SDLFingerID = Word64
@@ -95,11 +94,11 @@ instance Storable SDLFinger where
 
 -- | The SDL_MouseID for mouse events simulated with touch input (SDL_TOUCH_MOUSEID).
 sdlTouchMouseID :: SDLMouseID
-sdlTouchMouseID = SDLMouseID(#const SDL_TOUCH_MOUSEID)
+sdlTouchMouseID = #const SDL_TOUCH_MOUSEID
 
 -- | The SDL_TouchID for touch events simulated with mouse input (SDL_MOUSE_TOUCHID).
 sdlMouseTouchID :: SDLTouchID
-sdlMouseTouchID = SDLTouchID(#const SDL_MOUSE_TOUCHID)
+sdlMouseTouchID = #const SDL_MOUSE_TOUCHID
 
 -- | Get a list of registered touch devices (SDL_GetTouchDevices).
 foreign import ccall "SDL_GetTouchDevices"
@@ -115,7 +114,7 @@ sdlGetTouchDevices = alloca $ \countPtr -> do
       count <- peek countPtr
       arr <- peekArray (fromIntegral count) pArr
       free (castPtr pArr)
-      return $ map SDLTouchID arr
+      return $ arr
 
 -- | Get the touch device name as reported from the driver (SDL_GetTouchDeviceName).
 foreign import ccall "SDL_GetTouchDeviceName"

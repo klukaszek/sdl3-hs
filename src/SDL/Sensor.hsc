@@ -15,7 +15,7 @@ To use these functions, SDL_Init() must have been called with the SDL_INIT_SENSO
 module SDL.Sensor
   ( -- * Types
     SDLSensor(..)
-  , SDLSensorID
+  , SDLSensorID(..)
   , SDLSensorType(..)
   , sdlStandardGravity
   
@@ -80,7 +80,7 @@ instance Storable SDLSensorType where
   poke ptr val = poke (castPtr ptr :: Ptr CInt) (fromIntegral $ fromEnum val)
 
 -- | Get a list of currently connected sensors
-foreign import ccall "SDL_GetSensors" sdlGetSensors_ :: Ptr CInt -> IO (Ptr SDLSensorID)
+foreign import ccall "SDL_GetSensors" sdlGetSensors_ :: Ptr CInt -> IO (Ptr Word32)
 
 sdlGetSensors :: IO (Maybe [SDLSensorID])
 sdlGetSensors = do
@@ -95,7 +95,7 @@ sdlGetSensors = do
         return $ Just sensors
 
 -- | Get the name of a sensor by its ID
-foreign import ccall "SDL_GetSensorNameForID" sdlGetSensorNameForID_ :: SDLSensorID -> IO CString
+foreign import ccall "SDL_GetSensorNameForID" sdlGetSensorNameForID_ :: Word32 -> IO CString
 
 sdlGetSensorNameForID :: SDLSensorID -> IO (Maybe String)
 sdlGetSensorNameForID sensorId = do
@@ -136,14 +136,12 @@ sdlGetSensorFromID sensorId = do
     else return $ Just $ SDLSensor sensor
 
 -- | Get the properties associated with a sensor
-foreign import ccall "SDL_GetSensorProperties" sdlGetSensorProperties_ :: Ptr SDLSensor -> IO SDLPropertiesID
+foreign import ccall "SDL_GetSensorProperties" sdlGetSensorProperties_ :: Ptr SDLSensor -> IO Word32
 
-sdlGetSensorProperties :: SDLSensor -> IO (Maybe SDLPropertiesID)
+sdlGetSensorProperties :: SDLSensor -> IO SDLPropertiesID
 sdlGetSensorProperties (SDLSensor sensor) = do
   props <- sdlGetSensorProperties_ sensor
-  if props == 0
-    then return Nothing
-    else return $ Just props
+  return $ props
 
 -- | Get the name of an opened sensor
 foreign import ccall "SDL_GetSensorName" sdlGetSensorName_ :: Ptr SDLSensor -> IO CString

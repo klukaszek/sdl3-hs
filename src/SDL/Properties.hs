@@ -23,7 +23,7 @@ Properties can be removed from a group by using 'sdlClearProperty'.
 
 module SDL.Properties
   ( -- * Property Types
-    SDLPropertiesID
+    SDLPropertiesID(..)
   , SDLPropertyType(..)
   , SDLCleanupPropertyCallback
   , SDLEnumeratePropertiesCallback

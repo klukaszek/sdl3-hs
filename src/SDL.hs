@@ -11,6 +11,7 @@ module SDL
     module SDL.Dialog,
     module SDL.Endian,
     module SDL.Error,
+    module SDL.Events,
     module SDL.Filesystem,
     module SDL.Gamepad,
     module SDL.GUID,
@@ -20,6 +21,8 @@ module SDL
     module SDL.IOStream,
     module SDL.Init,
     module SDL.Joystick,
+    module SDL.Keyboard,
+    module SDL.Keycode,
     module SDL.Locale,
     module SDL.LoadSO,
     module SDL.Log,
@@ -35,6 +38,7 @@ module SDL
     module SDL.Process,
     module SDL.Properties,
     module SDL.Rect,
+    module SDL.Scancode,
     module SDL.Sensor,
     module SDL.Stdinc,
     module SDL.Storage,
@@ -61,6 +65,7 @@ import SDL.CPUInfo
 import SDL.Dialog
 import SDL.Endian
 import SDL.Error
+import SDL.Events
 import SDL.Filesystem
 import SDL.Gamepad
 import SDL.GUID
@@ -70,6 +75,8 @@ import SDL.Hints
 import SDL.IOStream
 import SDL.Init
 import SDL.Joystick
+import SDL.Keyboard
+import SDL.Keycode
 import SDL.Locale
 import SDL.LoadSO
 import SDL.Log
@@ -85,6 +92,7 @@ import SDL.Power
 import SDL.Process
 import SDL.Properties
 import SDL.Rect
+import SDL.Scancode
 import SDL.Sensor
 import SDL.Stdinc
 import SDL.Storage

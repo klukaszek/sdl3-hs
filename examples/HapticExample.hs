@@ -98,39 +98,39 @@ main = do
           sdlLog "Haptic device opened successfully."
 
           -- Query haptic properties
-          name <- peekCString =<< sdlGetHapticName (unSDLHaptic haptic)
+          name <- peekCString =<< sdlGetHapticName haptic
           sdlLog $ "Haptic device name: " ++ name
 
-          maxEffects <- sdlGetMaxHapticEffects (unSDLHaptic haptic)
+          maxEffects <- sdlGetMaxHapticEffects haptic
           sdlLog $ "Max effects: " ++ show maxEffects
           when (maxEffects < 0) $ sdlLog "Failed to get max effects!"
 
-          features <- sdlGetHapticFeatures (unSDLHaptic haptic)
+          features <- sdlGetHapticFeatures haptic
           sdlLog $ "Supported features (bitmask): " ++ show features
 
           -- Test simple rumble if supported
-          rumbleSupported <- sdlHapticRumbleSupported (unSDLHaptic haptic)
+          rumbleSupported <- sdlHapticRumbleSupported haptic
           sdlLog $ "Rumble supported: " ++ show rumbleSupported
 
           when rumbleSupported $ do
-            initSuccess <- sdlInitHapticRumble (unSDLHaptic haptic)
+            initSuccess <- sdlInitHapticRumble haptic
             unless initSuccess $ do
               sdlLog "Failed to initialize rumble!"
               exitFailure
 
             sdlLog "Playing rumble effect (50% strength for 1 second)..."
-            playSuccess <- sdlPlayHapticRumble (unSDLHaptic haptic) 0.5 1000
+            playSuccess <- sdlPlayHapticRumble haptic 0.5 1000
             unless playSuccess $ do
               sdlLog "Failed to play rumble!"
               exitFailure
 
             threadDelay 1000000  -- Wait 1 second for effect to complete
             sdlLog "Stopping rumble..."
-            stopSuccess <- sdlStopHapticRumble (unSDLHaptic haptic)
+            stopSuccess <- sdlStopHapticRumble haptic
             unless stopSuccess $ sdlLog "Failed to stop rumble!"
 
           -- Close haptic device
-          sdlCloseHaptic (unSDLHaptic haptic)
+          sdlCloseHaptic haptic
           sdlLog "Haptic device closed."
 
     -- Clean up

@@ -80,12 +80,10 @@ import SDL.Surface (SDLSurface)
 import Data.Bits
 
 -- | A unique ID for a display.
-newtype SDLDisplayID = SDLDisplayID { unSDLDisplayID :: CUInt }
-  deriving (Show, Eq, Ord)
+type SDLDisplayID = CUInt
 
 -- | A unique ID for a window.
-newtype SDLWindowID = SDLWindowID { unSDLWindowID :: CUInt }
-  deriving (Show, Eq, Ord)
+type SDLWindowID = CUInt
 
 -- | An opaque handle to an SDL window.
 newtype SDLWindow = SDLWindow { unSDLWindow :: Ptr SDLWindow }
@@ -122,7 +120,7 @@ instance Storable SDLDisplayMode where
   alignment _ = (# alignment SDL_DisplayMode )
   peek ptr = do
     rawDid <- (# peek SDL_DisplayMode, displayID ) ptr :: IO CUInt
-    let did = SDLDisplayID rawDid
+    let did = rawDid
     fmtVal <- (# peek SDL_DisplayMode, format ) ptr :: IO CUInt
     let fmt = toEnum (fromIntegral fmtVal) :: SDLPixelFormat
     w <- (# peek SDL_DisplayMode, w ) ptr :: IO CInt
@@ -131,7 +129,7 @@ instance Storable SDLDisplayMode where
     rr <- (# peek SDL_DisplayMode, refresh_rate ) ptr :: IO CFloat
     return $ SDLDisplayMode did fmt (fromIntegral w) (fromIntegral h) (realToFrac pd) (realToFrac rr)
 
-  poke ptr (SDLDisplayMode (SDLDisplayID did) fmt w h pd rr) = do
+  poke ptr (SDLDisplayMode did fmt w h pd rr) = do
     (# poke SDL_DisplayMode, displayID ) ptr did
     (# poke SDL_DisplayMode, format ) ptr (fromIntegral (fromEnum fmt) :: CUInt)
     (# poke SDL_DisplayMode, w ) ptr (fromIntegral w :: CInt)
@@ -212,7 +210,7 @@ sdlGetDisplays = alloca $ \countPtr -> do
     then return []
     else do
       rawIDs <- peekArray0 0 (castPtr ptr :: Ptr CUInt)  -- Cast to Ptr CUInt first
-      return $ map (SDLDisplayID . fromIntegral) rawIDs
+      return $ rawIDs
 
 -- | Return the primary display.
 foreign import ccall "SDL_GetPrimaryDisplay"
@@ -221,14 +219,14 @@ foreign import ccall "SDL_GetPrimaryDisplay"
 sdlGetPrimaryDisplay :: IO (Maybe SDLDisplayID)
 sdlGetPrimaryDisplay = do
   did <- sdlGetPrimaryDisplay_c
-  return $ if did == 0 then Nothing else Just (SDLDisplayID did)
+  return $ if did == 0 then Nothing else Just did
 
 -- | Get the name of a display.
 foreign import ccall "SDL_GetDisplayName"
   sdlGetDisplayName_c :: CUInt -> IO CString
 
 sdlGetDisplayName :: SDLDisplayID -> IO (Maybe String)
-sdlGetDisplayName (SDLDisplayID did) = do
+sdlGetDisplayName did = do
   cstr <- sdlGetDisplayName_c did
   if cstr == nullPtr
     then return Nothing
@@ -239,7 +237,7 @@ foreign import ccall "SDL_GetDisplayBounds"
   sdlGetDisplayBounds_c :: CUInt -> Ptr SDLRect -> IO CInt
 
 sdlGetDisplayBounds :: SDLDisplayID -> IO (Maybe SDLRect)
-sdlGetDisplayBounds (SDLDisplayID did) = alloca $ \rectPtr -> do
+sdlGetDisplayBounds did = alloca $ \rectPtr -> do
   result <- sdlGetDisplayBounds_c did rectPtr
   if cToBool result
     then Just <$> peek rectPtr

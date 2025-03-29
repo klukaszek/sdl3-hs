@@ -85,8 +85,7 @@ import SDL.Video
 
 -- | Unique ID for a mouse for the time it is connected to the system.
 -- The value 0 is an invalid ID.
-newtype SDLMouseID = SDLMouseID { unSDLMouseID :: Word32 }
-  deriving (Show, Eq, Ord)
+type SDLMouseID = Word32
 
 -- | An opaque structure used to identify an SDL cursor.
 newtype SDLCursor = SDLCursor { unSDLCursor :: Ptr SDLCursor }
@@ -166,13 +165,13 @@ sdlGetMice = alloca $ \countPtr -> do
       count <- peek countPtr
       arr <- peekArray (fromIntegral count) pArr
       free (castPtr pArr)
-      return $ map SDLMouseID arr
+      return $ arr
 
 -- | Get the name of a mouse.
 foreign import ccall "SDL_GetMouseNameForID" sdlGetMouseNameForIDRaw :: Word32 -> IO CString
 
 sdlGetMouseNameForID :: SDLMouseID -> IO (Maybe String)
-sdlGetMouseNameForID (SDLMouseID id) = do
+sdlGetMouseNameForID id = do
   cstr <- sdlGetMouseNameForIDRaw id
   if cstr == nullPtr
     then return Nothing

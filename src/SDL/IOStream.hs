@@ -94,7 +94,7 @@ import Foreign.Ptr
 import Foreign.Storable
 import Data.Word
 import Data.Int
-import SDL.Properties (SDLPropertiesID)
+import SDL.Properties (SDLPropertiesID(..))
 import SDL.Stdinc (SDLCall)
 
 -- | SDL_IOStream status, set by a read or write operation
@@ -228,7 +228,7 @@ foreign import ccall "SDL_CloseIO"
 -- @since 3.2.0
 foreign import ccall "SDL_GetIOProperties" 
   sdlGetIOProperties :: Ptr SDLIOStream -> IO SDLPropertiesID
-
+     
 -- | Query the stream status of an SDL_IOStream
 --
 -- @since 3.2.0

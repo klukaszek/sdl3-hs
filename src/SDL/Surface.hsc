@@ -72,7 +72,7 @@ import Foreign.C.String (CString, withCString)
 import Control.Monad (when)
 import Data.Word
 import SDL.Pixels (SDLColorspace, SDLPixelFormat, SDLPalette, pixelFormatToWord32)
-import SDL.Properties (SDLPropertiesID)
+import SDL.Properties (SDLPropertiesID(..))
 import SDL.Rect (SDLRect)
 import SDL.Stdinc (SDLBool)
 

@@ -104,8 +104,7 @@ newtype SDLHaptic = SDLHaptic { unSDLHaptic :: Ptr SDLHaptic }
   deriving (Eq, Show)
 
 -- | Unique ID for a haptic device
-newtype SDLHapticID = SDLHapticID Word32
-  deriving (Eq, Show)
+type SDLHapticID = Word32
 
 -- | Haptic direction encoding
 data SDLHapticDirection = SDLHapticDirection
@@ -491,7 +490,7 @@ sdlGetHaptics = alloca $ \countPtr -> do
   count <- peek countPtr
   ids <- peekArray (fromIntegral count) ptr
   free ptr
-  return $ map SDLHapticID ids
+  return $ ids
 
 -- | Get haptic name by ID
 foreign import ccall "SDL_GetHapticNameForID"
@@ -501,10 +500,10 @@ foreign import ccall "SDL_GetHapticNameForID"
 foreign import ccall "SDL_OpenHaptic"
   sdlOpenHapticRaw :: Word32 -> IO (Ptr SDLHaptic)
 
-sdlOpenHaptic :: SDLHapticID -> IO (Maybe SDLHaptic)
-sdlOpenHaptic (SDLHapticID id) = do
+sdlOpenHaptic :: SDLHapticID -> IO (Maybe (Ptr SDLHaptic))
+sdlOpenHaptic id = do
   ptr <- sdlOpenHapticRaw id
-  return $ if ptr == nullPtr then Nothing else Just (SDLHaptic ptr)
+  return $ if ptr == nullPtr then Nothing else Just ptr
 
 -- | Get haptic from ID
 foreign import ccall "SDL_GetHapticFromID"

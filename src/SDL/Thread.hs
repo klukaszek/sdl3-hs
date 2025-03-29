@@ -58,7 +58,7 @@ import Foreign.Ptr
 import Data.Word
 import Data.Int
 import SDL.Atomic (SDLAtomicInt)
-import SDL.Properties (SDLPropertiesID)
+import SDL.Properties (SDLPropertiesID(..))
 import SDL.Stdinc (SDLCall)
 
 -- | The SDL thread object

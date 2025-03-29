@@ -78,6 +78,7 @@ library
         SDL.Dialog
         SDL.Endian
         SDL.Error
+        SDL.Events
         SDL.Filesystem
         SDL.Gamepad
         SDL.GUID
@@ -87,6 +88,8 @@ library
         SDL.IOStream
         SDL.Init
         SDL.Joystick
+        SDL.Keyboard
+        SDL.Keycode
         SDL.Locale
         SDL.LoadSO
         SDL.Log
@@ -102,6 +105,7 @@ library
         SDL.Process
         SDL.Properties
         SDL.Rect
+        SDL.Scancode
         SDL.Sensor
         SDL.Stdinc
         SDL.Storage
@@ -177,6 +181,14 @@ executable cpu-info-example
 
 executable dialog-example
     main-is: DialogExample.hs
+    build-depends:
+        base,
+        sdl3
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
+executable events-example
+    main-is: EventsExample.hs
     build-depends:
         base,
         sdl3

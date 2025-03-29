@@ -64,11 +64,11 @@ data SDLPenAxis
 
 -- | Mouse ID for mouse events simulated with pen input
 sdlPenMouseID :: SDLMouseID
-sdlPenMouseID = SDLMouseID 0xFFFFFFFE
+sdlPenMouseID = 0xFFFFFFFE
 
 -- | Touch ID for touch events simulated with pen input
 sdlPenTouchID :: SDLTouchID
-sdlPenTouchID = SDLTouchID 0xFFFFFFFFFFFFFFFE
+sdlPenTouchID = 0xFFFFFFFFFFFFFFFE
 
 -- | Pen input flag constants
 sdlPenInputDown :: SDLPenInputFlags

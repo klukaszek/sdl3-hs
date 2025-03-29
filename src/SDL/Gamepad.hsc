@@ -41,9 +41,6 @@ module SDL.Gamepad
   , SDLGamepadAxis(..)
   , SDLGamepadBindingType(..)
   , SDLGamepadBinding(..)
-  , SDLJoystickID
-  , SDLPropertiesID
-  , SDLGUID(..)
 
     -- * Constants
   , sdlPropGamepadCapMonoLEDBoolean
@@ -140,7 +137,7 @@ import Data.Int (Int32, Int16)
 import SDL.GUID (SDLGUID(..))
 import SDL.Joystick (SDLJoystick(..), SDLJoystickID(..), SDLJoystickConnectionState(..))
 import SDL.Power (SDLPowerState(..))
-import SDL.Properties (SDLPropertiesID)
+import SDL.Properties (SDLPropertiesID(..))
 import SDL.Sensor (SDLSensorType(..))
 import SDL.IOStream (SDLIOStream)
 

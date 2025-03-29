@@ -54,7 +54,7 @@ module SDL.Process
 import Foreign
 import Foreign.C
 import SDL.IOStream (SDLIOStream)
-import SDL.Properties (SDLPropertiesID)
+import SDL.Properties (SDLPropertiesID(..))
 
 -- | An opaque handle representing a system process.
 data SDLProcess
@@ -73,8 +73,8 @@ newtype SDLProcessIO = SDLProcessIO { unSDLProcessIO :: CInt }
 -- FFI Imports
 
 foreign import ccall unsafe "SDL_CreateProcess" sdlCreateProcess_ :: Ptr CString -> Bool -> IO (Ptr SDLProcess)
-foreign import ccall unsafe "SDL_CreateProcessWithProperties" sdlCreateProcessWithProperties_ :: SDLPropertiesID -> IO (Ptr SDLProcess)
-foreign import ccall unsafe "SDL_GetProcessProperties" sdlGetProcessProperties_ :: Ptr SDLProcess -> IO SDLPropertiesID
+foreign import ccall unsafe "SDL_CreateProcessWithProperties" sdlCreateProcessWithProperties :: SDLPropertiesID -> IO (Ptr SDLProcess)
+foreign import ccall unsafe "SDL_GetProcessProperties" sdlGetProcessProperties :: Ptr SDLProcess -> IO SDLPropertiesID
 foreign import ccall unsafe "SDL_ReadProcess" sdlReadProcess_ :: Ptr SDLProcess -> Ptr CSize -> Ptr CInt -> IO (Ptr ())
 foreign import ccall unsafe "SDL_GetProcessInput" sdlGetProcessInput_ :: Ptr SDLProcess -> IO (Ptr SDLIOStream)
 foreign import ccall unsafe "SDL_GetProcessOutput" sdlGetProcessOutput_ :: Ptr SDLProcess -> IO (Ptr SDLIOStream)
@@ -93,18 +93,6 @@ sdlCreateProcess args pipeStdio = do
   withArray0 nullPtr cstrings $ \argsPtr -> do
     process <- sdlCreateProcess_ argsPtr pipeStdio
     return $ if process == nullPtr then Nothing else Just process
-
--- | Create a new process with the specified properties.
-sdlCreateProcessWithProperties :: SDLPropertiesID -> IO (Maybe (Ptr SDLProcess))
-sdlCreateProcessWithProperties props = do
-  process <- sdlCreateProcessWithProperties_ props
-  return $ if process == nullPtr then Nothing else Just process
-
--- | Get the properties associated with a process.
-sdlGetProcessProperties :: Ptr SDLProcess -> IO (Maybe SDLPropertiesID)
-sdlGetProcessProperties process = do
-  props <- sdlGetProcessProperties_ process
-  return $ if props == 0 then Nothing else Just props
 
 -- | Read all output from a process, returning the data and exit code.
 sdlReadProcess :: Ptr SDLProcess -> IO (Maybe (String, Int))

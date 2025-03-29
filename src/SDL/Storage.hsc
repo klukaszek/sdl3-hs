@@ -41,7 +41,7 @@ module SDL.Storage
 import Foreign
 import Foreign.C
 import SDL.Filesystem (SDLPathInfo, SDLEnumerationResult, unSDLEnumerationResult)
-import SDL.Properties (SDLPropertiesID)
+import SDL.Properties (SDLPropertiesID(..))
 
 -- | An opaque handle representing a storage container.
 data SDLStorage
@@ -95,8 +95,8 @@ instance Storable SDLStorageInterface where
 
 -- FFI Imports
 
-foreign import ccall unsafe "SDL_OpenTitleStorage" sdlOpenTitleStorage_ :: CString -> SDLPropertiesID -> IO (Ptr SDLStorage)
-foreign import ccall unsafe "SDL_OpenUserStorage" sdlOpenUserStorage_ :: CString -> CString -> SDLPropertiesID -> IO (Ptr SDLStorage)
+foreign import ccall unsafe "SDL_OpenTitleStorage" sdlOpenTitleStorage_ :: CString -> Word32 -> IO (Ptr SDLStorage)
+foreign import ccall unsafe "SDL_OpenUserStorage" sdlOpenUserStorage_ :: CString -> CString -> Word32 -> IO (Ptr SDLStorage)
 foreign import ccall unsafe "SDL_OpenFileStorage" sdlOpenFileStorage_ :: CString -> IO (Ptr SDLStorage)
 foreign import ccall unsafe "SDL_OpenStorage" sdlOpenStorage_ :: Ptr SDLStorageInterface -> Ptr () -> IO (Ptr SDLStorage)
 foreign import ccall unsafe "SDL_CloseStorage" sdlCloseStorage_ :: Ptr SDLStorage -> IO Bool

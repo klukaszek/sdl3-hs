@@ -1,5 +1,7 @@
 # SDL3 Haskell Bindings
 
+NOT STABLE! NOT EVERY FUNCTION IS TESTED IN THE EXAMPLES! MAYBE UNIT TESTS SOME DAY.
+
 ## SDL.h Header File Support Checklist
 - [x] SDL3/SDL_stdinc.h
 - [x] SDL3/SDL_assert.h
@@ -14,7 +16,7 @@
 - [x] SDL3/SDL_dialog.h
 - [x] SDL3/SDL_endian.h
 - [x] SDL3/SDL_error.h
-- [ ] SDL3/SDL_events.h
+- [x] SDL3/SDL_events.h
 - [x] SDL3/SDL_filesystem.h
 - [x] SDL3/SDL_gamepad.h
 - [ ] SDL3/SDL_gpu.h
@@ -25,8 +27,8 @@
 - [x] SDL3/SDL_init.h
 - [x] SDL3/SDL_iostream.h
 - [x] SDL3/SDL_joystick.h
-- [ ] SDL3/SDL_keyboard.h
-- [ ] SDL3/SDL_keycode.h
+- [x] SDL3/SDL_keyboard.h
+- [x] SDL3/SDL_keycode.h
 - [x] SDL3/SDL_loadso.h
 - [x] SDL3/SDL_locale.h
 - [x] SDL3/SDL_log.h
@@ -43,11 +45,11 @@
 - [x] SDL3/SDL_properties.h
 - [x] SDL3/SDL_rect.h
 - [ ] SDL3/SDL_render.h
-- [ ] SDL3/SDL_scancode.h
+- [x] SDL3/SDL_scancode.h
 - [x] SDL3/SDL_sensor.h
 - [x] SDL3/SDL_storage.h
 - [x] SDL3/SDL_surface.h
-- [ ] SDL3/SDL_system.h
+- [x] SDL3/SDL_system.h
 - [x] SDL3/SDL_thread.h
 - [x] SDL3/SDL_time.h
 - [x] SDL3/SDL_timer.h
