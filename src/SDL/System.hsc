@@ -89,6 +89,7 @@ module SDL.System
 
 #include <SDL3/SDL_system.h>
 
+import Foreign
 import Foreign.C.Types
 import Foreign.Ptr (Ptr, FunPtr, nullPtr, castPtr)
 import Foreign.C.String (CString, newCString, peekCString)
@@ -162,8 +163,8 @@ sdlGetDXGIOutputInfo displayID = alloca $ \adapterPtr -> alloca $ \outputPtr -> 
   success <- sdlGetDXGIOutputInfoRaw displayID adapterPtr outputPtr
   if success
     then do
-      adapter <- peek adapterPtr
-      output <- peek outputPtr
+      adapter <- peek (adapterPtr :: Ptr CInt)
+      output <- peek (outputPtr :: Ptr CInt)
       return $ Just (fromIntegral adapter, fromIntegral output)
     else return Nothing
 

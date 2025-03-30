@@ -1,268 +1,148 @@
 {-|
 Example     : SDL.Audio
-Description : SDL Audio Playback Example
+Description : SDL Audio Playback Example with Sine Wave
 Copyright   : (c) Kyle Lukaszek, 2025
 License     : BSD3
 |-}
 
 module Main where
 
-import SDL
+import SDL hiding (sin)
 import SDL.Audio
-import Control.Monad (unless, when, void)
+import Control.Monad (unless, when)
 import System.Exit (exitFailure, exitSuccess)
-import Foreign (with, toBool)
+import Foreign (with, toBool, castPtr)
 import Foreign.C.String (peekCString)
-import Foreign.Ptr (nullPtr, castPtr, Ptr)
-import Foreign.Marshal.Alloc (free, alloca)
-import Foreign.Marshal.Array (withArray, peekArray)
+import Foreign.Ptr (nullPtr)
+import Foreign.Marshal.Array (withArray)
 import Data.IORef
-import Data.Word (Word8, Word16, Word32, Word64)
+import Data.Word (Word32, Word64)
 import Text.Printf (printf)
 import Control.Concurrent (threadDelay)
-import Control.Exception (bracket, finally, catch, SomeException)
+import Control.Exception (bracket)
+import Data.List (unfoldr)
 
 main :: IO ()
 main = do
-  -- Check compiled version
-  sdlLog $ "Compiled SDL Version: " ++ show sdlVersion
-  when (sdlVersionAtLeast 3 0 0) $ sdlLog "Compiled with at least SDL 3.0.0"
-
-  -- Get linked version
-  linkedVersion <- sdlGetVersion
-  sdlLog $ "Linked SDL Version: " ++ show linkedVersion
-
-  -- Initialize SDL
-  initSuccess <- sdlInit [InitVideo, InitEvents, InitAudio]
-  unless initSuccess $ do
-    sdlLog "Failed to initialize SDL!"
-    exitFailure
-
-  -- Check initialized subsystems
-  initializedSystems <- sdlWasInit []
-  sdlLog "Initialized subsystems:"
-  mapM_ printSubsystem initializedSystems
-
-  -- Create a window
-  window <- sdlCreateWindow "SDL3 Haskell Audio Example" 800 600 [sdlWindowResizable]
-  case window of
-    Nothing -> do
-      sdlLog "Failed to create window!"
-      sdlQuit
-      exitFailure
-    Just win -> do
-      sdlLog "Window created successfully!"
-      
-      -- Load audio file and setup audio
-      -- Use catch to handle any exceptions
-      catch
-        (bracket setupAudio cleanupAudio $ \audioData -> do
-          -- Start event loop with initial time
-          startTime <- sdlGetPerformanceCounter
-          freq <- sdlGetPerformanceFrequency
-          deltaTimeRef <- newIORef 0.0
-          eventLoop win startTime freq deltaTimeRef audioData)
-        (\e -> do
-          sdlLog $ "Error in audio setup or playback: " ++ show (e :: SomeException)
-          return ())
-        
-      -- Cleanup
-      sdlDestroyWindow win
-      sdlLog "Window destroyed."
-
-  sdlLog "Shutting down SDL..."
+  sdlInit [InitAudio]
+  bracket setupAudio cleanupAudio $ \audioData -> do
+    startTime <- sdlGetPerformanceCounter
+    freq <- sdlGetPerformanceFrequency
+    sampleCounterRef <- newIORef 0
+    playSineWave (audioStream audioData) sampleCounterRef True
+    threadDelay 500000  -- 500ms delay to let device start
+    eventLoop startTime freq sampleCounterRef audioData
   sdlQuit
-  sdlLog "Application terminated successfully"
   exitSuccess
 
--- | Audio data type to hold all our audio resources
 data AudioData = AudioData
   { audioDevice :: SDLAudioDeviceID
-  , audioStream :: Maybe SDLAudioStream
-  , audioBuffer :: [Word8]  -- We'll store buffer as a list
+  , audioStream :: SDLAudioStream
   , audioSpec   :: SDLAudioSpec
   }
 
--- | Create a valid audio spec with reasonable defaults
-createDefaultAudioSpec :: IO SDLAudioSpec
-createDefaultAudioSpec = do
-  return SDLAudioSpec
-    { audioFormat = SDL_AUDIO_S16LE  -- 16-bit signed little-endian
-    , audioChannels = 2              -- Stereo
-    , audioFreq = 44100              -- 44.1 kHz
-    }
+createAudioSpec :: IO SDLAudioSpec
+createAudioSpec = return SDLAudioSpec
+  { audioFormat = SDL_AUDIO_F32    -- Native endian float32
+  , audioChannels = 1              -- Mono
+  , audioFreq = 8000              -- 8000 Hz
+  }
 
--- | Setup audio device and load WAV file
 setupAudio :: IO AudioData
 setupAudio = do
-  sdlLog "Setting up audio..."
+  desiredSpec <- createAudioSpec
+  device <- with desiredSpec $ \specPtr -> do
+    dev <- sdlOpenAudioDevice SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK specPtr
+    err <- sdlGetError
+    unless (err == "") $ sdlLog $ "Open device error: " ++ err
+    return dev
   
-  -- Load WAV file
-  loadResult <- sdlLoadWAV "assets/sound.wav"
-  case loadResult of
-    Nothing -> do
-      sdlLog "Failed to load WAV file! Using default settings..."
-      -- Create default audio spec
-      spec <- createDefaultAudioSpec
-      
-      -- Just use a short empty buffer for testing
-      let buffer = replicate 1000 0
-      
-      setupAudioWithSpec spec buffer
-      
-    Just (spec, buffer) -> do
-      -- Validate the audio spec
-      let channels = audioChannels spec
-          format = audioFormat spec
-          freq = audioFreq spec
-      
-      -- Check if the values are reasonable
-      if channels <= 0 || channels > 8 || freq <= 0 || freq > 192000
-        then do
-          sdlLog $ "Invalid audio spec detected: channels=" ++ show channels ++
-                  ", format=" ++ show format ++ ", freq=" ++ show freq
-          
-          -- Use default spec instead
-          defaultSpec <- createDefaultAudioSpec
-          sdlLog $ "Using default audio spec: channels=" ++ show (audioChannels defaultSpec) ++
-                  ", format=" ++ show (audioFormat defaultSpec) ++ 
-                  ", freq=" ++ show (audioFreq defaultSpec)
-          
-          setupAudioWithSpec defaultSpec buffer
-          
-        else do
-          sdlLog $ "WAV loaded: format=" ++ show format ++ 
-                  ", channels=" ++ show channels ++
-                  ", freq=" ++ show freq
-          
-          setupAudioWithSpec spec buffer
-
--- | Setup audio with a valid spec and buffer
-setupAudioWithSpec :: SDLAudioSpec -> [Word8] -> IO AudioData
-setupAudioWithSpec spec buffer = do
-  -- Open default audio device with the spec
-  device <- with spec $ \specPtr ->
-            sdlOpenAudioDevice SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK specPtr
-  sdlLog $ "Opened audio device ID: " ++ show device
-  
-  -- Get the format name for display
-  formatNamePtr <- sdlGetAudioFormatName (audioFormat spec)
-  formatName <- peekCString formatNamePtr
-  sdlLog $ "Audio format: " ++ formatName
-  
-  -- Create audio stream with the provided spec
-  streamMaybe <- with spec $ \srcSpecPtr ->
-                 sdlOpenAudioDeviceStream device spec Nothing nullPtr
-  
+  streamMaybe <- with desiredSpec $ \srcSpecPtr -> do
+    stream <- sdlOpenAudioDeviceStream device desiredSpec Nothing nullPtr
+    err <- sdlGetError
+    unless (err == "") $ sdlLog $ "Open stream error: " ++ err
+    return stream
+    
   case streamMaybe of
     Nothing -> do
       sdlLog "Failed to create audio stream!"
       exitFailure
     Just stream -> do
-      -- Resume the device (start playback)
       resumeResult <- sdlResumeAudioDevice device
-      when (not $ toBool resumeResult) $ 
-        sdlLog "Warning: Failed to resume audio device"
-      
-      return $ AudioData 
-        { audioDevice = device
-        , audioStream = Just stream
-        , audioBuffer = buffer
-        , audioSpec   = spec
-        }
+      err <- sdlGetError
+      sdlLog $ "Resume audio device result: " ++ show (toBool resumeResult)
+      unless (toBool resumeResult || err == "") $ sdlLog $ "Resume error: " ++ err
+      formatNamePtr <- sdlGetAudioFormatName (audioFormat desiredSpec)
+      formatName <- peekCString formatNamePtr
+      sdlLog $ "Requested audio format: " ++ formatName
+      actualSpec <- sdlGetAudioStreamFormat stream
+      case actualSpec of
+        Just (_inSpec, outSpec) -> do
+          actualFormatNamePtr <- sdlGetAudioFormatName (audioFormat outSpec)
+          actualFormatName <- peekCString actualFormatNamePtr
+          sdlLog $ "Actual audio format: " ++ actualFormatName ++ 
+                  ", channels: " ++ show (audioChannels outSpec) ++ 
+                  ", freq: " ++ show (audioFreq outSpec)
+        Nothing -> sdlLog "Could not retrieve actual audio format"
+      return $ AudioData device stream desiredSpec
 
--- | Clean up audio resources
 cleanupAudio :: AudioData -> IO ()
 cleanupAudio audioData = do
-  sdlLog "Cleaning up audio resources..."
-  -- Destroy the audio stream if it exists
-  case audioStream audioData of
-    Just stream -> do
-      -- Unbind the stream first, then destroy it
-      sdlUnbindAudioStream stream
-      
-      -- Extract the pointer from the SDLAudioStream wrapper
-      let (SDLAudioStream ptr) = stream
-      sdlDestroyAudioStream ptr
-      
-    Nothing -> return ()
-  
-  -- Close the audio device
+  let (SDLAudioStream ptr) = audioStream audioData
+  sdlUnbindAudioStream (audioStream audioData)
+  sdlDestroyAudioStream ptr
   sdlCloseAudioDevice (audioDevice audioData)
+  sdlLog "Audio cleaned up"
 
--- | Play the sound effect
-playSound :: AudioData -> IO ()
-playSound audioData = do
-  case audioStream audioData of
-    Nothing -> sdlLog "No audio stream available!"
-    Just stream -> do
-      -- Extract the pointer from the SDLAudioStream wrapper
-      let (SDLAudioStream ptr) = stream
-      
-      -- Use the pointer directly with the buffer
-      withArray (audioBuffer audioData) $ \bufPtr -> do
-        let bufLen = length (audioBuffer audioData)
-        
-        -- Put audio data into the stream using the raw pointer
-        success <- sdlPutAudioStreamData ptr (castPtr bufPtr) (fromIntegral bufLen)
-        
-        when (toBool success) $
-          sdlLog "Playing sound..."
-        
-        unless (toBool success) $
-          sdlLog "Failed to queue audio data!"
+generateSineWave :: Int -> Int -> [Float]
+generateSineWave startSample count = 
+  take count $ unfoldr (\i -> Just (0.5 * sin (2 * pi * 440 * fromIntegral i / 8000), i + 1)) startSample
 
--- | Main event loop that tracks FPS and processes events
-eventLoop :: SDLWindow -> Word64 -> Word64 -> IORef Double -> AudioData -> IO ()
-eventLoop window lastTime freq deltaTimeRef audioData = do
+playSineWave :: SDLAudioStream -> IORef Int -> Bool -> IO ()
+playSineWave stream sampleCounterRef isInitial = do
+  let (SDLAudioStream ptr) = stream
+  queued <- sdlGetAudioStreamQueued ptr
+  sdlLog $ "Queued bytes: " ++ show queued
+  let sampleCount = if isInitial then 8000 else 512
+  when (isInitial || True) $ do  -- Force continuous queuing for testing
+    currentSample <- readIORef sampleCounterRef
+    let samples = generateSineWave currentSample sampleCount
+    withArray samples $ \bufPtr -> do
+      let bufLen = length samples * 4
+      success <- sdlPutAudioStreamData ptr (castPtr bufPtr) (fromIntegral bufLen)
+      err <- sdlGetError
+      if toBool success
+        then do
+          let newSample = (currentSample + sampleCount) `mod` 8000
+          writeIORef sampleCounterRef newSample
+          sdlLog $ "Queued " ++ show (length samples) ++ " samples"
+          flushSuccess <- sdlFlushAudioStream ptr
+          unless (toBool flushSuccess) $ do
+            flushErr <- sdlGetError
+            sdlLog $ "Failed to flush audio stream: " ++ flushErr
+        else sdlLog $ "Failed to queue audio data: " ++ err
+
+eventLoop :: Word64 -> Word64 -> IORef Int -> AudioData -> IO ()
+eventLoop lastTime freq sampleCounterRef audioData = do
   currentTime <- sdlGetPerformanceCounter
   let deltaTime = fromIntegral (currentTime - lastTime) / fromIntegral freq * 1000.0
 
-  -- Store the new deltaTime
-  writeIORef deltaTimeRef deltaTime
-  
-  -- Event handling
   sdlPumpEvents
   maybeEvent <- sdlPollEvent
   shouldQuit <- case maybeEvent of
     Nothing -> return False
-    Just event -> handleEvent event deltaTimeRef audioData
+    Just event -> handleEvent event deltaTime
 
-  unless shouldQuit $ do
-    -- Small delay to prevent CPU hogging
-    threadDelay 1000
-    eventLoop window currentTime freq deltaTimeRef audioData
-
--- | Handle SDL events
-handleEvent :: SDLEvent -> IORef Double -> AudioData -> IO Bool
-handleEvent event deltaTimeRef audioData = case event of
-  SDLEventQuit _ -> do
-    sdlLog "Quit event received."
-    return True
+  playSineWave (audioStream audioData) sampleCounterRef False
   
-  SDLEventKeyboard (SDLKeyboardEvent _ _ _ _ scancode _ _ _ down _) | down -> do
-    deltaTime <- readIORef deltaTimeRef  -- Read delta time
-    sdlLog $ printf "Key event received. Delta Time: %.3f ms" deltaTime
-    
-    -- Play sound on space bar press
-    when (scancode == SDL_SCANCODE_SPACE) $ do
-      sdlLog "Space pressed, playing sound"
-      playSound audioData
-    
-    -- Quit on Q press
-    return $ scancode == SDL_SCANCODE_Q
-    
-  _ -> return False
+  unless shouldQuit $ do
+    threadDelay 1000  -- 1ms delay per loop
+    eventLoop currentTime freq sampleCounterRef audioData
 
--- | Helper function to print subsystem names
-printSubsystem :: InitFlag -> IO ()
-printSubsystem flag = sdlLog $ "  - " ++ case flag of
-  InitAudio    -> "Audio"
-  InitVideo    -> "Video"
-  InitJoystick -> "Joystick"
-  InitHaptic   -> "Haptic"
-  InitGamepad  -> "Gamepad"
-  InitEvents   -> "Events"
-  InitSensor   -> "Sensor"
-  InitCamera   -> "Camera"
-  _            -> "Unknown subsystem"
+handleEvent :: SDLEvent -> Double -> IO Bool
+handleEvent event deltaTime = case event of
+  SDLEventQuit _ -> return True
+  SDLEventKeyboard (SDLKeyboardEvent _ _ _ _ scancode _ _ _ down _) | down -> do
+    sdlLog $ printf "Key pressed. Delta Time: %.3f ms" deltaTime
+    return $ scancode == SDL_SCANCODE_Q
+  _ -> return False

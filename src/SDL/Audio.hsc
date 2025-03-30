@@ -36,9 +36,9 @@ module SDL.Audio
   , pattern SDL_AUDIO_S32BE
   , pattern SDL_AUDIO_F32LE
   , pattern SDL_AUDIO_F32BE
-  -- , pattern SDL_AUDIO_S16
-  -- , pattern SDL_AUDIO_S32
-  -- , pattern SDL_AUDIO_F32
+  , pattern SDL_AUDIO_S16
+  , pattern SDL_AUDIO_S32
+  , pattern SDL_AUDIO_F32
     -- * Default Device Constants
   , pattern SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK
   , pattern SDL_AUDIO_DEVICE_DEFAULT_RECORDING
@@ -183,6 +183,15 @@ pattern SDL_AUDIO_F32LE = #{const SDL_AUDIO_F32LE}
 
 pattern SDL_AUDIO_F32BE :: Word16
 pattern SDL_AUDIO_F32BE = #{const SDL_AUDIO_F32BE}
+
+pattern SDL_AUDIO_S16 :: Word16
+pattern SDL_AUDIO_S16 = #{const SDL_AUDIO_S16}
+
+pattern SDL_AUDIO_S32 :: Word16
+pattern SDL_AUDIO_S32 = #{const SDL_AUDIO_S32}
+
+pattern SDL_AUDIO_F32 :: Word16
+pattern SDL_AUDIO_F32 = #{const SDL_AUDIO_F32}
 
 -- Default device constants
 pattern SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK :: SDLAudioDeviceID
