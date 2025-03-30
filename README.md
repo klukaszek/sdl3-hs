@@ -2,6 +2,12 @@
 
 NOT STABLE! NOT EVERY FUNCTION IS TESTED IN THE EXAMPLES! MAYBE UNIT TESTS SOME DAY.
 
+## Windows:
+
+Make sure SDL3 compiles a .DLL file, and `pkgconfig` knows that SDL3 exists.
+
+You can do this by setting `PKG_CONFIG_PATH="path\to\SDL3\lib\pkgconfig"`
+
 ## SDL.h Header File Support Checklist
 - [x] SDL3/SDL_stdinc.h
 - [x] SDL3/SDL_assert.h
