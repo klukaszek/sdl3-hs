@@ -8,6 +8,14 @@ Make sure SDL3 compiles a .DLL file, and `pkgconfig` knows that SDL3 exists.
 
 You can do this by setting `PKG_CONFIG_PATH="path\to\SDL3\lib\pkgconfig"`
 
+You'll also wanna add a `cabal.project.local` file to the root directory with
+
+```
+package *
+  extra-include-dirs: "path/to/SDL3/include/"
+  extra-lib-dirs: "path/to/SDL3/lib/"
+```
+
 ## SDL.h Header File Support Checklist
 - [x] SDL3/SDL_stdinc.h
 - [x] SDL3/SDL_assert.h
