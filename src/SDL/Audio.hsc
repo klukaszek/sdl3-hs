@@ -116,6 +116,7 @@ import Foreign.C.Types
 import Foreign.C.String
 import Data.Word
 import Data.Int
+import SDL.Error
 import SDL.IOStream
 import SDL.Properties
 import Control.Monad (when, (>=>))
@@ -739,10 +740,18 @@ sdlDestroyAudioStream (SDLAudioStream stream) = c_sdlDestroyAudioStream stream
 sdlOpenAudioDeviceStream :: SDLAudioDeviceID -> Maybe SDLAudioSpec -> Maybe (SDLAudioStreamCallback, Ptr ()) -> IO (Maybe SDLAudioStream)
 sdlOpenAudioDeviceStream devid maybeSpec maybeCallback =
   bracket (maybe (return nullPtr) (new . toCAudioSpec) maybeSpec) free $ \specPtr -> do
+    -- Check available devices (pseudo-code; adapt to your SDL bindings)
+    devices <- sdlGetAudioPlaybackDevices
+    putStrLn $ "Available playback devices: " ++ show (length devices)
+
     (callbackPtr, userdata) <- case maybeCallback of
       Nothing -> return (nullFunPtr, nullPtr)
       Just (callback, ud) -> (,ud) <$> makeAudioStreamCallback callback
+
     streamPtr <- c_sdlOpenAudioDeviceStream devid specPtr callbackPtr userdata
+    when (streamPtr == nullPtr) $ do
+      err <- sdlGetError
+      putStrLn $ "Failed to open audio stream. SDL Error: " ++ err
     return $ if streamPtr == nullPtr then Nothing else Just (SDLAudioStream streamPtr)
   where
     toCAudioSpec spec = SDLAudioSpec (audioFormat spec) (audioChannels spec) (audioFreq spec)

@@ -1,53 +1,46 @@
--- {-|
--- Example     : SDL.Audio
--- Description : Simple SDL Audio Playback with Sine Wave
--- Copyright   : (c) Kyle Lukaszek, 2025
--- License     : BSD3
-
--- | -}
 import Foreign
 import Foreign.C
 import qualified Data.ByteString as BS
+import Data.ByteString.Unsafe (unsafePackCStringLen)
 import SDL hiding (sin, round)
-import System.IO.Unsafe (unsafePerformIO)
+import Control.Concurrent (threadDelay)
+import Foreign.Marshal.Array (withArray)
+import Foreign.Storable (sizeOf)
 
+-- | Main function to demonstrate SDL audio playback with a 1-second 440 Hz tone
 main :: IO ()
 main = do
+  -- Initialize SDL with audio support
   sdlInit [InitAudio]
-  maybeDevid <- sdlOpenAudioDevice SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK Nothing
-  case maybeDevid of
-    Nothing -> putStrLn "Failed to open audio device"
-    Just devid -> do
-      putStrLn $ "Opened device ID: " ++ show devid
 
-      -- Get device format
-      maybeFormat <- sdlGetAudioDeviceFormat devid
-      case maybeFormat of
-        Just (spec, maybeFrames) -> do
-          putStrLn $ "Format: " ++ show spec
-          putStrLn $ "Sample Frames: " ++ show maybeFrames
-        Nothing -> putStrLn "Failed to get device format"
+  -- Define the audio specification: 32-bit float, 1 channel (mono), 8000 Hz
+  let spec = SDLAudioSpec SDL_AUDIO_F32 1 8000
+  
+  -- Open the default playback device stream with the specified spec and no callback
+  maybeStream <- sdlOpenAudioDeviceStream SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK Nothing Nothing
+  case maybeStream of
+    Nothing -> putStrLn "Failed to open audio stream"
+    Just stream -> do
+      -- Resume the audio stream to start playback
+      success <- sdlResumeAudioStreamDevice stream
+      if not success
+        then putStrLn "Failed to resume audio stream"
+        else do
+          -- Generate 8000 samples (1 second at 8000 Hz) of a 440 Hz sine wave with amplitude 0.5
+          let samples = [0.5 * sin (2 * pi * 440 * fromIntegral i / 8000) | i <- [0..7999]] :: [Float]
 
-      -- Check properties
-      isPhysical <- sdlIsAudioDevicePhysical devid
-      isPlayback <- sdlIsAudioDevicePlayback devid
-      putStrLn $ "Is Physical: " ++ show isPhysical
-      putStrLn $ "Is Playback: " ++ show isPlayback
+          -- Convert samples to a ByteString and feed them into the audio stream
+          withArray samples $ \ptr -> do
+            let len = 8000 * sizeOf (undefined :: Float) -- Total byte length (8000 floats * 4 bytes each)
+            bs <- unsafePackCStringLen (castPtr ptr, len)
+            successPut <- sdlPutAudioStreamData stream bs
+            if not successPut
+              then putStrLn "Failed to put audio data into stream"
+              else do
+                -- Wait 5 seconds to ensure the 1-second tone plays fully
+                threadDelay (5 * 1000000) -- 5 seconds in microseconds
 
-      -- Pause and resume
-      paused <- sdlPauseAudioDevice devid
-      putStrLn $ "Paused: " ++ show paused
-      isPaused <- sdlAudioDevicePaused devid
-      putStrLn $ "Is Paused: " ++ show isPaused
-      resumed <- sdlResumeAudioDevice devid
-      putStrLn $ "Resumed: " ++ show resumed
+          -- Clean up by destroying the audio stream (also closes the associated device)
+          sdlDestroyAudioStream stream
 
-      -- Set and get gain
-      setGain <- sdlSetAudioDeviceGain devid 0.5
-      putStrLn $ "Set Gain to 0.5: " ++ show setGain
-      maybeGain <- sdlGetAudioDeviceGain devid
-      putStrLn $ "Gain: " ++ show maybeGain
-
-      -- Close device
-      sdlCloseAudioDevice devid
-      putStrLn "Device closed"
+  sdlQuit
