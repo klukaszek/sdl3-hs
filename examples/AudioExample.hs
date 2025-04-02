@@ -1,3 +1,18 @@
+{-|
+Module      : SDL.Audio
+Description : SDL audio functionality
+Copyright   : (c) Kyle Lukaszek, 2025
+License     : BSD3
+
+Plays an 8000Hz tone in F32 format.
+
+Tested on Linux with Pulse AND Alsa.
+Tested on Windows.
+
+For more details, refer to the official SDL3 documentation:
+https://wiki.libsdl.org/SDL3/CategoryAudio
+-}
+
 import Foreign
 import Foreign.C
 import qualified Data.ByteString as BS

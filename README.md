@@ -21,7 +21,7 @@ package *
 - [x] SDL3/SDL_assert.h
 - [x] SDL3/SDL_asyncio.h
 - [x] SDL3/SDL_atomic.h
-- [ ] SDL3/SDL_audio.h
+- [x] SDL3/SDL_audio.h
 - [x] SDL3/SDL_bits.h
 - [x] SDL3/SDL_blendmode.h
 - [x] SDL3/SDL_camera.h
