@@ -145,16 +145,23 @@ data SDLAudioSpec = SDLAudioSpec
 instance Storable SDLAudioSpec where
   sizeOf _ = #{size SDL_AudioSpec}
   alignment _ = #{alignment SDL_AudioSpec}
-  peek ptr = SDLAudioSpec
-    <$> #{peek SDL_AudioSpec, format} ptr
-    <*> (fmap fromIntegral (#{peek SDL_AudioSpec, channels} ptr :: IO CUChar))
-    <*> (fmap fromIntegral (#{peek SDL_AudioSpec, freq} ptr :: IO CInt))
+  peek ptr = do
+    fmt <- #{peek SDL_AudioSpec, format} ptr
+    ch <- fmap fromIntegral (#{peek SDL_AudioSpec, channels} ptr :: IO CInt)
+    fr <- fmap fromIntegral (#{peek SDL_AudioSpec, freq} ptr :: IO CInt)
+    return $ SDLAudioSpec fmt ch fr
   poke ptr spec = do
     #{poke SDL_AudioSpec, format} ptr (audioFormat spec)
-    #{poke SDL_AudioSpec, channels} ptr (fromIntegral (audioChannels spec) :: CUChar)
-    #{poke SDL_AudioSpec, freq} ptr (audioFreq spec)
+    #{poke SDL_AudioSpec, channels} ptr (fromIntegral (audioChannels spec) :: CInt)
+    #{poke SDL_AudioSpec, freq} ptr (fromIntegral (audioFreq spec) :: CInt)
+    -- Debug the poked values
+    fmt <- #{peek SDL_AudioSpec, format} ptr :: IO SDLAudioFormat
+    ch <- #{peek SDL_AudioSpec, channels} ptr :: IO CInt
+    fr <- #{peek SDL_AudioSpec, freq} ptr :: IO CInt
+    putStrLn $ "Poked SDLAudioSpec: format=" ++ show fmt ++ ", channels=" ++ show ch ++ ", freq=" ++ show fr
+    putStrLn $ "Size: " ++ show (sizeOf (undefined :: SDLAudioSpec))
 
--- Audio format constants
+  -- Audio format constants
 pattern SDL_AUDIO_MASK_BITSIZE :: Word16
 pattern SDL_AUDIO_MASK_BITSIZE = #{const SDL_AUDIO_MASK_BITSIZE}
 
@@ -285,6 +292,7 @@ foreign import ccall unsafe "SDL_MixAudio" c_sdlMixAudio :: Ptr Word8 -> Ptr Wor
 foreign import ccall unsafe "SDL_ConvertAudioSamples" c_sdlConvertAudioSamples :: Ptr SDLAudioSpec -> Ptr Word8 -> CInt -> Ptr SDLAudioSpec -> Ptr (Ptr Word8) -> Ptr CInt -> IO CBool
 foreign import ccall unsafe "SDL_GetAudioFormatName" c_sdlGetAudioFormatName :: SDLAudioFormat -> IO CString
 foreign import ccall unsafe "SDL_GetSilenceValueForFormat" c_sdlGetSilenceValueForFormat :: SDLAudioFormat -> IO CInt
+foreign import ccall "string.h memset" memset :: Ptr a -> CInt -> CSize -> IO ()
 
 -- | Get the number of built-in audio drivers.
 --
@@ -739,22 +747,19 @@ sdlDestroyAudioStream (SDLAudioStream stream) = c_sdlDestroyAudioStream stream
 -- Pass 'Nothing' for 'spec' to let SDL choose the format. Returns 'Nothing' on failure.
 sdlOpenAudioDeviceStream :: SDLAudioDeviceID -> Maybe SDLAudioSpec -> Maybe (SDLAudioStreamCallback, Ptr ()) -> IO (Maybe SDLAudioStream)
 sdlOpenAudioDeviceStream devid maybeSpec maybeCallback =
-  bracket (maybe (return nullPtr) (new . toCAudioSpec) maybeSpec) free $ \specPtr -> do
-    -- Check available devices (pseudo-code; adapt to your SDL bindings)
-    devices <- sdlGetAudioPlaybackDevices
-    putStrLn $ "Available playback devices: " ++ show (length devices)
-
+  bracket (case maybeSpec of
+             Nothing -> return nullPtr
+             Just spec -> do
+               ptr <- mallocBytes (sizeOf (undefined :: SDLAudioSpec))
+               memset ptr 0 (fromIntegral (sizeOf (undefined :: SDLAudioSpec)))
+               poke ptr spec
+               return ptr
+          ) free $ \specPtr -> do
     (callbackPtr, userdata) <- case maybeCallback of
       Nothing -> return (nullFunPtr, nullPtr)
       Just (callback, ud) -> (,ud) <$> makeAudioStreamCallback callback
-
     streamPtr <- c_sdlOpenAudioDeviceStream devid specPtr callbackPtr userdata
-    when (streamPtr == nullPtr) $ do
-      err <- sdlGetError
-      putStrLn $ "Failed to open audio stream. SDL Error: " ++ err
     return $ if streamPtr == nullPtr then Nothing else Just (SDLAudioStream streamPtr)
-  where
-    toCAudioSpec spec = SDLAudioSpec (audioFormat spec) (audioChannels spec) (audioFreq spec)
 
 -- | Set a callback that fires when data is about to be fed to an audio device.
 --

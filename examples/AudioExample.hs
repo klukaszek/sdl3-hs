@@ -17,7 +17,7 @@ main = do
   let spec = SDLAudioSpec SDL_AUDIO_F32 1 8000
   
   -- Open the default playback device stream with the specified spec and no callback
-  maybeStream <- sdlOpenAudioDeviceStream SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK Nothing Nothing
+  maybeStream <- sdlOpenAudioDeviceStream SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK (Just spec) Nothing
   case maybeStream of
     Nothing -> putStrLn "Failed to open audio stream"
     Just stream -> do
@@ -42,5 +42,6 @@ main = do
 
           -- Clean up by destroying the audio stream (also closes the associated device)
           sdlDestroyAudioStream stream
+          sdlLog "Success!"
 
   sdlQuit
