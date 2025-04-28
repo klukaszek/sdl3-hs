@@ -15,6 +15,7 @@ module SDL
     module SDL.Events,
     module SDL.Filesystem,
     module SDL.Gamepad,
+    module SDL.GPU,
     module SDL.GUID,
     module SDL.Haptic,
     module SDL.Hidapi,
@@ -70,6 +71,7 @@ import SDL.Error
 import SDL.Events
 import SDL.Filesystem
 import SDL.Gamepad
+import SDL.GPU
 import SDL.GUID
 import SDL.Haptic
 import SDL.Hidapi

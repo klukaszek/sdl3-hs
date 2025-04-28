@@ -82,6 +82,7 @@ library
         SDL.Events
         SDL.Filesystem
         SDL.Gamepad
+        SDL.GPU
         SDL.GUID
         SDL.Haptic
         SDL.Hidapi
