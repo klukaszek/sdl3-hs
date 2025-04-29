@@ -40,6 +40,7 @@ module SDL
     module SDL.Process,
     module SDL.Properties,
     module SDL.Rect,
+    module SDL.Render,
     module SDL.Scancode,
     module SDL.Sensor,
     module SDL.Stdinc,
@@ -96,6 +97,7 @@ import SDL.Power
 import SDL.Process
 import SDL.Properties
 import SDL.Rect
+import SDL.Render
 import SDL.Scancode
 import SDL.Sensor
 import SDL.Stdinc
