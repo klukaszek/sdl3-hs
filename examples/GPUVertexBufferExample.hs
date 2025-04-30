@@ -1,7 +1,6 @@
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE TypeApplications     #-} -- For using sizeOf with type applications
 {-# LANGUAGE FlexibleInstances    #-} -- To define Storable for our custom type
 
 {-|
@@ -24,12 +23,12 @@ module Main where
 import SDL
 import GPUCommon        -- Import common init/quit and shader loading
 
-import Control.Monad (unless, when, void, forM_)
-import Control.Exception (bracket) -- For resource management
+import Control.Monad (unless, when, void)
+import Control.Exception (bracket, bracketOnError, onException, finally) -- For resource management
 import System.Exit (exitFailure, exitSuccess)
 import Foreign.Ptr (Ptr, nullPtr, castPtr, plusPtr)
-import Foreign.Storable (Storable(..))
-import Foreign.C.Types (CFloat, CSize)
+import Foreign.Storable (Storable(..), peekByteOff, pokeByteOff, sizeOf, poke)
+import Foreign.C.Types (CFloat, CSize) -- Import CSize
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Array (pokeArray)
 import Data.IORef       -- Not needed for state toggles anymore
@@ -50,31 +49,29 @@ data PositionColorVertex = PositionColorVertex
     } deriving (Show, Eq)
 
 instance Storable PositionColorVertex where
-    sizeOf ~_ = (3 * sizeOf (undefined :: CFloat)) + (4 * sizeOf (undefined :: Word8))
-    alignment ~_ = alignment (undefined :: CFloat) -- Align based on the largest member (CFloat)
+    -- Size: 3 floats (3*4=12) + 4 bytes (4*1=4) = 16 bytes
+    sizeOf _ = (3 * sizeOf (undefined :: CFloat)) + (4 * sizeOf (undefined :: Word8))
+    -- Align based on the largest member (CFloat)
+    alignment _ = alignment (undefined :: CFloat)
 
     peek ptr = do
         x <- peekByteOff ptr 0
-        y <- peekByteOff ptr (sizeOf x)
-        z <- peekByteOff ptr (sizeOf x + sizeOf y)
-        r <- peekByteOff ptr (sizeOf x + sizeOf y + sizeOf z)
-        g <- peekByteOff ptr (sizeOf x + sizeOf y + sizeOf z + sizeOf r)
-        b <- peekByteOff ptr (sizeOf x + sizeOf y + sizeOf z + sizeOf r + sizeOf g)
-        a <- peekByteOff ptr (sizeOf x + sizeOf y + sizeOf z + sizeOf r + sizeOf g + sizeOf b)
+        y <- peekByteOff ptr 4 -- Offset after x (float)
+        z <- peekByteOff ptr 8 -- Offset after y (float)
+        r <- peekByteOff ptr 12 -- Offset after z (float)
+        g <- peekByteOff ptr 13 -- Offset after r (byte)
+        b <- peekByteOff ptr 14 -- Offset after g (byte)
+        a <- peekByteOff ptr 15 -- Offset after b (byte)
         return (PositionColorVertex x y z r g b a)
 
     poke ptr (PositionColorVertex x y z r g b a) = do
-        let offR = sizeOf x + sizeOf y + sizeOf z
-        let offG = offR + sizeOf r
-        let offB = offG + sizeOf g
-        let offA = offB + sizeOf b
-        pokeByteOff ptr 0 x
-        pokeByteOff ptr (sizeOf x) y
-        pokeByteOff ptr (sizeOf x + sizeOf y) z
-        pokeByteOff ptr offR r
-        pokeByteOff ptr offG g
-        pokeByteOff ptr offB b
-        pokeByteOff ptr offA a
+        pokeByteOff ptr  0 x
+        pokeByteOff ptr  4 y
+        pokeByteOff ptr  8 z
+        pokeByteOff ptr 12 r
+        pokeByteOff ptr 13 g
+        pokeByteOff ptr 14 b
+        pokeByteOff ptr 15 a
 
 -- Define vertex data
 vertexData :: [PositionColorVertex]
@@ -90,7 +87,7 @@ data AppResources = AppResources
     , resVertexBuffer :: SDLGPUBuffer
     }
 
--- Reuse default states from previous example (ensure they are correct)
+-- Reuse default states (ensure they are correct)
 defaultShaderCreateInfo :: SDLGPUShaderCreateInfo
 defaultShaderCreateInfo = SDLGPUShaderCreateInfo
     { shaderCode             = nullPtr, shaderCodeSize         = 0
@@ -158,7 +155,12 @@ runAppGPU context@Context{..} = do
     sdlLog "Base context initialized."
 
     -- Bracket pattern to manage app resources (pipeline and vertex buffer)
-    bracket (createResources context) (releaseResources context) $ \case
+    bracket (createResources context)
+            (\mRes -> do -- Add logging to the release action
+                sdlLog "--> Entering AppResources release bracket..."
+                releaseResources context mRes
+                sdlLog "<-- Exiting AppResources release bracket."
+            ) $ \case
             Nothing -> sdlLog "Failed to create resources. Exiting."
             Just resources -> do
                 sdlLog "Resources created successfully."
@@ -203,15 +205,15 @@ runAppGPU context@Context{..} = do
                 return Nothing
             Just pipeline -> do
                 sdlLog "Pipeline created successfully. Creating vertex buffer..."
-                let vertexBufferSize = fromIntegral (length vertexData * sizeOf (head vertexData))
-                maybeVertexBuffer <- createAndUploadVertexBuffer dev vertexBufferSize
+                -- Call the meticulous upload function
+                maybeVertexBuffer <- createAndUploadVertexBuffer dev vertexData
                 case maybeVertexBuffer of
                     Nothing -> do
-                        sdlLog "Vertex buffer creation or upload failed."
+                        sdlLog "Vertex buffer creation or upload failed (detailed function)."
                         sdlReleaseGPUGraphicsPipeline dev pipeline -- Clean up created pipeline
                         return Nothing
                     Just vertexBuffer -> do
-                        sdlLog "Vertex buffer created and data uploaded successfully."
+                        sdlLog "Vertex buffer reported success from detailed function."
                         return $ Just (AppResources pipeline vertexBuffer)
 
     -- Helper to create the graphics pipeline
@@ -220,6 +222,10 @@ runAppGPU context@Context{..} = do
         swapchainFormat <- sdlGetGPUSwapchainTextureFormat dev win
 
         -- Define Vertex Input State (matches PositionColorVertex)
+        let vertexSize = sizeOf (undefined :: PositionColorVertex)
+        let colorOffset = sizeOf (undefined :: CFloat) * 3
+        sdlLog $ "Pipeline Vertex Input - Stride: " ++ show vertexSize ++ ", Color Offset: " ++ show colorOffset
+
         let vertexAttributes =
               [ SDLGPUVertexAttribute -- Position (float3)
                 { attribLocation = 0 -- Corresponds to layout(location=0) in shader
@@ -231,13 +237,13 @@ runAppGPU context@Context{..} = do
                 { attribLocation = 1 -- Corresponds to layout(location=1) in shader
                 , attribSlot = 0 -- Uses vertex buffer bound to slot 0
                 , attribFormat = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM
-                , attribOffset = fromIntegral $ sizeOf (undefined :: CFloat) * 3 -- Offset after the 3 floats
+                , attribOffset = fromIntegral colorOffset -- Offset after the 3 floats
                 }
               ]
             vertexBufferDesc =
               [ SDLGPUVertexBufferDescription
                 { descSlot = 0 -- Binding slot 0
-                , descPitch = fromIntegral $ sizeOf (undefined :: PositionColorVertex) -- Stride
+                , descPitch = fromIntegral vertexSize -- Stride
                 , descInputRate = SDL_GPU_VERTEXINPUTRATE_VERTEX
                 , descInstanceStepRate = 0
                 }
@@ -276,95 +282,220 @@ runAppGPU context@Context{..} = do
             sdlLog $ "!!! Failed to create graphics pipeline: " ++ err
         return maybePipeline
 
-    -- Helper to create vertex buffer and upload data
-    createAndUploadVertexBuffer :: SDLGPUDevice -> CSize -> IO (Maybe SDLGPUBuffer)
-    createAndUploadVertexBuffer dev bufferSize = do
-        -- Create Vertex Buffer
-        let vbCreateInfo = SDLGPUBufferCreateInfo
-                             { bufferUsage = SDL_GPU_BUFFERUSAGE_VERTEX
-                             , bufferSize = fromIntegral bufferSize -- Use fromIntegral
-                             , bufferProps = 0
-                             }
-        maybeVertexBuffer <- sdlCreateGPUBuffer dev vbCreateInfo
-        case maybeVertexBuffer of
-            Nothing -> do
-                err <- sdlGetError
-                sdlLog $ "!!! Failed to create vertex buffer: " ++ err
-                return Nothing
-            Just vertexBuffer -> do
-                -- Create Transfer Buffer
-                let tbCreateInfo = SDLGPUTransferBufferCreateInfo
-                                     { transferUsage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD
-                                     , transferSize = fromIntegral bufferSize -- Use fromIntegral
-                                     , transferProps = 0
-                                     }
-                bracket (sdlCreateGPUTransferBuffer dev tbCreateInfo) -- Manage transfer buffer lifetime
-                        (maybe (return ()) (sdlReleaseGPUTransferBuffer dev)) $ \maybeTransferBuffer ->
-                    case maybeTransferBuffer of
-                        Nothing -> do
-                            err <- sdlGetError
-                            sdlLog $ "!!! Failed to create transfer buffer: " ++ err
-                            sdlReleaseGPUBuffer dev vertexBuffer -- Clean up vertex buffer
-                            return Nothing
-                        Just transferBuffer -> do
-                            -- Map, Write, Unmap (Use case for Maybe return)
-                            maybeMappedPtr <- sdlMapGPUTransferBuffer dev transferBuffer False -- Assume IO (Maybe (Ptr ()))
-                            case maybeMappedPtr of
-                                Nothing -> do -- Check for Nothing to handle failure
-                                    err <- sdlGetError
-                                    sdlLog $ "!!! Failed to map transfer buffer: " ++ err
-                                    sdlReleaseGPUBuffer dev vertexBuffer -- Clean up vertex buffer
-                                    return Nothing
-                                Just mappedPtr -> do -- Pattern match succeeds, mappedPtr is Ptr ()
-                                    -- This block only runs if mapping succeeded.
-                                    pokeArray (castPtr mappedPtr) vertexData -- castPtr works on Ptr ()
-                                    sdlUnmapGPUTransferBuffer dev transferBuffer
-
-                                    -- Upload via Command Buffer (continue inside this 'Just' block)
-                                    maybeUploadSuccess <- bracket (sdlAcquireGPUCommandBuffer dev)
-                                                                  (maybe (return ()) (void . sdlCancelGPUCommandBuffer)) $ \maybeCmdBuf -> -- Wrap in void
-                                        case maybeCmdBuf of
-                                            Nothing -> do
-                                                err <- sdlGetError
-                                                sdlLog $ "!!! Failed to acquire upload command buffer: " ++ err
-                                                return (Just False) -- Indicate failure
-                                            Just cmdBuf -> do
-                                                -- Begin copy pass (Use case for Maybe return)
-                                                maybeCopyPass <- sdlBeginGPUCopyPass cmdBuf -- Assume IO (Maybe SDLGPUCopyPass)
-                                                case maybeCopyPass of
-                                                    Nothing -> do -- Check for Nothing
-                                                        err <- sdlGetError
-                                                        sdlLog $ "!!! Failed to begin copy pass: " ++ err
-                                                        return (Just False) -- Indicate failure
-                                                    Just copyPass -> do -- Pattern match succeeds, copyPass is SDLGPUCopyPass
-                                                        -- Copy pass succeeded, now use it
-                                                        let srcLocation = SDLGPUTransferBufferLocation transferBuffer 0
-                                                            dstRegion = SDLGPUBufferRegion vertexBuffer 0 (fromIntegral bufferSize) -- Use fromIntegral
-                                                        -- These functions should expect SDLGPUCopyPass
-                                                        sdlUploadToGPUBuffer copyPass srcLocation dstRegion False
-                                                        sdlEndGPUCopyPass copyPass -- This too
-
-                                                        -- Submit the command buffer
-                                                        submitted <- sdlSubmitGPUCommandBuffer cmdBuf
-                                                        unless submitted $ do
-                                                            err <- sdlGetError
-                                                            sdlLog $ "!!! Failed to submit upload command buffer: " ++ err
-                                                        return (Just submitted) -- Return success/failure
-
-                                    case maybeUploadSuccess of
-                                        Just True -> return (Just vertexBuffer) -- Success!
-                                        _         -> do -- Upload failed or command buffer error
-                                             sdlReleaseGPUBuffer dev vertexBuffer -- Clean up vertex buffer
-                                             return Nothing
-
     -- Action to release resources
     releaseResources :: Context -> Maybe AppResources -> IO ()
     releaseResources _ Nothing = return () -- Nothing to clean up
     releaseResources Context{..} (Just AppResources{..}) = do
-        sdlLog "Releasing resources..."
+        sdlLog "--> Releasing AppResources..."
+        sdlLog $ "  --> Releasing Pipeline: " ++ show resPipeline
         sdlReleaseGPUGraphicsPipeline contextDevice resPipeline
+        sdlLog $ "  <-- Pipeline Released."
+        sdlLog $ "  --> Releasing Vertex Buffer: " ++ show resVertexBuffer
         sdlReleaseGPUBuffer contextDevice resVertexBuffer
-        sdlLog "Resources released."
+        sdlLog $ "  <-- Vertex Buffer Released."
+        sdlLog "<-- AppResources Released."
+
+
+-- | Helper to calculate sizes and log them
+calculateVertexDataSize :: [PositionColorVertex] -> IO (Int, CSize, Word32)
+calculateVertexDataSize dataList = do
+    let vertexSize = sizeOf (head dataList) -- Size of one vertex
+    let numVertices = length dataList
+    let totalBytes = numVertices * vertexSize
+    let totalCSize = fromIntegral totalBytes :: CSize
+    let totalSizeWord32 = fromIntegral totalBytes :: Word32
+    sdlLog $ "Vertex Info - SizeOf: " ++ show vertexSize ++
+             ", Count: " ++ show numVertices ++
+             ", Total Bytes (CSize): " ++ show totalCSize ++
+             ", Total Bytes (Word32): " ++ show totalSizeWord32
+    -- Verify assumption: CFloat is 4 bytes, Word8 is 1 byte. 3*4 + 4*1 = 16.
+    when (vertexSize /= 16) $
+        sdlLog "!!! WARNING: Calculated vertex size is not 16 bytes!"
+    when (totalBytes == 0) $
+        sdlLog "!!! WARNING: Vertex data is empty!"
+    return (vertexSize, totalCSize, totalSizeWord32)
+
+-- | Meticulously rewritten vertex buffer creation and upload function
+createAndUploadVertexBuffer :: SDLGPUDevice -> [PositionColorVertex] -> IO (Maybe SDLGPUBuffer)
+createAndUploadVertexBuffer dev vertexData = do
+    sdlLog "--- Beginning Vertex Buffer Creation and Upload ---"
+    if null vertexData then do
+        sdlLog "Error: Vertex data list is empty. Cannot create buffer."
+        return Nothing
+    else do
+        (vertexSize, totalCSize, totalSizeWord32) <- calculateVertexDataSize vertexData
+
+        -- Use bracketOnError for the entire process involving the vertex buffer
+        bracketOnError
+            -- Resource acquisition: Create Vertex Buffer
+            (do sdlLog $ "Creating Vertex Buffer (Size: " ++ show totalCSize ++ " bytes)..."
+                let vbCreateInfo = SDLGPUBufferCreateInfo
+                                     { bufferUsage = SDL_GPU_BUFFERUSAGE_VERTEX
+                                     , bufferSize = fromIntegral totalCSize -- Use CSize
+                                     , bufferProps = 0
+                                     }
+                maybeVB <- sdlCreateGPUBuffer dev vbCreateInfo
+                case maybeVB of
+                   Nothing -> do
+                       err <- sdlGetError
+                       sdlLog $ "!!! Failed to create vertex buffer: " ++ err
+                       return Nothing -- Signal failure
+                   Just vb -> do
+                       sdlLog $ "Vertex Buffer created successfully: " ++ show vb
+                       return (Just vb) -- Signal success with resource
+            )
+            -- Cleanup action (only if acquisition succeeded but subsequent steps failed)
+            (\maybeVertexBuffer ->
+                when (isJust maybeVertexBuffer) $ do
+                    let vb = fromJust maybeVertexBuffer
+                    sdlLog $ "Error occurred during upload, releasing vertex buffer: " ++ show vb
+                    sdlReleaseGPUBuffer dev vb
+            )
+            -- Main action (runs only if vertex buffer acquisition succeeded)
+            (\maybeVertexBuffer -> do
+                 -- Check again, though bracketOnError should handle Nothing case
+                 case maybeVertexBuffer of
+                     Nothing -> return Nothing -- Should not happen if bracketOnError works correctly
+                     Just vertexBuffer -> do
+                         -- Proceed with transfer buffer, mapping, copy, upload
+                         uploadSuccess <- uploadViaTransferBuffer dev vertexBuffer totalCSize totalSizeWord32
+                         if uploadSuccess then do
+                             sdlLog "--- Vertex Buffer Creation and Upload Successful ---"
+                             return (Just vertexBuffer) -- Final success
+                         else do
+                             sdlLog "!!! Vertex Buffer Creation or Upload Failed Overall."
+                             -- Cleanup of vertexBuffer is handled by bracketOnError
+                             return Nothing -- Final failure
+            )
+  where
+    -- Inner helper grouping transfer buffer logic
+    uploadViaTransferBuffer :: SDLGPUDevice -> SDLGPUBuffer -> CSize -> Word32 -> IO Bool
+    uploadViaTransferBuffer dev vb transferSizeCSize uploadSizeWord32 = do
+        bracket (createTransferBuffer dev (fromIntegral transferSizeCSize))
+                (cleanupTransferBuffer dev) $ \maybeTransferBuffer -> do
+            case maybeTransferBuffer of
+               Nothing -> return False -- Transfer buffer creation failed
+               Just transferBuffer -> do
+                   -- Map, Copy, Unmap
+                   mapCopySuccess <- mapAndCopyData dev transferBuffer vertexData transferSizeCSize
+                   unless mapCopySuccess $
+                       sdlLog "Mapping or copying data to transfer buffer failed."
+
+                   -- Upload via Command Buffer (only if map/copy succeeded)
+                   if mapCopySuccess
+                   then uploadDataCommandBuffer dev vb transferBuffer uploadSizeWord32
+                   else return False
+
+    -- Helper to create Transfer Buffer
+    createTransferBuffer dev size = do
+        sdlLog $ "Creating Transfer Buffer (Size: " ++ show size ++ " bytes)..."
+        let tbCreateInfo = SDLGPUTransferBufferCreateInfo
+                             { transferUsage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD
+                             , transferSize = size
+                             , transferProps = 0
+                             }
+        maybeTb <- sdlCreateGPUTransferBuffer dev tbCreateInfo
+        when (isNothing maybeTb) $ do
+            err <- sdlGetError
+            sdlLog $ "!!! Failed to create transfer buffer: " ++ err
+        return maybeTb
+
+    -- Helper to clean up Transfer Buffer (for bracket)
+    cleanupTransferBuffer dev maybeTb =
+        when (isJust maybeTb) $ do
+             let tb = fromJust maybeTb
+             sdlLog $ "Releasing Transfer Buffer: " ++ show tb
+             sdlReleaseGPUTransferBuffer dev tb
+
+    -- Helper for Map, Copy, Unmap
+    mapAndCopyData dev tb vData tSize = do
+        sdlLog $ "Mapping Transfer Buffer: " ++ show tb
+        -- Use bracket for map/unmap ensures unmap even on exception during poke
+        bracket (sdlMapGPUTransferBuffer dev tb False)
+                (\maybePtr -> when (isJust maybePtr) $ do -- Only unmap if map succeeded
+                    sdlLog $ "Unmapping Transfer Buffer: " ++ show tb
+                    sdlUnmapGPUTransferBuffer dev tb
+                ) $ \maybeMappedPtr -> do
+            case maybeMappedPtr of
+                Nothing -> do
+                    err <- sdlGetError
+                    sdlLog $ "!!! Failed to map transfer buffer: " ++ err
+                    return False -- Bracket cleanup (unmap) won't run, return failure
+                Just mappedPtr -> do
+                    sdlLog $ "Transfer Buffer mapped to " ++ show mappedPtr ++ ". Copying data..."
+                    -- Use 'onException' during poke? Maybe overkill. PokeArray is usually safe.
+                    pokeArray (castPtr mappedPtr) vData -- Copy the data
+                    sdlLog "Data copied."
+                    return True -- Success
+
+    -- Helper for Command Buffer Upload Logic
+    uploadDataCommandBuffer :: SDLGPUDevice -> SDLGPUBuffer -> SDLGPUTransferBuffer -> Word32 -> IO Bool
+    uploadDataCommandBuffer dev vb tb sizeW32 = do
+        bracket (sdlAcquireGPUCommandBuffer dev)
+                cleanupCommandBuffer $ \maybeCmdBuf -> do
+           case maybeCmdBuf of
+               Nothing -> do
+                   err <- sdlGetError
+                   sdlLog $ "!!! Failed to acquire upload command buffer: " ++ err
+                   return False -- Indicate failure
+               Just cmdBuf -> do
+                   sdlLog $ "Acquired Upload Command Buffer: " ++ show cmdBuf
+                   -- Use bracket for copy pass begin/end
+                   bracket (sdlBeginGPUCopyPass cmdBuf)
+                           cleanupCopyPass $ \maybeCopyPass -> do
+                       case maybeCopyPass of
+                           Nothing -> do
+                               err <- sdlGetError
+                               sdlLog $ "!!! Failed to begin copy pass: " ++ err
+                               return False -- Indicate copy pass failure
+                           Just copyPass -> do
+                               sdlLog $ "Begun Copy Pass: " ++ show copyPass
+                               let srcLocation = SDLGPUTransferBufferLocation
+                                                 { gpuTransferBufferLocBuffer = tb
+                                                 , gpuTransferBufferLocOffset = 0 -- Word32
+                                                 }
+                               let dstRegion = SDLGPUBufferRegion
+                                                 { gpuBufRegBuffer = vb
+                                                 , gpuBufRegOffset = 0 -- Word32
+                                                 , gpuBufRegSize = sizeW32 -- Use Word32
+                                                 }
+                               sdlLog $ "Recording upload from " ++ show tb ++ " offset 0 to " ++ show vb ++ " offset 0 size " ++ show sizeW32
+                               -- Use 'onException' for the actual upload call? Might hide errors. Let's try without first.
+                               sdlUploadToGPUBuffer copyPass srcLocation dstRegion False
+                               sdlLog "Upload recorded."
+                               return True -- Indicate copy pass section succeeded
+
+                   >>= \copyPassOk -> -- Check result of copy pass bracket
+
+                   if copyPassOk then do
+                       sdlLog $ "Submitting Upload Command Buffer: " ++ show cmdBuf
+                       submitted <- sdlSubmitGPUCommandBuffer cmdBuf
+                       unless submitted $ do
+                           err <- sdlGetError
+                           sdlLog $ "!!! Failed to submit upload command buffer: " ++ err
+                       return submitted
+                   else do
+                       sdlLog $ "Copy Pass failed, cancelling command buffer: " ++ show cmdBuf
+                       void $ sdlCancelGPUCommandBuffer cmdBuf -- Cancel if copy pass failed
+                       return False -- Upload ultimately failed
+
+    -- Helper to cleanup Command Buffer (Cancel if not submitted)
+    -- Note: This cleanup runs *after* the main block of the command buffer bracket finishes.
+    -- The logic inside determines if submission or cancellation is appropriate.
+    cleanupCommandBuffer maybeCmdBuf =
+        case maybeCmdBuf of
+            Nothing -> return ()
+            Just cmdbuf -> sdlLog $ "Command Buffer bracket cleanup for: " ++ show cmdbuf
+                           -- If submission failed inside, cancelling again is harmless
+                           -- If copy pass failed, it was cancelled inside.
+                           -- If submission succeeded, cancelling is harmless.
+
+    -- Helper to cleanup Copy Pass
+    cleanupCopyPass maybeCopyPass =
+        when (isJust maybeCopyPass) $ do
+            let cp = fromJust maybeCopyPass
+            sdlLog $ "Ending Copy Pass: " ++ show cp
+            sdlEndGPUCopyPass cp
 
 
 -- | Main event loop
@@ -381,7 +512,8 @@ eventLoopGPU context resources lastTime freq deltaTimeRef = do
   shouldQuit <- readIORef shouldQuitRef
   unless shouldQuit $ do
     -- *** GPU Rendering ***
-    renderFrameGPU context resources -- Pass context and resources
+    -- Use non-blocking acquire as it worked previously for rendering
+    renderFrameGPU context resources True -- Pass True to indicate using non-blocking acquire
 
     -- Continue loop
     eventLoopGPU context resources currentTime freq deltaTimeRef
@@ -411,21 +543,34 @@ handleEventGPU event deltaTimeRef = case event of
 
 
 -- | Render a frame using the vertex buffer
-renderFrameGPU :: Context -> AppResources -> IO ()
-renderFrameGPU Context{..} AppResources{..} = do
+-- Added flag to use non-blocking swapchain acquire
+renderFrameGPU :: Context -> AppResources -> Bool -> IO ()
+renderFrameGPU Context{..} AppResources{..} useNonBlockingAcquire = do
     -- 1. Acquire Command Buffer
+    sdlLog "Acquiring Command Buffer for Render..."
     maybeCmdbuf <- sdlAcquireGPUCommandBuffer contextDevice
     case maybeCmdbuf of
         Nothing -> do
             err <- sdlGetError
-            sdlLog $ "Error: Failed to acquire command buffer: " ++ err
+            sdlLog $ "Error: Failed to acquire render command buffer: " ++ err
         Just cmdbuf -> do
+            sdlLog $ "Acquired Render Command Buffer: " ++ show cmdbuf
+
             -- 2. Acquire Swapchain Texture
             maybeSwapchain <- sdlWaitAndAcquireGPUSwapchainTexture cmdbuf contextWindow
+
             case maybeSwapchain of
-                Nothing -> sdlLog "Warning: Failed to acquire swapchain texture"
-                Just (swapchainTexture, _w, _h) -> do
-                    sdlLog $ "Acquired Swapchain Texture: " ++ show swapchainTexture ++ " Size: " ++ show _w ++ "x" ++ show _h
+                Nothing -> do
+                    -- This is expected sometimes with non-blocking, log appropriately
+                    when useNonBlockingAcquire $
+                        sdlLog "Warning: Failed to acquire swapchain texture (non-blocking)"
+                    -- If blocking call failed, it's more serious
+                    unless useNonBlockingAcquire $
+                        sdlLog "!!! Error: Failed to acquire swapchain texture (blocking)"
+                    -- Always submit/cancel the command buffer, even if empty
+                    void $ sdlSubmitGPUCommandBuffer cmdbuf -- Or cancel if preferred for empty
+                Just (swapchainTexture, w, h) -> do
+                    sdlLog $ "Acquired Swapchain Texture: " ++ show swapchainTexture ++ " Size: " ++ show w ++ "x" ++ show h
                     -- 3. Define Color Target Info (Clear to black)
                     let clearColor = SDLFColor 0.0 0.0 0.0 1.0
                     let colorTargetInfo = SDLGPUColorTargetInfo
@@ -443,29 +588,35 @@ renderFrameGPU Context{..} AppResources{..} = do
                             }
 
                     -- 4. Begin Render Pass
-                    maybeRenderPass <- sdlBeginGPURenderPass cmdbuf [colorTargetInfo] Nothing
-                    case maybeRenderPass of
-                        Nothing -> do
-                            err <- sdlGetError
-                            sdlLog $ "Error: Failed to begin render pass: " ++ err
-                        Just renderPass -> do
-                            -- 5. Bind the graphics pipeline
-                            sdlLog $ "Binding Pipeline: " ++ show resPipeline
-                            sdlBindGPUGraphicsPipeline renderPass resPipeline
+                    sdlLog "Beginning Render Pass..."
+                    bracket (sdlBeginGPURenderPass cmdbuf [colorTargetInfo] Nothing)
+                            (\mrp -> when (isJust mrp) $ do
+                                sdlLog "Ending Render Pass..."
+                                sdlEndGPURenderPass (fromJust mrp)) $ \maybeRenderPass -> do
+                        case maybeRenderPass of
+                            Nothing -> do
+                                err <- sdlGetError
+                                sdlLog $ "!!! Error: Failed to begin render pass: " ++ err
+                            Just renderPass -> do
+                                sdlLog $ "Render Pass Begun: " ++ show renderPass
+                                -- 5. Bind the graphics pipeline
+                                sdlLog $ "Binding Pipeline: " ++ show resPipeline
+                                sdlBindGPUGraphicsPipeline renderPass resPipeline
 
-                            -- 6. Bind the vertex buffer (Use list directly)
-                            let vertexBufferBinding = SDLGPUBufferBinding resVertexBuffer 0
-                            sdlLog $ "Binding Vertex Buffer: " ++ show resVertexBuffer ++ " with offset " ++ show (bindingOffset vertexBufferBinding)
-                            sdlBindGPUVertexBuffers renderPass 0 [vertexBufferBinding] -- Slot 0, list
+                                -- 6. Bind the vertex buffer
+                                let vertexBufferBinding = SDLGPUBufferBinding resVertexBuffer 0
+                                sdlLog $ "Binding Vertex Buffer: " ++ show resVertexBuffer ++ " with offset " ++ show (bindingOffset vertexBufferBinding)
+                                sdlBindGPUVertexBuffers renderPass 0 [vertexBufferBinding] -- Slot 0, list
 
-                            -- 7. Draw the triangle (3 vertices, 1 instance)
-                            sdlDrawGPUPrimitives renderPass 3 1 0 0
+                                -- 7. Draw the triangle (3 vertices, 1 instance)
+                                sdlLog "Drawing Primitives..."
+                                sdlDrawGPUPrimitives renderPass 3 1 0 0
+                                sdlLog "Primitives Drawn."
+                                -- Bracket handles sdlEndGPURenderPass
 
-                            -- 8. End Render Pass
-                            sdlEndGPURenderPass renderPass
-
-                    -- 9. Submit Command Buffer (only if swapchain was acquired and render pass started)
+                    -- 9. Submit Command Buffer (only if swapchain was acquired)
+                    sdlLog $ "Submitting Render Command Buffer: " ++ show cmdbuf
                     submitted <- sdlSubmitGPUCommandBuffer cmdbuf
                     unless submitted $ do
                          err <- sdlGetError
-                         sdlLog $ "Error: Failed to submit command buffer: " ++ err
+                         sdlLog $ "!!! Error: Failed to submit render command buffer: " ++ err

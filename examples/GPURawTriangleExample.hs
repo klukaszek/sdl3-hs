@@ -121,7 +121,6 @@ defaultDepthStencilState = SDLGPUDepthStencilState
     , stencilWriteMask   = 0xFF -- Default write mask (Word8)
     }
 
-
 -- | Default MultiSample State
 defaultMultiSampleState :: SDLGPUMultisampleState
 defaultMultiSampleState = SDLGPUMultisampleState

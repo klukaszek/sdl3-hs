@@ -2012,24 +2012,43 @@ data SDLGPUGraphicsPipelineCreateInfo = SDLGPUGraphicsPipelineCreateInfo
 -- No direct Storable instance. Marshal using helpers.
 withGPUGraphicsPipelineCreateInfo :: SDLGPUGraphicsPipelineCreateInfo -> (Ptr () -> IO a) -> IO a
 withGPUGraphicsPipelineCreateInfo SDLGPUGraphicsPipelineCreateInfo{..} f =
-  withGPUVertexInputState vertexInputState $ \vertexInputPtr ->
-  withGPUGraphicsPipelineTargetInfo targetInfo $ \targetInfoPtr ->
+  -- Marshal the arrays first, getting pointers and lengths
+  withArrayLen (inputVertexBuffers vertexInputState) $ \numBufs bufsPtr ->
+  withArrayLen (inputVertexAttribs vertexInputState) $ \numAttrs attrsPtr ->
+  withArrayLen (colorTargets targetInfo) $ \numTargets targetsPtr ->
+  -- Allocate space for the main C struct
   allocaBytes #{size SDL_GPUGraphicsPipelineCreateInfo} $ \ptr -> do
+    -- Poke simple fields
     let (SDLGPUShader vsPtr) = vertexShader
     let (SDLGPUShader fsPtr) = fragmentShader
     #{poke SDL_GPUGraphicsPipelineCreateInfo, vertex_shader} ptr vsPtr
     #{poke SDL_GPUGraphicsPipelineCreateInfo, fragment_shader} ptr fsPtr
-
-    -- Copy marshalled data for nested structs with lists
-    copyBytes (#{ptr SDL_GPUGraphicsPipelineCreateInfo, vertex_input_state} ptr) vertexInputPtr #{size SDL_GPUVertexInputState}
-    copyBytes (#{ptr SDL_GPUGraphicsPipelineCreateInfo, target_info} ptr) targetInfoPtr #{size SDL_GPUGraphicsPipelineTargetInfo}
-
-    -- Poke other members
     #{poke SDL_GPUGraphicsPipelineCreateInfo, primitive_type} ptr primitiveType
     poke (#{ptr SDL_GPUGraphicsPipelineCreateInfo, rasterizer_state} ptr) rasterizerState
     poke (#{ptr SDL_GPUGraphicsPipelineCreateInfo, multisample_state} ptr) multisampleState
     poke (#{ptr SDL_GPUGraphicsPipelineCreateInfo, depth_stencil_state} ptr) depthStencilState
     #{poke SDL_GPUGraphicsPipelineCreateInfo, props} ptr props
+
+    -- Poke the nested struct fields *directly* into the main struct's memory
+    -- Target the memory location *within* ptr where vertex_input_state resides
+    let vertexInputStatePtr = #{ptr SDL_GPUGraphicsPipelineCreateInfo, vertex_input_state} ptr
+    #{poke SDL_GPUVertexInputState, vertex_buffer_descriptions} vertexInputStatePtr bufsPtr
+    #{poke SDL_GPUVertexInputState, num_vertex_buffers} vertexInputStatePtr (fromIntegral numBufs :: CUInt)
+    #{poke SDL_GPUVertexInputState, vertex_attributes} vertexInputStatePtr attrsPtr
+    #{poke SDL_GPUVertexInputState, num_vertex_attributes} vertexInputStatePtr (fromIntegral numAttrs :: CUInt)
+
+    -- Target the memory location *within* ptr where target_info resides
+    let targetInfoPtr = #{ptr SDL_GPUGraphicsPipelineCreateInfo, target_info} ptr
+    #{poke SDL_GPUGraphicsPipelineTargetInfo, color_target_descriptions} targetInfoPtr targetsPtr
+    #{poke SDL_GPUGraphicsPipelineTargetInfo, num_color_targets} targetInfoPtr (fromIntegral numTargets :: CUInt)
+    #{poke SDL_GPUGraphicsPipelineTargetInfo, depth_stencil_format} targetInfoPtr (depthStencilFormat targetInfo)
+    #{poke SDL_GPUGraphicsPipelineTargetInfo, has_depth_stencil_target} targetInfoPtr (fromBool (hasDepthStencil targetInfo) :: CBool)
+    -- Poke padding for target_info (assuming original padding fields exist)
+    #{poke SDL_GPUGraphicsPipelineTargetInfo, padding1} targetInfoPtr (0 :: CUChar)
+    #{poke SDL_GPUGraphicsPipelineTargetInfo, padding2} targetInfoPtr (0 :: CUChar)
+    #{poke SDL_GPUGraphicsPipelineTargetInfo, padding3} targetInfoPtr (0 :: CUChar)
+
+    -- Pass the fully marshaled pointer
     f (castPtr ptr)
 
 -- SDL_GPUComputePipelineCreateInfo
@@ -2791,12 +2810,17 @@ sdlSetGPUStencilReference (SDLGPURenderPass rp) reference =
 
 -- | Binds vertex buffers.
 foreign import ccall unsafe "SDL_BindGPUVertexBuffers"
-  c_sdlBindGPUVertexBuffers :: Ptr SDLGPURenderPass -> CUInt -> Ptr SDLGPUBufferBinding -> CUInt -> IO ()
+  c_sdlBindGPUVertexBuffers :: Ptr SDLGPURenderPass -> CUInt -> Ptr () -> CUInt -> IO ()
 
 sdlBindGPUVertexBuffers :: SDLGPURenderPass -> Word32 -> [SDLGPUBufferBinding] -> IO ()
-sdlBindGPUVertexBuffers (SDLGPURenderPass rp) firstSlot bindings =
-  withArrayLen bindings $ \numBindings bindingsPtr ->
-    c_sdlBindGPUVertexBuffers rp (fromIntegral firstSlot) bindingsPtr (fromIntegral numBindings)
+sdlBindGPUVertexBuffers (SDLGPURenderPass rp) firstSlot bindings = do
+  -- Use withArray, which takes the list directly
+  withArray bindings $ \bindingsPtr -> do
+    -- Get the number of bindings
+    let numBindings = length bindings
+    -- Call the C function, casting the Ptr SDLGPUBufferBinding to Ptr ()
+    c_sdlBindGPUVertexBuffers rp (fromIntegral firstSlot) (castPtr bindingsPtr) (fromIntegral numBindings)
+    -- Memory allocated by withArray is automatically freed here
 
 -- | Binds an index buffer.
 foreign import ccall unsafe "SDL_BindGPUIndexBuffer"
@@ -3198,7 +3222,8 @@ sdlWaitForGPUSwapchain (SDLGPUDevice dev) (SDLWindow win) =
 
 -- | Blocks the thread until a swapchain texture is available, then acquires it.
 -- FFI signature uses Ptr () for the double pointer to avoid C type mismatch warnings.
-foreign import ccall safe "SDL_WaitAndAcquireGPUSwapchainTexture" -- Safe because it blocks
+-- WARNING: Experiences segfault on 3rd call.
+foreign import ccall unsafe "SDL_WaitAndAcquireGPUSwapchainTexture" -- Safe because it blocks
   c_sdlWaitAndAcquireGPUSwapchainTexture :: Ptr SDLGPUCommandBuffer -> Ptr SDLWindow -> Ptr (Ptr SDLGPUTexture) -> Ptr CUInt -> Ptr CUInt -> IO CBool
 
 sdlWaitAndAcquireGPUSwapchainTexture :: SDLGPUCommandBuffer -> SDLWindow -> IO (Maybe (SDLGPUTexture, Word32, Word32))

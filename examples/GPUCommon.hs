@@ -32,7 +32,7 @@ import Paths_sdl3 (getDataFileName) -- Import the function from the auto-generat
 import System.FilePath ((</>))      -- For path manipulation (optional but clean)
 import System.Directory (doesFileExist) -- Need this directly now
 
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (fromMaybe, isNothing, isJust, fromJust)
 import Data.Bits ((.|.), (.&.))
 import Data.List (find)
 import qualified Data.ByteString as BS
@@ -87,18 +87,35 @@ commonInit exampleName windowFlags = do
                             return Nothing
 
 -- | commonQuit
+-- Takes a guaranteed valid Context
 commonQuit :: Context -> IO ()
-commonQuit Context{..} = do
-    sdlLog "Releasing window from GPU device..."
+commonQuit Context{..} = do -- Direct record destructuring
+    sdlLog "Starting common quit..."
+
+    -- Wait for GPU Idle (Optional but recommended)
+    sdlLog "Waiting for GPU idle before destroying device..."
+    success <- sdlWaitForGPUIdle contextDevice
+    unless success $ do
+        err <- sdlGetError
+        sdlLog $ "Warning: Failed to wait for GPU idle: " ++ err
+
+    -- Release window from GPU device (No Maybe checks needed)
+    sdlLog $ "Releasing window " ++ show contextWindow ++ " from device " ++ show contextDevice
     sdlReleaseWindowFromGPUDevice contextDevice contextWindow
-    sdlLog "Destroying window..."
-    sdlDestroyWindow contextWindow
-    sdlLog "Window destroyed."
-    sdlLog "Destroying GPU device..."
+
+    -- Destroy GPU device (No Maybe checks needed)
+    sdlLog $ "Destroying GPU device " ++ show contextDevice
     sdlDestroyGPUDevice contextDevice
-    sdlLog "GPU device destroyed."
-    sdlLog "Shutting down SDL..."
+
+    -- Destroy window (No Maybe checks needed)
+    sdlLog $ "Destroying window " ++ show contextWindow
+    sdlDestroyWindow contextWindow
+
+    -- Quit SDL Subsystems
+    sdlLog "Quitting SDL subsystems..."
     sdlQuit
+
+    sdlLog "Common quit finished."
 
 -- | withContext (remains the same)
 withContext :: String -> [SDLWindowFlags] -> (Context -> IO a) -> IO (Maybe a)

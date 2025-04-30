@@ -1,5 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-} -- For explicit type annotations if needed
+{-# LANGUAGE LambdaCase #-}
 
 {-|
 Example     : GPUMultiWindowClear
@@ -55,11 +56,9 @@ runAppGPU context@Context{..} = do -- Deconstruct context (device, window1)
     sdlLog "First window and GPU device initialized."
 
     -- Bracket pattern to manage the second window's lifecycle
-    bracket createAndClaimSecondWindow releaseAndDestroySecondWindow $ \maybeSecondWindow ->
-        case maybeSecondWindow of
+    bracket createAndClaimSecondWindow releaseAndDestroySecondWindow $ \case
             Nothing -> do
                 sdlLog "Failed to initialize the second window. Exiting."
-                -- commonQuit for the first window/device will be called by withContext
             Just secondWindow -> do
                 sdlLog "Second window created and claimed successfully."
                 -- Start event loop with initial time, passing both windows
