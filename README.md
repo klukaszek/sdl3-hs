@@ -58,7 +58,7 @@ package *
 - [x] SDL3/SDL_process.h
 - [x] SDL3/SDL_properties.h
 - [x] SDL3/SDL_rect.h
-- [ ] SDL3/SDL_render.h
+- [x] SDL3/SDL_render.h
 - [x] SDL3/SDL_scancode.h
 - [x] SDL3/SDL_sensor.h
 - [x] SDL3/SDL_storage.h

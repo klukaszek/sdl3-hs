@@ -52,9 +52,16 @@ extra-doc-files:    CHANGELOG.md
 extra-source-files:
     ChangeLog.md,
     cbits/sdlhelper.c,
-    include/helper.h
+    include/helper.h,
 
+data-dir:
+    examples
 
+data-files:
+    Content/Shaders/Compiled/MSL/*.msl
+    Content/Shaders/Compiled/SPIRV/*.spv
+    Content/Shaders/Compiled/DXIL/*.dxil
+    
 common warnings
     ghc-options: -Wall -g
 
@@ -131,7 +138,9 @@ library
     -- Other library packages from which modules are imported.
     build-depends:
         base,
-        bytestring
+        bytestring,
+        directory,
+        filepath
         
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -227,7 +236,44 @@ executable gpu-clear-example
     main-is: GPUClearExample.hs
     build-depends:
         base,
-        sdl3
+        bytestring,
+        sdl3,
+        filepath,
+        directory
+
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
+executable gpu-multiwindow-example
+    main-is: GPUMultiWindowExample.hs
+    build-depends:
+        base,
+        bytestring,
+        sdl3,
+        filepath,
+        directory
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
+executable gpu-triangle-example
+    main-is: GPURawTriangleExample.hs
+    build-depends:
+        base,
+        bytestring,
+        sdl3,
+        filepath,
+        directory
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
+executable gpu-vbuf-example
+    main-is: GPUVertexBufferExample.hs
+    build-depends:
+        base,
+        bytestring,
+        sdl3,
+        filepath,
+        directory
     hs-source-dirs:   examples
     default-language: Haskell2010
 

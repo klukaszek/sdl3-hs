@@ -1,8 +1,11 @@
+{-# LANGUAGE RecordWildCards #-}
 {-|
-Example     : SDL.GPU
+Example     : SDL.GPUClear
 Description : SDL Window, Event, and Basic GPU Rendering Example
 Copyright   : (c) Kyle Lukaszek, 2025
 License     : BSD3
+
+Based on the examples from: https://github.com/TheSpydog/SDL_gpu_examples/
 |-}
 
 module Main where
@@ -19,124 +22,53 @@ import Data.Word (Word32, Word64)
 import Data.Bits ((.|.)) -- For combining flags
 import Text.Printf (printf)
 import Data.Maybe (isJust, fromJust, fromMaybe)
+import GPUCommon
 
 main :: IO ()
 main = do
-  -- Check compiled version
   sdlLog $ "Compiled SDL Version: " ++ show sdlVersion
-  when (sdlVersionAtLeast 3 2 0) $ sdlLog "Compiled with at least SDL 3.2.0"
-
-  -- Get linked version
   linkedVersion <- sdlGetVersion
   sdlLog $ "Linked SDL Version: " ++ show linkedVersion
 
-  -- Initialize SDL (Video + Events needed)
-  initSuccess <- sdlInit [InitVideo, InitEvents]
-  unless initSuccess $ do
-    sdlLog "Failed to initialize SDL!"
-    exitFailure
+  -- Use withContext for initialization and cleanup
+  maybeResult <- withContext "SDL3 Haskell GPU Example" [sdlWindowResizable] runAppGPU
+  case maybeResult of
+      Nothing -> do
+          sdlLog "Application initialization failed."
+          exitFailure
+      Just _ -> do
+          sdlLog "Application finished successfully."
+          exitSuccess
 
-  -- Check initialized subsystems
-  initializedSystems <- sdlWasInit []
-  sdlLog "Initialized subsystems:"
-  mapM_ printSubsystem initializedSystems
-
-  -- *** Create GPU Device ***
-  -- Specify desired shader formats (adjust as needed for your target platforms)
-  let desiredFormats = SDL_GPU_SHADERFORMAT_SPIRV .|. SDL_GPU_SHADERFORMAT_DXIL .|. SDL_GPU_SHADERFORMAT_MSL
-  -- Set debugMode to True for more validation/info during development
-  let debugMode = False -- Set to True for development debugging
-  maybeDevice <- sdlCreateGPUDevice desiredFormats debugMode Nothing -- Let SDL pick driver
-  case maybeDevice of
-    Nothing -> do
-        sdlLog "Failed to create GPU Device!"
-        err <- sdlGetError
-        sdlLog $ "SDL Error: " ++ err
-        sdlQuit
-        exitFailure
-    Just device -> do
-        deviceName <- sdlGetGPUDeviceDriver device >>= return . fromMaybe "Unknown Driver"
-        sdlLog $ "GPU Device created successfully with driver: " ++ deviceName
-
-        -- *** Create Window ***
-        -- Note: For some backends (like Vulkan/Metal on macOS), you might need specific window flags
-        -- e.g., [sdlWindowResizable, sdlWindowVulkan] or [sdlWindowResizable, sdlWindowMetal]
-        -- For this basic example, Resizable should be okay for most.
-        let windowFlags = [sdlWindowResizable]
-        maybeWindow <- sdlCreateWindow "SDL3 Haskell GPU Example" 640 480 windowFlags
-        case maybeWindow of
-          Nothing -> do
-            sdlLog "Failed to create window!"
-            err <- sdlGetError
-            sdlLog $ "SDL Error: " ++ err
-            sdlDestroyGPUDevice device -- Clean up device
-            sdlQuit
-            exitFailure
-          Just window -> do
-            sdlLog "Window created successfully!"
-
-            -- *** Claim Window for GPU Device ***
-            claimed <- sdlClaimWindowForGPUDevice device window
-            unless claimed $ do
-                sdlLog "Failed to claim window for GPU device!"
-                err <- sdlGetError
-                sdlLog $ "SDL Error: " ++ err
-                sdlDestroyWindow window   -- Clean up window first
-                sdlDestroyGPUDevice device -- Then device
-                sdlQuit
-                exitFailure
-
-            sdlLog "Window claimed for GPU device."
-            -- Proceed with the application loop
-            runAppGPU device window
-
-            -- *** Cleanup (after runAppGPU finishes) ***
-            sdlLog "Releasing window from GPU device..."
-            sdlReleaseWindowFromGPUDevice device window
-            sdlLog "Destroying window..."
-            sdlDestroyWindow window
-            sdlLog "Window destroyed."
-
-        sdlLog "Destroying GPU device..."
-        sdlDestroyGPUDevice device
-        sdlLog "GPU device destroyed."
-
-  sdlLog "Shutting down SDL..."
-  sdlQuit
-  sdlLog "Application terminated successfully"
-  exitSuccess
-
--- | Encapsulate the application logic with device and window
-runAppGPU :: SDLGPUDevice -> SDLWindow -> IO ()
-runAppGPU device window = do
+-- | Application logic, now receives the Context
+runAppGPU :: Context -> IO ()
+runAppGPU context@Context{..} = do -- Deconstruct context
     -- Start event loop with initial time
     startTime <- sdlGetPerformanceCounter
     freq <- sdlGetPerformanceFrequency
     deltaTimeRef <- newIORef 0.0
-    eventLoopGPU device window startTime freq deltaTimeRef
-    -- Cleanup inside main now
+    eventLoopGPU context startTime freq deltaTimeRef
+    -- Cleanup is handled by withContext
 
--- | Main event loop that tracks FPS, processes events, and renders using GPU API
-eventLoopGPU :: SDLGPUDevice -> SDLWindow -> Word64 -> Word64 -> IORef Double -> IO ()
-eventLoopGPU device window lastTime freq deltaTimeRef = do
+-- | Main event loop
+eventLoopGPU :: Context -> Word64 -> Word64 -> IORef Double -> IO ()
+eventLoopGPU context@Context{..} lastTime freq deltaTimeRef = do
   currentTime <- sdlGetPerformanceCounter
-  let deltaTime = fromIntegral (currentTime - lastTime) / fromIntegral freq -- Delta time in seconds
+  let deltaTime = fromIntegral (currentTime - lastTime) / fromIntegral freq
 
-  -- Store the new deltaTime (in milliseconds for logging consistency)
   writeIORef deltaTimeRef (deltaTime * 1000.0)
 
-  -- Event handling
   sdlPumpEvents
   shouldQuitRef <- newIORef False
-  processEventsGPU shouldQuitRef deltaTimeRef -- Simplified event processing
+  processEventsGPU shouldQuitRef deltaTimeRef
 
   shouldQuit <- readIORef shouldQuitRef
   unless shouldQuit $ do
     -- *** GPU Rendering ***
-    renderFrameGPU device window
+    renderFrameGPU context -- Pass context
 
     -- Continue loop
-    eventLoopGPU device window currentTime freq deltaTimeRef
+    eventLoopGPU context currentTime freq deltaTimeRef
 
 -- | Process all pending events (simplified for GPU example)
 processEventsGPU :: IORef Bool -> IORef Double -> IO ()
@@ -161,35 +93,33 @@ handleEventGPU event deltaTimeRef = case event of
     return $ scancode == SDL_SCANCODE_Q -- Quit on Q
   _ -> return False
 
--- | Render a single frame using the GPU API
-renderFrameGPU :: SDLGPUDevice -> SDLWindow -> IO ()
-renderFrameGPU device window = do
+
+renderFrameGPU :: Context -> IO ()
+renderFrameGPU Context{..} = do -- Deconstruct context
     -- 1. Acquire Command Buffer
-    maybeCmdbuf <- sdlAcquireGPUCommandBuffer device
+    maybeCmdbuf <- sdlAcquireGPUCommandBuffer contextDevice
     case maybeCmdbuf of
         Nothing -> sdlLog "Error: Failed to acquire command buffer"
         Just cmdbuf -> do
-            -- 2. Acquire Swapchain Texture (wait if necessary)
-            -- Note: Width/Height returned aren't used in this simple clear example
-            maybeSwapchain <- sdlWaitAndAcquireGPUSwapchainTexture cmdbuf window
+            -- 2. Acquire Swapchain Texture
+            maybeSwapchain <- sdlWaitAndAcquireGPUSwapchainTexture cmdbuf contextWindow
             case maybeSwapchain of
-                Nothing -> sdlLog "Warning: Failed to acquire swapchain texture (maybe window not visible?)"
+                Nothing -> sdlLog "Warning: Failed to acquire swapchain texture"
                 Just (swapchainTexture, _w, _h) -> do
-
-                    -- 3. Define Color Target Info for clearing
-                    let clearColor = SDLFColor 0.3 0.4 0.5 1.0 -- Dark cyan background
+                    -- 3. Define Color Target Info
+                    let clearColor = SDLFColor 0.3 0.4 0.5 1.0
                     let colorTargetInfo = SDLGPUColorTargetInfo
-                            { gpuColorTargetInfoTexture           = swapchainTexture
-                            , gpuColorTargetInfoMipLevel          = 0 -- Use base level
-                            , gpuColorTargetInfoLayerOrDepthPlane = 0 -- Use base layer
-                            , gpuColorTargetInfoClearColor        = clearColor
-                            , gpuColorTargetInfoLoadOp            = SDL_GPU_LOADOP_CLEAR -- Clear the target
-                            , gpuColorTargetInfoStoreOp           = SDL_GPU_STOREOP_STORE -- Store the result
-                            , gpuColorTargetInfoResolveTexture    = Nothing -- No MSAA resolve needed
-                            , gpuColorTargetInfoResolveMipLevel   = 0
-                            , gpuColorTargetInfoResolveLayer      = 0
-                            , gpuColorTargetInfoCycle             = False -- Don't cycle (relevant for multi-buffer resources)
-                            , gpuColorTargetInfoCycleResolve      = False
+                            { texture           = swapchainTexture
+                            , mipLevel          = 0 -- Use base level
+                            , layerOrDepthPlane = 0 -- Use base layer
+                            , clearColor        = clearColor
+                            , loadOp            = SDL_GPU_LOADOP_CLEAR -- Clear the target
+                            , storeOp           = SDL_GPU_STOREOP_STORE -- Store the result
+                            , resolveTexture    = Nothing -- No MSAA resolve needed
+                            , resolveMipLevel   = 0
+                            , resolveLayer      = 0
+                            , targetCycle             = False -- Don't cycle (relevant for multi-buffer resources)
+                            , targetCycleResolve      = False
                             }
 
                     -- 4. Begin Render Pass

@@ -52,8 +52,8 @@ import Control.Monad (when)
 
 -- | A structure that defines a point using integers (SDL_Point).
 data SDLPoint = SDLPoint
-  { sdlPointX :: CInt  -- ^ x coordinate
-  , sdlPointY :: CInt  -- ^ y coordinate
+  { pointX :: CInt  -- ^ x coordinate
+  , pointY :: CInt  -- ^ y coordinate
   } deriving (Eq, Show)
 
 instance Storable SDLPoint where
@@ -86,10 +86,10 @@ instance Storable SDLFPoint where
 
 -- | A rectangle with the origin at the upper left, using integers (SDL_Rect).
 data SDLRect = SDLRect
-  { sdlRectX :: CInt  -- ^ x coordinate of top-left corner
-  , sdlRectY :: CInt  -- ^ y coordinate of top-left corner
-  , sdlRectW :: CInt  -- ^ width
-  , sdlRectH :: CInt  -- ^ height
+  { rectX :: CInt  -- ^ x coordinate of top-left corner
+  , rectY :: CInt  -- ^ y coordinate of top-left corner
+  , rectW :: CInt  -- ^ width
+  , rectH :: CInt  -- ^ height
   } deriving (Eq, Show)
 
 instance Storable SDLRect where
@@ -138,22 +138,22 @@ sdlRectToFRect (SDLRect x y w h) =
 -- | Determine whether a point resides inside a rectangle (SDL_PointInRect).
 sdlPointInRect :: SDLPoint -> SDLRect -> Bool
 sdlPointInRect p r =
-  sdlPointX p >= sdlRectX r &&
-  sdlPointX p < (sdlRectX r + sdlRectW r) &&
-  sdlPointY p >= sdlRectY r &&
-  sdlPointY p < (sdlRectY r + sdlRectH r)
+  pointX p >= rectX r &&
+  pointX p < (rectX r + rectW r) &&
+  pointY p >= rectY r &&
+  pointY p < (rectY r + rectH r)
 
 -- | Determine whether a rectangle has no area (SDL_RectEmpty).
 sdlRectEmpty :: SDLRect -> Bool
-sdlRectEmpty r = sdlRectW r <= 0 || sdlRectH r <= 0
+sdlRectEmpty r = rectW r <= 0 || rectH r <= 0
 
 -- | Determine whether two rectangles are equal (SDL_RectsEqual).
 sdlRectsEqual :: SDLRect -> SDLRect -> Bool
 sdlRectsEqual a b =
-  sdlRectX a == sdlRectX b &&
-  sdlRectY a == sdlRectY b &&
-  sdlRectW a == sdlRectW b &&
-  sdlRectH a == sdlRectH b
+  rectX a == rectX b &&
+  rectY a == rectY b &&
+  rectW a == rectW b &&
+  rectH a == rectH b
 
 -- | Determine whether two rectangles intersect (SDL_HasRectIntersection).
 foreign import ccall "SDL_HasRectIntersection"

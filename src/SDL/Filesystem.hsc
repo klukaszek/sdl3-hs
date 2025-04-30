@@ -57,10 +57,12 @@ module SDL.Filesystem
 
 #include <SDL3/SDL_filesystem.h>
 
-import Foreign
+import Foreign hiding (free)
 import Foreign.C
-import SDL.Stdinc (SDLTime)
+import SDL.Stdinc (SDLTime, free)
 import Data.Bits (Bits)
+import Control.Exception (bracket)
+import Control.Monad (when)
 
 -- | Type of OS-provided default folder (enum).
 newtype SDLFolder = SDLFolder { unSDLFolder :: CInt }
@@ -158,12 +160,19 @@ foreign import ccall "wrapper"
 -- Haskell Wrappers
 
 -- | Get the directory where the application was run from
+-- Requires cleanup via 'free' from SDL.Stdinc
 sdlGetBasePath :: IO (Maybe String)
-sdlGetBasePath = do
-  path <- sdlGetBasePath_
-  if path == nullPtr
-    then return Nothing
-    else Just <$> peekCString path
+sdlGetBasePath = bracket
+    -- Acquire: Get the pointer from SDL
+    sdlGetBasePath_
+    -- Release: Free the pointer if it wasn't null
+    (\ptr -> when (ptr /= nullPtr) (free ptr))
+    -- Use: If pointer is valid, copy it into a Haskell String.
+    --      If pointer is null, result is Nothing.
+    (\ptr -> if ptr == nullPtr
+                then return Nothing -- Propagate failure as Nothing
+                else Just <$> peekCString ptr -- Copy to Haskell String
+    )
 
 -- | Get the user-and-app-specific path where files can be written
 sdlGetPrefPath :: String -> String -> IO (Maybe String)

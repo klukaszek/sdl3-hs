@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-|
 Module      : SDL.IOStream
 Description : I/O stream functionality for SDL
@@ -90,6 +91,7 @@ module SDL.IOStream
 
 import Foreign.C.Types
 import Foreign.C.String
+import Foreign.Marshal.Alloc
 import Foreign.Ptr
 import Foreign.Storable
 import Data.Word
@@ -188,11 +190,14 @@ foreign import ccall "SDL_IOFromFile"
 -- | Create a new SDL_IOStream structure for reading from and/or writing to a named file
 --
 -- @since 3.2.0
-sdlIOFromFile :: String -> String -> IO (Ptr SDLIOStream)
-sdlIOFromFile file mode = 
+sdlIOFromFile :: String -> String -> IO (Maybe (Ptr SDLIOStream))
+sdlIOFromFile file mode =
   withCString file $ \cfile ->
-    withCString mode $ \cmode ->
-      sdlIOFromFileC cfile cmode
+  withCString mode $ \cmode -> do
+    streamPtr <- sdlIOFromFileC cfile cmode
+    if streamPtr == nullPtr
+      then return Nothing
+      else return (Just streamPtr)
 
 -- | Prepare a read-write memory buffer for use with SDL_IOStream
 --
@@ -318,10 +323,17 @@ foreign import ccall "SDL_LoadFile"
 -- | Load all the data from a file path
 --
 -- @since 3.2.0
-sdlLoadFile :: String -> Maybe (Ptr CSize) -> IO (Ptr ())
-sdlLoadFile file dataSizePtr = 
-  withCString file $ \cfile ->
-    sdlLoadFileC cfile (maybe nullPtr id dataSizePtr)
+sdlLoadFile :: String -> IO (Maybe (Ptr (), CSize))
+sdlLoadFile file =
+  alloca $ \(sizePtr :: Ptr CSize) ->    -- Allocate space for the size output parameter
+  withCString file $ \cfile -> do       -- Convert FilePath to CString
+    -- Call the raw C function, casting result to Ptr () for clarity
+    dataPtr <- castPtr <$> sdlLoadFileC cfile sizePtr
+    if dataPtr == nullPtr               -- Check for NULL *before* peeking size
+      then return Nothing               -- Return Nothing on failure
+      else do
+        actualSize <- peek sizePtr        -- Peek the size *only if* dataPtr is valid
+        return (Just (dataPtr, actualSize)) -- Return the Ptr () and the size
 
 -- | Save all the data into an SDL data stream
 --

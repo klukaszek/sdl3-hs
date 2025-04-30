@@ -1561,10 +1561,10 @@ instance Storable SDLGPUSamplerCreateInfo where
 
 -- SDL_GPUVertexBufferDescription
 data SDLGPUVertexBufferDescription = SDLGPUVertexBufferDescription
-  { gpuVertexBufferDescSlot            :: Word32
-  , gpuVertexBufferDescPitch           :: Word32
-  , gpuVertexBufferDescInputRate       :: SDLGPUVertexInputRate
-  , gpuVertexBufferDescInstanceStepRate :: Word32
+  { descSlot            :: Word32
+  , descPitch           :: Word32
+  , descInputRate       :: SDLGPUVertexInputRate
+  , descInstanceStepRate :: Word32
   } deriving (Show, Eq)
 
 instance Storable SDLGPUVertexBufferDescription where
@@ -1576,23 +1576,23 @@ instance Storable SDLGPUVertexBufferDescription where
     input_rate <- #{peek SDL_GPUVertexBufferDescription, input_rate} ptr
     instance_step_rate <- #{peek SDL_GPUVertexBufferDescription, instance_step_rate} ptr :: IO CUInt
     return SDLGPUVertexBufferDescription
-      { gpuVertexBufferDescSlot = fromIntegral slot
-      , gpuVertexBufferDescPitch = fromIntegral pitch
-      , gpuVertexBufferDescInputRate = input_rate
-      , gpuVertexBufferDescInstanceStepRate = fromIntegral instance_step_rate
+      { descSlot = fromIntegral slot
+      , descPitch = fromIntegral pitch
+      , descInputRate = input_rate
+      , descInstanceStepRate = fromIntegral instance_step_rate
       }
   poke ptr SDLGPUVertexBufferDescription{..} = do
-    #{poke SDL_GPUVertexBufferDescription, slot} ptr (fromIntegral gpuVertexBufferDescSlot :: CUInt)
-    #{poke SDL_GPUVertexBufferDescription, pitch} ptr (fromIntegral gpuVertexBufferDescPitch :: CUInt)
-    #{poke SDL_GPUVertexBufferDescription, input_rate} ptr gpuVertexBufferDescInputRate
-    #{poke SDL_GPUVertexBufferDescription, instance_step_rate} ptr (fromIntegral gpuVertexBufferDescInstanceStepRate :: CUInt)
+    #{poke SDL_GPUVertexBufferDescription, slot} ptr (fromIntegral descSlot :: CUInt)
+    #{poke SDL_GPUVertexBufferDescription, pitch} ptr (fromIntegral descPitch :: CUInt)
+    #{poke SDL_GPUVertexBufferDescription, input_rate} ptr descInputRate
+    #{poke SDL_GPUVertexBufferDescription, instance_step_rate} ptr (fromIntegral descInstanceStepRate :: CUInt)
 
 -- SDL_GPUVertexAttribute
 data SDLGPUVertexAttribute = SDLGPUVertexAttribute
-  { gpuVertexAttribLocation    :: Word32
-  , gpuVertexAttribBufferSlot :: Word32
-  , gpuVertexAttribFormat     :: SDLGPUVertexElementFormat
-  , gpuVertexAttribOffset     :: Word32
+  { attribLocation    :: Word32
+  , attribSlot :: Word32
+  , attribFormat     :: SDLGPUVertexElementFormat
+  , attribOffset     :: Word32
   } deriving (Show, Eq)
 
 instance Storable SDLGPUVertexAttribute where
@@ -1604,27 +1604,27 @@ instance Storable SDLGPUVertexAttribute where
     format      <- #{peek SDL_GPUVertexAttribute, format} ptr
     offset      <- #{peek SDL_GPUVertexAttribute, offset} ptr :: IO CUInt
     return SDLGPUVertexAttribute
-      { gpuVertexAttribLocation = fromIntegral location
-      , gpuVertexAttribBufferSlot = fromIntegral buffer_slot
-      , gpuVertexAttribFormat = format
-      , gpuVertexAttribOffset = fromIntegral offset
+      { attribLocation = fromIntegral location
+      , attribSlot = fromIntegral buffer_slot
+      , attribFormat = format
+      , attribOffset = fromIntegral offset
       }
   poke ptr SDLGPUVertexAttribute{..} = do
-    #{poke SDL_GPUVertexAttribute, location} ptr (fromIntegral gpuVertexAttribLocation :: CUInt)
-    #{poke SDL_GPUVertexAttribute, buffer_slot} ptr (fromIntegral gpuVertexAttribBufferSlot :: CUInt)
-    #{poke SDL_GPUVertexAttribute, format} ptr gpuVertexAttribFormat
-    #{poke SDL_GPUVertexAttribute, offset} ptr (fromIntegral gpuVertexAttribOffset :: CUInt)
+    #{poke SDL_GPUVertexAttribute, location} ptr (fromIntegral attribLocation :: CUInt)
+    #{poke SDL_GPUVertexAttribute, buffer_slot} ptr (fromIntegral attribSlot :: CUInt)
+    #{poke SDL_GPUVertexAttribute, format} ptr attribFormat
+    #{poke SDL_GPUVertexAttribute, offset} ptr (fromIntegral attribOffset :: CUInt)
 
 data SDLGPUVertexInputState = SDLGPUVertexInputState
-  { gpuVertexInputStateVertexBuffers :: [SDLGPUVertexBufferDescription]
-  , gpuVertexInputStateVertexAttribs :: [SDLGPUVertexAttribute]
+  { inputVertexBuffers :: [SDLGPUVertexBufferDescription]
+  , inputVertexAttribs :: [SDLGPUVertexAttribute]
   } deriving (Show, Eq)
 
 -- Helper for withGPUVertexInputState
 withGPUVertexInputState :: SDLGPUVertexInputState -> (Ptr () -> IO a) -> IO a
 withGPUVertexInputState SDLGPUVertexInputState{..} f =
-  withArrayLen gpuVertexInputStateVertexBuffers $ \numBufs bufsPtr ->
-  withArrayLen gpuVertexInputStateVertexAttribs $ \numAttrs attrsPtr ->
+  withArrayLen inputVertexBuffers $ \numBufs bufsPtr ->
+  withArrayLen inputVertexAttribs $ \numAttrs attrsPtr ->
   allocaBytes #{size SDL_GPUVertexInputState} $ \statePtr -> do
     #{poke SDL_GPUVertexInputState, vertex_buffer_descriptions} statePtr bufsPtr
     #{poke SDL_GPUVertexInputState, num_vertex_buffers} statePtr (fromIntegral numBufs :: CUInt)
@@ -1634,10 +1634,10 @@ withGPUVertexInputState SDLGPUVertexInputState{..} f =
 
 -- SDL_GPUStencilOpState
 data SDLGPUStencilOpState = SDLGPUStencilOpState
-  { gpuStencilOpStateFailOp       :: SDLGPUStencilOp
-  , gpuStencilOpStatePassOp       :: SDLGPUStencilOp
-  , gpuStencilOpStateDepthFailOp  :: SDLGPUStencilOp
-  , gpuStencilOpStateCompareOp    :: SDLGPUCompareOp
+  { stencilFailOp       :: SDLGPUStencilOp
+  , stencilPassOp       :: SDLGPUStencilOp
+  , stencilDepthFailOp  :: SDLGPUStencilOp
+  , stencilCompareOp    :: SDLGPUCompareOp
   } deriving (Show, Eq)
 
 instance Storable SDLGPUStencilOpState where
@@ -1648,28 +1648,28 @@ instance Storable SDLGPUStencilOpState where
     gpuStencilOpStatePassOp    <- SDLGPUStencilOp <$> (#{peek SDL_GPUStencilOpState, pass_op} ptr :: IO CInt)
     gpuStencilOpStateDepthFailOp <- SDLGPUStencilOp <$> (#{peek SDL_GPUStencilOpState, depth_fail_op} ptr :: IO CInt)
     gpuStencilOpStateCompareOp <- SDLGPUCompareOp <$> (#{peek SDL_GPUStencilOpState, compare_op} ptr :: IO CInt)
-    return SDLGPUStencilOpState { gpuStencilOpStateFailOp       = gpuStencilOpStateFailOp
-                                , gpuStencilOpStatePassOp       = gpuStencilOpStatePassOp
-                                , gpuStencilOpStateDepthFailOp  = gpuStencilOpStateDepthFailOp
-                                , gpuStencilOpStateCompareOp    = gpuStencilOpStateCompareOp
+    return SDLGPUStencilOpState { stencilFailOp       = gpuStencilOpStateFailOp
+                                , stencilPassOp       = gpuStencilOpStatePassOp
+                                , stencilDepthFailOp  = gpuStencilOpStateDepthFailOp
+                                , stencilCompareOp    = gpuStencilOpStateCompareOp
                                 }
   poke ptr SDLGPUStencilOpState{..} = do
-    #{poke SDL_GPUStencilOpState, fail_op} ptr ( (\(SDLGPUStencilOp i) -> i) gpuStencilOpStateFailOp :: CInt)
-    #{poke SDL_GPUStencilOpState, pass_op} ptr ( (\(SDLGPUStencilOp i) -> i) gpuStencilOpStatePassOp :: CInt)
-    #{poke SDL_GPUStencilOpState, depth_fail_op} ptr ( (\(SDLGPUStencilOp i) -> i) gpuStencilOpStateDepthFailOp :: CInt)
-    #{poke SDL_GPUStencilOpState, compare_op} ptr ( (\(SDLGPUCompareOp i) -> i) gpuStencilOpStateCompareOp :: CInt)
+    #{poke SDL_GPUStencilOpState, fail_op} ptr ( (\(SDLGPUStencilOp i) -> i) stencilFailOp :: CInt)
+    #{poke SDL_GPUStencilOpState, pass_op} ptr ( (\(SDLGPUStencilOp i) -> i) stencilPassOp :: CInt)
+    #{poke SDL_GPUStencilOpState, depth_fail_op} ptr ( (\(SDLGPUStencilOp i) -> i) stencilDepthFailOp :: CInt)
+    #{poke SDL_GPUStencilOpState, compare_op} ptr ( (\(SDLGPUCompareOp i) -> i) stencilCompareOp :: CInt)
 
 -- SDL_GPUColorTargetBlendState
 data SDLGPUColorTargetBlendState = SDLGPUColorTargetBlendState
-  { gpuColorTargetBlendSrcColorFactor   :: SDLGPUBlendFactor
-  , gpuColorTargetBlendDstColorFactor   :: SDLGPUBlendFactor
-  , gpuColorTargetBlendColorOp          :: SDLGPUBlendOp
-  , gpuColorTargetBlendSrcAlphaFactor   :: SDLGPUBlendFactor
-  , gpuColorTargetBlendDstAlphaFactor   :: SDLGPUBlendFactor
-  , gpuColorTargetBlendAlphaOp          :: SDLGPUBlendOp
-  , gpuColorTargetBlendColorWriteMask   :: SDLGPUColorComponentFlags
-  , gpuColorTargetBlendEnableBlend      :: Bool
-  , gpuColorTargetBlendEnableColorWrite :: Bool
+  { srcColorFactor   :: SDLGPUBlendFactor
+  , dstColorFactor   :: SDLGPUBlendFactor
+  , blendOp          :: SDLGPUBlendOp
+  , srcAlphaFactor   :: SDLGPUBlendFactor
+  , dstAlphaFactor   :: SDLGPUBlendFactor
+  , alphaOp          :: SDLGPUBlendOp
+  , writeMask   :: SDLGPUColorComponentFlags
+  , enableBlend      :: Bool
+  , enableColorWrite :: Bool
   } deriving (Show, Eq)
 
 instance Storable SDLGPUColorTargetBlendState where
@@ -1685,57 +1685,57 @@ instance Storable SDLGPUColorTargetBlendState where
     gpuColorTargetBlendColorWriteMask <- SDLGPUColorComponentFlags <$> (#{peek SDL_GPUColorTargetBlendState, color_write_mask} ptr      :: IO CUChar)
     gpuColorTargetBlendEnableBlend    <- toBool                    <$> (#{peek SDL_GPUColorTargetBlendState, enable_blend} ptr          :: IO CBool)
     gpuColorTargetBlendEnableColorWrite <- toBool                <$> (#{peek SDL_GPUColorTargetBlendState, enable_color_write_mask} ptr :: IO CBool)
-    return SDLGPUColorTargetBlendState { gpuColorTargetBlendSrcColorFactor   = gpuColorTargetBlendSrcColorFactor
-                                       , gpuColorTargetBlendDstColorFactor   = gpuColorTargetBlendDstColorFactor
-                                       , gpuColorTargetBlendColorOp          = gpuColorTargetBlendColorOp
-                                       , gpuColorTargetBlendSrcAlphaFactor   = gpuColorTargetBlendSrcAlphaFactor
-                                       , gpuColorTargetBlendDstAlphaFactor   = gpuColorTargetBlendDstAlphaFactor
-                                       , gpuColorTargetBlendAlphaOp          = gpuColorTargetBlendAlphaOp
-                                       , gpuColorTargetBlendColorWriteMask   = gpuColorTargetBlendColorWriteMask
-                                       , gpuColorTargetBlendEnableBlend      = gpuColorTargetBlendEnableBlend
-                                       , gpuColorTargetBlendEnableColorWrite = gpuColorTargetBlendEnableColorWrite
+    return SDLGPUColorTargetBlendState { srcColorFactor   = gpuColorTargetBlendSrcColorFactor
+                                       , dstColorFactor   = gpuColorTargetBlendDstColorFactor
+                                       , blendOp          = gpuColorTargetBlendColorOp
+                                       , srcAlphaFactor   = gpuColorTargetBlendSrcAlphaFactor
+                                       , dstAlphaFactor   = gpuColorTargetBlendDstAlphaFactor
+                                       , alphaOp          = gpuColorTargetBlendAlphaOp
+                                       , writeMask   = gpuColorTargetBlendColorWriteMask
+                                       , enableBlend      = gpuColorTargetBlendEnableBlend
+                                       , enableColorWrite = gpuColorTargetBlendEnableColorWrite
                                        }
   poke ptr SDLGPUColorTargetBlendState{..} = do
-    #{poke SDL_GPUColorTargetBlendState, src_color_blendfactor} ptr ( (\(SDLGPUBlendFactor i) -> i)         gpuColorTargetBlendSrcColorFactor   :: CInt)
-    #{poke SDL_GPUColorTargetBlendState, dst_color_blendfactor} ptr ( (\(SDLGPUBlendFactor i) -> i)         gpuColorTargetBlendDstColorFactor   :: CInt)
-    #{poke SDL_GPUColorTargetBlendState, color_blend_op} ptr        ( (\(SDLGPUBlendOp i) -> i)             gpuColorTargetBlendColorOp          :: CInt)
-    #{poke SDL_GPUColorTargetBlendState, src_alpha_blendfactor} ptr ( (\(SDLGPUBlendFactor i) -> i)         gpuColorTargetBlendSrcAlphaFactor   :: CInt)
-    #{poke SDL_GPUColorTargetBlendState, dst_alpha_blendfactor} ptr ( (\(SDLGPUBlendFactor i) -> i)         gpuColorTargetBlendDstAlphaFactor   :: CInt)
-    #{poke SDL_GPUColorTargetBlendState, alpha_blend_op} ptr        ( (\(SDLGPUBlendOp i) -> i)             gpuColorTargetBlendAlphaOp          :: CInt)
-    #{poke SDL_GPUColorTargetBlendState, color_write_mask} ptr      ( (\(SDLGPUColorComponentFlags i) -> i) gpuColorTargetBlendColorWriteMask   :: CUChar)
-    #{poke SDL_GPUColorTargetBlendState, enable_blend} ptr          (fromBool gpuColorTargetBlendEnableBlend      :: CBool)
-    #{poke SDL_GPUColorTargetBlendState, enable_color_write_mask} ptr (fromBool gpuColorTargetBlendEnableColorWrite :: CBool)
+    #{poke SDL_GPUColorTargetBlendState, src_color_blendfactor} ptr ( (\(SDLGPUBlendFactor i) -> i)         srcColorFactor   :: CInt)
+    #{poke SDL_GPUColorTargetBlendState, dst_color_blendfactor} ptr ( (\(SDLGPUBlendFactor i) -> i)         dstColorFactor   :: CInt)
+    #{poke SDL_GPUColorTargetBlendState, color_blend_op} ptr        ( (\(SDLGPUBlendOp i) -> i)             blendOp          :: CInt)
+    #{poke SDL_GPUColorTargetBlendState, src_alpha_blendfactor} ptr ( (\(SDLGPUBlendFactor i) -> i)         srcAlphaFactor   :: CInt)
+    #{poke SDL_GPUColorTargetBlendState, dst_alpha_blendfactor} ptr ( (\(SDLGPUBlendFactor i) -> i)         dstAlphaFactor   :: CInt)
+    #{poke SDL_GPUColorTargetBlendState, alpha_blend_op} ptr        ( (\(SDLGPUBlendOp i) -> i)             alphaOp          :: CInt)
+    #{poke SDL_GPUColorTargetBlendState, color_write_mask} ptr      ( (\(SDLGPUColorComponentFlags i) -> i) writeMask   :: CUChar)
+    #{poke SDL_GPUColorTargetBlendState, enable_blend} ptr          (fromBool enableBlend      :: CBool)
+    #{poke SDL_GPUColorTargetBlendState, enable_color_write_mask} ptr (fromBool enableColorWrite :: CBool)
     #{poke SDL_GPUColorTargetBlendState, padding1} ptr (0 :: CUChar)
     #{poke SDL_GPUColorTargetBlendState, padding2} ptr (0 :: CUChar)
 
 data SDLGPUShaderCreateInfo = SDLGPUShaderCreateInfo
-  { gpuShaderInfoCode             :: Ptr Word8 -- Pointer to shader code bytes
-  , gpuShaderInfoCodeSize         :: CSize
-  , gpuShaderInfoEntryPoint       :: String -- Managed String
-  , gpuShaderInfoFormat           :: SDLGPUShaderFormat
-  , gpuShaderInfoStage            :: SDLGPUShaderStage
-  , gpuShaderInfoNumSamplers        :: Word32
-  , gpuShaderInfoNumStorageTextures :: Word32
-  , gpuShaderInfoNumStorageBuffers  :: Word32
-  , gpuShaderInfoNumUniformBuffers  :: Word32
-  , gpuShaderInfoProps            :: SDLPropertiesID
+  { shaderCode             :: Ptr Word8 -- Pointer to shader code bytes
+  , shaderCodeSize         :: CSize
+  , shaderEntryPoint       :: String -- Managed String
+  , shaderFormat           :: SDLGPUShaderFormat
+  , shaderStage            :: SDLGPUShaderStage
+  , shaderNumSamplers        :: Word32
+  , shaderNumStorageTextures :: Word32
+  , shaderNumStorageBuffers  :: Word32
+  , shaderNumUniformBuffers  :: Word32
+  , shaderProps            :: SDLPropertiesID
   } deriving (Show, Eq)
 
 -- No direct Storable instance. Marshal using 'with'.
 withGPUShaderCreateInfo :: SDLGPUShaderCreateInfo -> (Ptr () -> IO a) -> IO a
 withGPUShaderCreateInfo SDLGPUShaderCreateInfo{..} f =
-  withCString gpuShaderInfoEntryPoint $ \cEntrypoint ->
+  withCString shaderEntryPoint $ \cEntrypoint ->
   allocaBytes #{size SDL_GPUShaderCreateInfo} $ \ptr -> do
-    #{poke SDL_GPUShaderCreateInfo, code_size} ptr gpuShaderInfoCodeSize
-    #{poke SDL_GPUShaderCreateInfo, code} ptr gpuShaderInfoCode
+    #{poke SDL_GPUShaderCreateInfo, code_size} ptr shaderCodeSize
+    #{poke SDL_GPUShaderCreateInfo, code} ptr shaderCode
     #{poke SDL_GPUShaderCreateInfo, entrypoint} ptr cEntrypoint
-    #{poke SDL_GPUShaderCreateInfo, format} ptr gpuShaderInfoFormat
-    #{poke SDL_GPUShaderCreateInfo, stage} ptr gpuShaderInfoStage
-    #{poke SDL_GPUShaderCreateInfo, num_samplers} ptr (fromIntegral gpuShaderInfoNumSamplers :: CUInt)
-    #{poke SDL_GPUShaderCreateInfo, num_storage_textures} ptr (fromIntegral gpuShaderInfoNumStorageTextures :: CUInt)
-    #{poke SDL_GPUShaderCreateInfo, num_storage_buffers} ptr (fromIntegral gpuShaderInfoNumStorageBuffers :: CUInt)
-    #{poke SDL_GPUShaderCreateInfo, num_uniform_buffers} ptr (fromIntegral gpuShaderInfoNumUniformBuffers :: CUInt)
-    #{poke SDL_GPUShaderCreateInfo, props} ptr gpuShaderInfoProps
+    #{poke SDL_GPUShaderCreateInfo, format} ptr shaderFormat
+    #{poke SDL_GPUShaderCreateInfo, stage} ptr shaderStage
+    #{poke SDL_GPUShaderCreateInfo, num_samplers} ptr (fromIntegral shaderNumSamplers :: CUInt)
+    #{poke SDL_GPUShaderCreateInfo, num_storage_textures} ptr (fromIntegral shaderNumStorageTextures :: CUInt)
+    #{poke SDL_GPUShaderCreateInfo, num_storage_buffers} ptr (fromIntegral shaderNumStorageBuffers :: CUInt)
+    #{poke SDL_GPUShaderCreateInfo, num_uniform_buffers} ptr (fromIntegral shaderNumUniformBuffers :: CUInt)
+    #{poke SDL_GPUShaderCreateInfo, props} ptr shaderProps
     f (castPtr ptr)
 
 
@@ -1789,62 +1789,62 @@ instance Storable SDLGPUTextureCreateInfo where
 
 -- SDL_GPUBufferCreateInfo
 data SDLGPUBufferCreateInfo = SDLGPUBufferCreateInfo
-  { gpuBufferInfoUsage :: SDLGPUBufferUsageFlags
-  , gpuBufferInfoSize  :: Word32
-  , gpuBufferInfoProps :: SDLPropertiesID
+  { bufferUsage :: SDLGPUBufferUsageFlags
+  , bufferSize  :: Word32
+  , bufferProps :: SDLPropertiesID
   } deriving (Show, Eq)
 
 instance Storable SDLGPUBufferCreateInfo where
   sizeOf _ = #{size SDL_GPUBufferCreateInfo}
   alignment _ = #{alignment SDL_GPUBufferCreateInfo}
   peek ptr = do
-    gpuBufferInfoUsage <- SDLGPUBufferUsageFlags <$> (#{peek SDL_GPUBufferCreateInfo, usage} ptr :: IO CUInt)
-    gpuBufferInfoSize <- fromIntegral <$> (#{peek SDL_GPUBufferCreateInfo, size} ptr :: IO CUInt)
-    gpuBufferInfoProps <- #{peek SDL_GPUBufferCreateInfo, props} ptr :: IO SDLPropertiesID
-    return SDLGPUBufferCreateInfo { gpuBufferInfoUsage = gpuBufferInfoUsage
-                                  , gpuBufferInfoSize  = gpuBufferInfoSize
-                                  , gpuBufferInfoProps = gpuBufferInfoProps
+    bufferUsage <- SDLGPUBufferUsageFlags <$> (#{peek SDL_GPUBufferCreateInfo, usage} ptr :: IO CUInt)
+    bufferSize <- fromIntegral <$> (#{peek SDL_GPUBufferCreateInfo, size} ptr :: IO CUInt)
+    bufferProps <- #{peek SDL_GPUBufferCreateInfo, props} ptr :: IO SDLPropertiesID
+    return SDLGPUBufferCreateInfo { bufferUsage = bufferUsage
+                                  , bufferSize  = bufferSize
+                                  , bufferProps = bufferProps
                                   }
   poke ptr SDLGPUBufferCreateInfo{..} = do
-    #{poke SDL_GPUBufferCreateInfo, usage} ptr ( (\(SDLGPUBufferUsageFlags i) -> i) gpuBufferInfoUsage :: CUInt)
-    #{poke SDL_GPUBufferCreateInfo, size} ptr (fromIntegral gpuBufferInfoSize :: CUInt)
-    #{poke SDL_GPUBufferCreateInfo, props} ptr gpuBufferInfoProps
+    #{poke SDL_GPUBufferCreateInfo, usage} ptr ( (\(SDLGPUBufferUsageFlags i) -> i) bufferUsage :: CUInt)
+    #{poke SDL_GPUBufferCreateInfo, size} ptr (fromIntegral bufferSize :: CUInt)
+    #{poke SDL_GPUBufferCreateInfo, props} ptr bufferProps
 
 -- SDL_GPUTransferBufferCreateInfo
 data SDLGPUTransferBufferCreateInfo = SDLGPUTransferBufferCreateInfo
-  { gpuTransferBufferInfoUsage :: SDLGPUTransferBufferUsage
-  , gpuTransferBufferInfoSize  :: Word32
-  , gpuTransferBufferInfoProps :: SDLPropertiesID
+  { transferUsage :: SDLGPUTransferBufferUsage
+  , transferSize  :: Word32
+  , transferProps :: SDLPropertiesID
   } deriving (Show, Eq)
 
 instance Storable SDLGPUTransferBufferCreateInfo where
   sizeOf _ = #{size SDL_GPUTransferBufferCreateInfo}
   alignment _ = #{alignment SDL_GPUTransferBufferCreateInfo}
   peek ptr = do
-    gpuTransferBufferInfoUsage <- SDLGPUTransferBufferUsage <$> (#{peek SDL_GPUTransferBufferCreateInfo, usage} ptr :: IO CInt)
-    gpuTransferBufferInfoSize <- fromIntegral <$> (#{peek SDL_GPUTransferBufferCreateInfo, size} ptr :: IO CUInt)
-    gpuTransferBufferInfoProps <- #{peek SDL_GPUTransferBufferCreateInfo, props} ptr :: IO SDLPropertiesID
-    return SDLGPUTransferBufferCreateInfo { gpuTransferBufferInfoUsage = gpuTransferBufferInfoUsage
-                                          , gpuTransferBufferInfoSize  = gpuTransferBufferInfoSize
-                                          , gpuTransferBufferInfoProps = gpuTransferBufferInfoProps
+    transferUsage <- SDLGPUTransferBufferUsage <$> (#{peek SDL_GPUTransferBufferCreateInfo, usage} ptr :: IO CInt)
+    transferSize <- fromIntegral <$> (#{peek SDL_GPUTransferBufferCreateInfo, size} ptr :: IO CUInt)
+    transferProps <- #{peek SDL_GPUTransferBufferCreateInfo, props} ptr :: IO SDLPropertiesID
+    return SDLGPUTransferBufferCreateInfo { transferUsage = transferUsage
+                                          , transferSize  = transferSize
+                                          , transferProps = transferProps
                                           }
   poke ptr SDLGPUTransferBufferCreateInfo{..} = do
-    #{poke SDL_GPUTransferBufferCreateInfo, usage} ptr ( (\(SDLGPUTransferBufferUsage i) -> i) gpuTransferBufferInfoUsage :: CInt)
-    #{poke SDL_GPUTransferBufferCreateInfo, size} ptr (fromIntegral gpuTransferBufferInfoSize :: CUInt)
-    #{poke SDL_GPUTransferBufferCreateInfo, props} ptr gpuTransferBufferInfoProps
+    #{poke SDL_GPUTransferBufferCreateInfo, usage} ptr ( (\(SDLGPUTransferBufferUsage i) -> i) transferUsage :: CInt)
+    #{poke SDL_GPUTransferBufferCreateInfo, size} ptr (fromIntegral transferSize :: CUInt)
+    #{poke SDL_GPUTransferBufferCreateInfo, props} ptr transferProps
 
 -- Pipeline State Structures
 
 -- SDL_GPURasterizerState
 data SDLGPURasterizerState = SDLGPURasterizerState
-  { gpuRasterizerFillMode             :: SDLGPUFillMode
-  , gpuRasterizerCullMode             :: SDLGPUCullMode
-  , gpuRasterizerFrontFace            :: SDLGPUFrontFace
-  , gpuRasterizerDepthBiasConstantFactor :: Float
-  , gpuRasterizerDepthBiasClamp       :: Float
-  , gpuRasterizerDepthBiasSlopeFactor :: Float
-  , gpuRasterizerEnableDepthBias      :: Bool
-  , gpuRasterizerEnableDepthClip      :: Bool
+  { fillMode             :: SDLGPUFillMode
+  , cullMode             :: SDLGPUCullMode
+  , frontFace            :: SDLGPUFrontFace
+  , depthBiasConstantFactor :: Float
+  , depthBiasClamp       :: Float
+  , depthBiasSlopeFactor :: Float
+  , enableDepthBias      :: Bool
+  , enableDepthClip      :: Bool
   } deriving (Show, Eq)
 
 instance Storable SDLGPURasterizerState where
@@ -1859,33 +1859,33 @@ instance Storable SDLGPURasterizerState where
     gpuRasterizerDepthBiasSlopeFactor <- realToFrac    <$> (#{peek SDL_GPURasterizerState, depth_bias_slope_factor} ptr :: IO CFloat)
     gpuRasterizerEnableDepthBias      <- toBool              <$> (#{peek SDL_GPURasterizerState, enable_depth_bias} ptr :: IO CBool)
     gpuRasterizerEnableDepthClip      <- toBool              <$> (#{peek SDL_GPURasterizerState, enable_depth_clip} ptr :: IO CBool)
-    return SDLGPURasterizerState { gpuRasterizerFillMode             = gpuRasterizerFillMode
-                                 , gpuRasterizerCullMode             = gpuRasterizerCullMode
-                                 , gpuRasterizerFrontFace            = gpuRasterizerFrontFace
-                                 , gpuRasterizerDepthBiasConstantFactor = gpuRasterizerDepthBiasConstantFactor
-                                 , gpuRasterizerDepthBiasClamp       = gpuRasterizerDepthBiasClamp
-                                 , gpuRasterizerDepthBiasSlopeFactor = gpuRasterizerDepthBiasSlopeFactor
-                                 , gpuRasterizerEnableDepthBias      = gpuRasterizerEnableDepthBias
-                                 , gpuRasterizerEnableDepthClip      = gpuRasterizerEnableDepthClip
+    return SDLGPURasterizerState { fillMode             = gpuRasterizerFillMode
+                                 , cullMode             = gpuRasterizerCullMode
+                                 , frontFace            = gpuRasterizerFrontFace
+                                 , depthBiasConstantFactor = gpuRasterizerDepthBiasConstantFactor
+                                 , depthBiasClamp       = gpuRasterizerDepthBiasClamp
+                                 , depthBiasSlopeFactor = gpuRasterizerDepthBiasSlopeFactor
+                                 , enableDepthBias      = gpuRasterizerEnableDepthBias
+                                 , enableDepthClip      = gpuRasterizerEnableDepthClip
                                  }
   poke ptr SDLGPURasterizerState{..} = do
-    #{poke SDL_GPURasterizerState, fill_mode} ptr ( (\(SDLGPUFillMode i) -> i)   gpuRasterizerFillMode :: CInt)
-    #{poke SDL_GPURasterizerState, cull_mode} ptr ( (\(SDLGPUCullMode i) -> i)   gpuRasterizerCullMode :: CInt)
-    #{poke SDL_GPURasterizerState, front_face} ptr ( (\(SDLGPUFrontFace i) -> i) gpuRasterizerFrontFace :: CInt)
-    #{poke SDL_GPURasterizerState, depth_bias_constant_factor} ptr (realToFrac gpuRasterizerDepthBiasConstantFactor :: CFloat)
-    #{poke SDL_GPURasterizerState, depth_bias_clamp} ptr (realToFrac gpuRasterizerDepthBiasClamp :: CFloat)
-    #{poke SDL_GPURasterizerState, depth_bias_slope_factor} ptr (realToFrac gpuRasterizerDepthBiasSlopeFactor :: CFloat)
-    #{poke SDL_GPURasterizerState, enable_depth_bias} ptr (fromBool gpuRasterizerEnableDepthBias :: CBool)
-    #{poke SDL_GPURasterizerState, enable_depth_clip} ptr (fromBool gpuRasterizerEnableDepthClip :: CBool)
+    #{poke SDL_GPURasterizerState, fill_mode} ptr ( (\(SDLGPUFillMode i) -> i)   fillMode :: CInt)
+    #{poke SDL_GPURasterizerState, cull_mode} ptr ( (\(SDLGPUCullMode i) -> i)   cullMode :: CInt)
+    #{poke SDL_GPURasterizerState, front_face} ptr ( (\(SDLGPUFrontFace i) -> i) frontFace :: CInt)
+    #{poke SDL_GPURasterizerState, depth_bias_constant_factor} ptr (realToFrac depthBiasConstantFactor :: CFloat)
+    #{poke SDL_GPURasterizerState, depth_bias_clamp} ptr (realToFrac depthBiasClamp :: CFloat)
+    #{poke SDL_GPURasterizerState, depth_bias_slope_factor} ptr (realToFrac depthBiasSlopeFactor :: CFloat)
+    #{poke SDL_GPURasterizerState, enable_depth_bias} ptr (fromBool enableDepthBias :: CBool)
+    #{poke SDL_GPURasterizerState, enable_depth_clip} ptr (fromBool enableDepthClip :: CBool)
     #{poke SDL_GPURasterizerState, padding1} ptr (0 :: CUChar)
     #{poke SDL_GPURasterizerState, padding2} ptr (0 :: CUChar)
 
 -- SDL_GPUMultisampleState
 data SDLGPUMultisampleState = SDLGPUMultisampleState
-  { gpuMultisampleSampleCount         :: SDLGPUSampleCount
-  , gpuMultisampleSampleMask          :: Word32 -- Reserved, use 0
-  , gpuMultisampleEnableMask          :: Bool   -- Reserved, use False
-  , gpuMultisampleEnableAlphaToCoverage :: Bool
+  { sampleCount         :: SDLGPUSampleCount
+  , sampleMask          :: Word32 -- Reserved, use 0
+  , enableMask          :: Bool   -- Reserved, use False
+  , enableAlphaToCoverage :: Bool
   } deriving (Show, Eq)
 
 instance Storable SDLGPUMultisampleState where
@@ -1896,29 +1896,29 @@ instance Storable SDLGPUMultisampleState where
     gpuMultisampleSampleMask          <- fromIntegral       <$> (#{peek SDL_GPUMultisampleState, sample_mask} ptr :: IO CUInt)
     gpuMultisampleEnableMask          <- toBool             <$> (#{peek SDL_GPUMultisampleState, enable_mask} ptr :: IO CBool)
     gpuMultisampleEnableAlphaToCoverage <- toBool <$> (#{peek SDL_GPUMultisampleState, enable_alpha_to_coverage} ptr :: IO CBool)
-    return SDLGPUMultisampleState { gpuMultisampleSampleCount         = gpuMultisampleSampleCount
-                                  , gpuMultisampleSampleMask          = gpuMultisampleSampleMask
-                                  , gpuMultisampleEnableMask          = gpuMultisampleEnableMask
-                                  , gpuMultisampleEnableAlphaToCoverage = gpuMultisampleEnableAlphaToCoverage
+    return SDLGPUMultisampleState { sampleCount         = gpuMultisampleSampleCount
+                                  , sampleMask          = gpuMultisampleSampleMask
+                                  , enableMask          = gpuMultisampleEnableMask
+                                  , enableAlphaToCoverage = gpuMultisampleEnableAlphaToCoverage
                                   }
   poke ptr SDLGPUMultisampleState{..} = do
-    #{poke SDL_GPUMultisampleState, sample_count} ptr ( (\(SDLGPUSampleCount i) -> i) gpuMultisampleSampleCount :: CInt)
-    #{poke SDL_GPUMultisampleState, sample_mask} ptr (fromIntegral gpuMultisampleSampleMask :: CUInt)
-    #{poke SDL_GPUMultisampleState, enable_mask} ptr (fromBool gpuMultisampleEnableMask :: CBool)
-    #{poke SDL_GPUMultisampleState, enable_alpha_to_coverage} ptr (fromBool gpuMultisampleEnableAlphaToCoverage :: CBool)
+    #{poke SDL_GPUMultisampleState, sample_count} ptr ( (\(SDLGPUSampleCount i) -> i) sampleCount :: CInt)
+    #{poke SDL_GPUMultisampleState, sample_mask} ptr (fromIntegral sampleMask :: CUInt)
+    #{poke SDL_GPUMultisampleState, enable_mask} ptr (fromBool enableMask :: CBool)
+    #{poke SDL_GPUMultisampleState, enable_alpha_to_coverage} ptr (fromBool enableAlphaToCoverage :: CBool)
     #{poke SDL_GPUMultisampleState, padding2} ptr (0 :: CUChar)
     #{poke SDL_GPUMultisampleState, padding3} ptr (0 :: CUChar)
 
 -- SDL_GPUDepthStencilState
 data SDLGPUDepthStencilState = SDLGPUDepthStencilState
-  { gpuDepthStencilCompareOp       :: SDLGPUCompareOp
-  , gpuDepthStencilBackStencilState  :: SDLGPUStencilOpState
-  , gpuDepthStencilFrontStencilState :: SDLGPUStencilOpState
-  , gpuDepthStencilCompareMask     :: Word8
-  , gpuDepthStencilWriteMask       :: Word8
-  , gpuDepthStencilEnableDepthTest   :: Bool
-  , gpuDepthStencilEnableDepthWrite  :: Bool
-  , gpuDepthStencilEnableStencilTest :: Bool
+  { depthStencilCompareOp       :: SDLGPUCompareOp
+  , backStencilState  :: SDLGPUStencilOpState
+  , frontStencilState :: SDLGPUStencilOpState
+  , stencilCompareMask     :: Word8
+  , stencilWriteMask       :: Word8
+  , enableDepthTest   :: Bool
+  , enableDepthWrite  :: Bool
+  , enableStencilTest :: Bool
   } deriving (Show, Eq)
 
 instance Storable SDLGPUDepthStencilState where
@@ -1935,32 +1935,32 @@ instance Storable SDLGPUDepthStencilState where
     gpuDepthStencilEnableDepthTest   <- toBool   <$> (#{peek SDL_GPUDepthStencilState, enable_depth_test} ptr :: IO CBool)
     gpuDepthStencilEnableDepthWrite  <- toBool  <$> (#{peek SDL_GPUDepthStencilState, enable_depth_write} ptr :: IO CBool)
     gpuDepthStencilEnableStencilTest <- toBool <$> (#{peek SDL_GPUDepthStencilState, enable_stencil_test} ptr :: IO CBool)
-    return SDLGPUDepthStencilState { gpuDepthStencilCompareOp       = gpuDepthStencilCompareOp
-                                   , gpuDepthStencilBackStencilState  = gpuDepthStencilBackStencilState
-                                   , gpuDepthStencilFrontStencilState = gpuDepthStencilFrontStencilState
-                                   , gpuDepthStencilCompareMask     = gpuDepthStencilCompareMask -- Use converted Word8
-                                   , gpuDepthStencilWriteMask       = gpuDepthStencilWriteMask   -- Use converted Word8
-                                   , gpuDepthStencilEnableDepthTest   = gpuDepthStencilEnableDepthTest
-                                   , gpuDepthStencilEnableDepthWrite  = gpuDepthStencilEnableDepthWrite
-                                   , gpuDepthStencilEnableStencilTest = gpuDepthStencilEnableStencilTest
+    return SDLGPUDepthStencilState { depthStencilCompareOp       = gpuDepthStencilCompareOp
+                                   , backStencilState  = gpuDepthStencilBackStencilState
+                                   , frontStencilState = gpuDepthStencilFrontStencilState
+                                   , stencilCompareMask     = gpuDepthStencilCompareMask -- Use converted Word8
+                                   , stencilWriteMask       = gpuDepthStencilWriteMask   -- Use converted Word8
+                                   , enableDepthTest   = gpuDepthStencilEnableDepthTest
+                                   , enableDepthWrite  = gpuDepthStencilEnableDepthWrite
+                                   , enableStencilTest = gpuDepthStencilEnableStencilTest
                                    }
   poke ptr SDLGPUDepthStencilState{..} = do
-    #{poke SDL_GPUDepthStencilState, compare_op} ptr ( (\(SDLGPUCompareOp i) -> i) gpuDepthStencilCompareOp :: CInt)
-    poke (#{ptr SDL_GPUDepthStencilState, back_stencil_state} ptr) gpuDepthStencilBackStencilState
-    poke (#{ptr SDL_GPUDepthStencilState, front_stencil_state} ptr) gpuDepthStencilFrontStencilState
-    #{poke SDL_GPUDepthStencilState, compare_mask} ptr (fromIntegral gpuDepthStencilCompareMask :: CUChar) -- Convert Word8 to CUChar
-    #{poke SDL_GPUDepthStencilState, write_mask} ptr (fromIntegral gpuDepthStencilWriteMask :: CUChar) -- Convert Word8 to CUChar
-    #{poke SDL_GPUDepthStencilState, enable_depth_test} ptr (fromBool gpuDepthStencilEnableDepthTest :: CBool)
-    #{poke SDL_GPUDepthStencilState, enable_depth_write} ptr (fromBool gpuDepthStencilEnableDepthWrite :: CBool)
-    #{poke SDL_GPUDepthStencilState, enable_stencil_test} ptr (fromBool gpuDepthStencilEnableStencilTest :: CBool)
+    #{poke SDL_GPUDepthStencilState, compare_op} ptr ( (\(SDLGPUCompareOp i) -> i) depthStencilCompareOp :: CInt)
+    poke (#{ptr SDL_GPUDepthStencilState, back_stencil_state} ptr) backStencilState
+    poke (#{ptr SDL_GPUDepthStencilState, front_stencil_state} ptr) frontStencilState
+    #{poke SDL_GPUDepthStencilState, compare_mask} ptr (fromIntegral stencilCompareMask :: CUChar) -- Convert Word8 to CUChar
+    #{poke SDL_GPUDepthStencilState, write_mask} ptr (fromIntegral stencilWriteMask :: CUChar) -- Convert Word8 to CUChar
+    #{poke SDL_GPUDepthStencilState, enable_depth_test} ptr (fromBool enableDepthTest :: CBool)
+    #{poke SDL_GPUDepthStencilState, enable_depth_write} ptr (fromBool enableDepthWrite :: CBool)
+    #{poke SDL_GPUDepthStencilState, enable_stencil_test} ptr (fromBool enableStencilTest :: CBool)
     #{poke SDL_GPUDepthStencilState, padding1} ptr (0 :: CUChar)
     #{poke SDL_GPUDepthStencilState, padding2} ptr (0 :: CUChar)
     #{poke SDL_GPUDepthStencilState, padding3} ptr (0 :: CUChar)
 
 -- SDL_GPUColorTargetDescription
 data SDLGPUColorTargetDescription = SDLGPUColorTargetDescription
-  { gpuColorTargetDescFormat     :: SDLGPUTextureFormat
-  , gpuColorTargetDescBlendState :: SDLGPUColorTargetBlendState
+  { targetFormat     :: SDLGPUTextureFormat
+  , targetBlendState :: SDLGPUColorTargetBlendState
   } deriving (Show, Eq)
 
 instance Storable SDLGPUColorTargetDescription where
@@ -1969,28 +1969,28 @@ instance Storable SDLGPUColorTargetDescription where
   peek ptr = do
     gpuColorTargetDescFormat     <- SDLGPUTextureFormat <$> (#{peek SDL_GPUColorTargetDescription, format} ptr :: IO CInt)
     gpuColorTargetDescBlendState <- peek (#{ptr SDL_GPUColorTargetDescription, blend_state} ptr :: Ptr SDLGPUColorTargetBlendState)
-    return SDLGPUColorTargetDescription { gpuColorTargetDescFormat     = gpuColorTargetDescFormat
-                                        , gpuColorTargetDescBlendState = gpuColorTargetDescBlendState
+    return SDLGPUColorTargetDescription { targetFormat     = gpuColorTargetDescFormat
+                                        , targetBlendState = gpuColorTargetDescBlendState
                                         }
   poke ptr SDLGPUColorTargetDescription{..} = do
-    #{poke SDL_GPUColorTargetDescription, format} ptr ( (\(SDLGPUTextureFormat i) -> i) gpuColorTargetDescFormat :: CInt)
-    poke (#{ptr SDL_GPUColorTargetDescription, blend_state} ptr) gpuColorTargetDescBlendState
+    #{poke SDL_GPUColorTargetDescription, format} ptr ( (\(SDLGPUTextureFormat i) -> i) targetFormat :: CInt)
+    poke (#{ptr SDL_GPUColorTargetDescription, blend_state} ptr) targetBlendState
 
 data SDLGPUGraphicsPipelineTargetInfo = SDLGPUGraphicsPipelineTargetInfo
-  { gpuGraphicsTargetInfoColorTargets       :: [SDLGPUColorTargetDescription]
-  , gpuGraphicsTargetInfoDepthStencilFormat :: SDLGPUTextureFormat
-  , gpuGraphicsTargetInfoHasDepthStencil    :: Bool
+  { colorTargets       :: [SDLGPUColorTargetDescription]
+  , depthStencilFormat :: SDLGPUTextureFormat
+  , hasDepthStencil    :: Bool
   } deriving (Show, Eq)
 
 -- No direct Storable instance.
 withGPUGraphicsPipelineTargetInfo :: SDLGPUGraphicsPipelineTargetInfo -> (Ptr () -> IO a) -> IO a
 withGPUGraphicsPipelineTargetInfo SDLGPUGraphicsPipelineTargetInfo{..} f =
-  withArrayLen gpuGraphicsTargetInfoColorTargets $ \numTargets targetsPtr ->
+  withArrayLen colorTargets $ \numTargets targetsPtr ->
   allocaBytes #{size SDL_GPUGraphicsPipelineTargetInfo} $ \ptr -> do
     #{poke SDL_GPUGraphicsPipelineTargetInfo, color_target_descriptions} ptr targetsPtr
     #{poke SDL_GPUGraphicsPipelineTargetInfo, num_color_targets} ptr (fromIntegral numTargets :: CUInt)
-    #{poke SDL_GPUGraphicsPipelineTargetInfo, depth_stencil_format} ptr gpuGraphicsTargetInfoDepthStencilFormat
-    #{poke SDL_GPUGraphicsPipelineTargetInfo, has_depth_stencil_target} ptr (fromBool gpuGraphicsTargetInfoHasDepthStencil :: CBool)
+    #{poke SDL_GPUGraphicsPipelineTargetInfo, depth_stencil_format} ptr depthStencilFormat
+    #{poke SDL_GPUGraphicsPipelineTargetInfo, has_depth_stencil_target} ptr (fromBool hasDepthStencil :: CBool)
     #{poke SDL_GPUGraphicsPipelineTargetInfo, padding1} ptr (0 :: CUChar)
     #{poke SDL_GPUGraphicsPipelineTargetInfo, padding2} ptr (0 :: CUChar)
     #{poke SDL_GPUGraphicsPipelineTargetInfo, padding3} ptr (0 :: CUChar)
@@ -1998,25 +1998,25 @@ withGPUGraphicsPipelineTargetInfo SDLGPUGraphicsPipelineTargetInfo{..} f =
 
 -- SDL_GPUGraphicsPipelineCreateInfo
 data SDLGPUGraphicsPipelineCreateInfo = SDLGPUGraphicsPipelineCreateInfo
-  { gpuGraphicsPipelineInfoVertexShader      :: SDLGPUShader
-  , gpuGraphicsPipelineInfoFragmentShader    :: SDLGPUShader
-  , gpuGraphicsPipelineInfoVertexInputState  :: SDLGPUVertexInputState
-  , gpuGraphicsPipelineInfoPrimitiveType     :: SDLGPUPrimitiveType
-  , gpuGraphicsPipelineInfoRasterizerState   :: SDLGPURasterizerState
-  , gpuGraphicsPipelineInfoMultisampleState  :: SDLGPUMultisampleState
-  , gpuGraphicsPipelineInfoDepthStencilState :: SDLGPUDepthStencilState
-  , gpuGraphicsPipelineInfoTargetInfo        :: SDLGPUGraphicsPipelineTargetInfo
-  , gpuGraphicsPipelineInfoProps             :: SDLPropertiesID
+  { vertexShader      :: SDLGPUShader
+  , fragmentShader    :: SDLGPUShader
+  , vertexInputState  :: SDLGPUVertexInputState
+  , primitiveType     :: SDLGPUPrimitiveType
+  , rasterizerState   :: SDLGPURasterizerState
+  , multisampleState  :: SDLGPUMultisampleState
+  , depthStencilState :: SDLGPUDepthStencilState
+  , targetInfo        :: SDLGPUGraphicsPipelineTargetInfo
+  , props             :: SDLPropertiesID
   } deriving (Show, Eq)
 
 -- No direct Storable instance. Marshal using helpers.
 withGPUGraphicsPipelineCreateInfo :: SDLGPUGraphicsPipelineCreateInfo -> (Ptr () -> IO a) -> IO a
 withGPUGraphicsPipelineCreateInfo SDLGPUGraphicsPipelineCreateInfo{..} f =
-  withGPUVertexInputState gpuGraphicsPipelineInfoVertexInputState $ \vertexInputPtr ->
-  withGPUGraphicsPipelineTargetInfo gpuGraphicsPipelineInfoTargetInfo $ \targetInfoPtr ->
+  withGPUVertexInputState vertexInputState $ \vertexInputPtr ->
+  withGPUGraphicsPipelineTargetInfo targetInfo $ \targetInfoPtr ->
   allocaBytes #{size SDL_GPUGraphicsPipelineCreateInfo} $ \ptr -> do
-    let (SDLGPUShader vsPtr) = gpuGraphicsPipelineInfoVertexShader
-    let (SDLGPUShader fsPtr) = gpuGraphicsPipelineInfoFragmentShader
+    let (SDLGPUShader vsPtr) = vertexShader
+    let (SDLGPUShader fsPtr) = fragmentShader
     #{poke SDL_GPUGraphicsPipelineCreateInfo, vertex_shader} ptr vsPtr
     #{poke SDL_GPUGraphicsPipelineCreateInfo, fragment_shader} ptr fsPtr
 
@@ -2025,66 +2025,66 @@ withGPUGraphicsPipelineCreateInfo SDLGPUGraphicsPipelineCreateInfo{..} f =
     copyBytes (#{ptr SDL_GPUGraphicsPipelineCreateInfo, target_info} ptr) targetInfoPtr #{size SDL_GPUGraphicsPipelineTargetInfo}
 
     -- Poke other members
-    #{poke SDL_GPUGraphicsPipelineCreateInfo, primitive_type} ptr gpuGraphicsPipelineInfoPrimitiveType
-    poke (#{ptr SDL_GPUGraphicsPipelineCreateInfo, rasterizer_state} ptr) gpuGraphicsPipelineInfoRasterizerState
-    poke (#{ptr SDL_GPUGraphicsPipelineCreateInfo, multisample_state} ptr) gpuGraphicsPipelineInfoMultisampleState
-    poke (#{ptr SDL_GPUGraphicsPipelineCreateInfo, depth_stencil_state} ptr) gpuGraphicsPipelineInfoDepthStencilState
-    #{poke SDL_GPUGraphicsPipelineCreateInfo, props} ptr gpuGraphicsPipelineInfoProps
+    #{poke SDL_GPUGraphicsPipelineCreateInfo, primitive_type} ptr primitiveType
+    poke (#{ptr SDL_GPUGraphicsPipelineCreateInfo, rasterizer_state} ptr) rasterizerState
+    poke (#{ptr SDL_GPUGraphicsPipelineCreateInfo, multisample_state} ptr) multisampleState
+    poke (#{ptr SDL_GPUGraphicsPipelineCreateInfo, depth_stencil_state} ptr) depthStencilState
+    #{poke SDL_GPUGraphicsPipelineCreateInfo, props} ptr props
     f (castPtr ptr)
 
 -- SDL_GPUComputePipelineCreateInfo
 data SDLGPUComputePipelineCreateInfo = SDLGPUComputePipelineCreateInfo
-  { gpuComputePipelineInfoCode                      :: Ptr Word8
-  , gpuComputePipelineInfoCodeSize                  :: CSize
-  , gpuComputePipelineInfoEntryPoint                :: String
-  , gpuComputePipelineInfoFormat                    :: SDLGPUShaderFormat
-  , gpuComputePipelineInfoNumSamplers               :: Word32
-  , gpuComputePipelineInfoNumReadonlyStorageTextures:: Word32
-  , gpuComputePipelineInfoNumReadonlyStorageBuffers :: Word32
-  , gpuComputePipelineInfoNumReadWriteStorageTextures :: Word32
-  , gpuComputePipelineInfoNumReadWriteStorageBuffers  :: Word32
-  , gpuComputePipelineInfoNumUniformBuffers         :: Word32
-  , gpuComputePipelineInfoThreadCountX              :: Word32
-  , gpuComputePipelineInfoThreadCountY              :: Word32
-  , gpuComputePipelineInfoThreadCountZ              :: Word32
-  , gpuComputePipelineInfoProps                     :: SDLPropertiesID
+  { code                      :: Ptr Word8
+  , codeSize                  :: CSize
+  , entryPoint                :: String
+  , compFormat                    :: SDLGPUShaderFormat
+  , numSamplers               :: Word32
+  , numReadOnlyStorageTextures:: Word32
+  , numReadOnlyStorageBuffers :: Word32
+  , numReadWriteStorageTextures :: Word32
+  , numReadWriteStorageBuffers  :: Word32
+  , numUniformBuffers         :: Word32
+  , threadCountX              :: Word32
+  , threadCountY              :: Word32
+  , threadCountZ              :: Word32
+  , compProps                     :: SDLPropertiesID
   } deriving (Show, Eq)
 
 -- No direct Storable instance. Marshal using 'with'.
 withGPUComputePipelineCreateInfo :: SDLGPUComputePipelineCreateInfo -> (Ptr () -> IO a) -> IO a
 withGPUComputePipelineCreateInfo SDLGPUComputePipelineCreateInfo{..} f =
-  withCString gpuComputePipelineInfoEntryPoint $ \cEntrypoint ->
+  withCString entryPoint $ \cEntrypoint ->
   allocaBytes #{size SDL_GPUComputePipelineCreateInfo} $ \ptr -> do
-    #{poke SDL_GPUComputePipelineCreateInfo, code_size} ptr gpuComputePipelineInfoCodeSize
-    #{poke SDL_GPUComputePipelineCreateInfo, code} ptr gpuComputePipelineInfoCode
+    #{poke SDL_GPUComputePipelineCreateInfo, code_size} ptr codeSize
+    #{poke SDL_GPUComputePipelineCreateInfo, code} ptr code
     #{poke SDL_GPUComputePipelineCreateInfo, entrypoint} ptr cEntrypoint
-    #{poke SDL_GPUComputePipelineCreateInfo, format} ptr gpuComputePipelineInfoFormat
-    #{poke SDL_GPUComputePipelineCreateInfo, num_samplers} ptr (fromIntegral gpuComputePipelineInfoNumSamplers :: CUInt)
-    #{poke SDL_GPUComputePipelineCreateInfo, num_readonly_storage_textures} ptr (fromIntegral gpuComputePipelineInfoNumReadonlyStorageTextures :: CUInt)
-    #{poke SDL_GPUComputePipelineCreateInfo, num_readonly_storage_buffers} ptr (fromIntegral gpuComputePipelineInfoNumReadonlyStorageBuffers :: CUInt)
-    #{poke SDL_GPUComputePipelineCreateInfo, num_readwrite_storage_textures} ptr (fromIntegral gpuComputePipelineInfoNumReadWriteStorageTextures :: CUInt)
-    #{poke SDL_GPUComputePipelineCreateInfo, num_readwrite_storage_buffers} ptr (fromIntegral gpuComputePipelineInfoNumReadWriteStorageBuffers :: CUInt)
-    #{poke SDL_GPUComputePipelineCreateInfo, num_uniform_buffers} ptr (fromIntegral gpuComputePipelineInfoNumUniformBuffers :: CUInt)
-    #{poke SDL_GPUComputePipelineCreateInfo, threadcount_x} ptr (fromIntegral gpuComputePipelineInfoThreadCountX :: CUInt)
-    #{poke SDL_GPUComputePipelineCreateInfo, threadcount_y} ptr (fromIntegral gpuComputePipelineInfoThreadCountY :: CUInt)
-    #{poke SDL_GPUComputePipelineCreateInfo, threadcount_z} ptr (fromIntegral gpuComputePipelineInfoThreadCountZ :: CUInt)
-    #{poke SDL_GPUComputePipelineCreateInfo, props} ptr gpuComputePipelineInfoProps
+    #{poke SDL_GPUComputePipelineCreateInfo, format} ptr compFormat
+    #{poke SDL_GPUComputePipelineCreateInfo, num_samplers} ptr (fromIntegral numSamplers :: CUInt)
+    #{poke SDL_GPUComputePipelineCreateInfo, num_readonly_storage_textures} ptr (fromIntegral numReadOnlyStorageTextures :: CUInt)
+    #{poke SDL_GPUComputePipelineCreateInfo, num_readonly_storage_buffers} ptr (fromIntegral numReadOnlyStorageBuffers :: CUInt)
+    #{poke SDL_GPUComputePipelineCreateInfo, num_readwrite_storage_textures} ptr (fromIntegral numReadWriteStorageTextures :: CUInt)
+    #{poke SDL_GPUComputePipelineCreateInfo, num_readwrite_storage_buffers} ptr (fromIntegral numReadWriteStorageBuffers :: CUInt)
+    #{poke SDL_GPUComputePipelineCreateInfo, num_uniform_buffers} ptr (fromIntegral numUniformBuffers :: CUInt)
+    #{poke SDL_GPUComputePipelineCreateInfo, threadcount_x} ptr (fromIntegral threadCountX :: CUInt)
+    #{poke SDL_GPUComputePipelineCreateInfo, threadcount_y} ptr (fromIntegral threadCountY :: CUInt)
+    #{poke SDL_GPUComputePipelineCreateInfo, threadcount_z} ptr (fromIntegral threadCountZ :: CUInt)
+    #{poke SDL_GPUComputePipelineCreateInfo, props} ptr compProps
     f (castPtr ptr)
 
 
 -- SDL_GPUColorTargetInfo
 data SDLGPUColorTargetInfo = SDLGPUColorTargetInfo
-  { gpuColorTargetInfoTexture           :: SDLGPUTexture
-  , gpuColorTargetInfoMipLevel          :: Word32
-  , gpuColorTargetInfoLayerOrDepthPlane :: Word32
-  , gpuColorTargetInfoClearColor        :: SDLFColor
-  , gpuColorTargetInfoLoadOp            :: SDLGPULoadOp
-  , gpuColorTargetInfoStoreOp           :: SDLGPUStoreOp
-  , gpuColorTargetInfoResolveTexture    :: Maybe SDLGPUTexture -- Optional resolve target
-  , gpuColorTargetInfoResolveMipLevel   :: Word32
-  , gpuColorTargetInfoResolveLayer      :: Word32
-  , gpuColorTargetInfoCycle             :: Bool
-  , gpuColorTargetInfoCycleResolve      :: Bool
+  { texture           :: SDLGPUTexture
+  , mipLevel          :: Word32
+  , layerOrDepthPlane :: Word32
+  , clearColor        :: SDLFColor
+  , loadOp            :: SDLGPULoadOp
+  , storeOp           :: SDLGPUStoreOp
+  , resolveTexture    :: Maybe SDLGPUTexture -- Optional resolve target
+  , resolveMipLevel   :: Word32
+  , resolveLayer      :: Word32
+  , targetCycle             :: Bool
+  , targetCycleResolve      :: Bool
   } deriving (Show, Eq)
 
 instance Storable SDLGPUColorTargetInfo where
@@ -2104,34 +2104,34 @@ instance Storable SDLGPUColorTargetInfo where
     gpuColorTargetInfoCycle             <- toBool <$> (#{peek SDL_GPUColorTargetInfo, cycle} ptr :: IO CBool)
     gpuColorTargetInfoCycleResolve      <- toBool <$> (#{peek SDL_GPUColorTargetInfo, cycle_resolve_texture} ptr :: IO CBool)
     let gpuColorTargetInfoResolveTexture = if resolve_texture_ptr == nullPtr then Nothing else Just (SDLGPUTexture resolve_texture_ptr)
-    return SDLGPUColorTargetInfo { gpuColorTargetInfoTexture           = gpuColorTargetInfoTexture
-                                 , gpuColorTargetInfoMipLevel          = gpuColorTargetInfoMipLevel
-                                 , gpuColorTargetInfoLayerOrDepthPlane = gpuColorTargetInfoLayerOrDepthPlane
-                                 , gpuColorTargetInfoClearColor        = gpuColorTargetInfoClearColor
-                                 , gpuColorTargetInfoLoadOp            = gpuColorTargetInfoLoadOp
-                                 , gpuColorTargetInfoStoreOp           = gpuColorTargetInfoStoreOp
-                                 , gpuColorTargetInfoResolveTexture    = gpuColorTargetInfoResolveTexture
-                                 , gpuColorTargetInfoResolveMipLevel   = gpuColorTargetInfoResolveMipLevel
-                                 , gpuColorTargetInfoResolveLayer      = gpuColorTargetInfoResolveLayer
-                                 , gpuColorTargetInfoCycle             = gpuColorTargetInfoCycle
-                                 , gpuColorTargetInfoCycleResolve      = gpuColorTargetInfoCycleResolve
+    return SDLGPUColorTargetInfo { texture           = gpuColorTargetInfoTexture
+                                 , mipLevel          = gpuColorTargetInfoMipLevel
+                                 , layerOrDepthPlane = gpuColorTargetInfoLayerOrDepthPlane
+                                 , clearColor        = gpuColorTargetInfoClearColor
+                                 , loadOp            = gpuColorTargetInfoLoadOp
+                                 , storeOp           = gpuColorTargetInfoStoreOp
+                                 , resolveTexture    = gpuColorTargetInfoResolveTexture
+                                 , resolveMipLevel   = gpuColorTargetInfoResolveMipLevel
+                                 , resolveLayer      = gpuColorTargetInfoResolveLayer
+                                 , targetCycle             = gpuColorTargetInfoCycle
+                                 , targetCycleResolve      = gpuColorTargetInfoCycleResolve
                                  }
   poke ptr SDLGPUColorTargetInfo{..} = do
-    let (SDLGPUTexture texture_ptr) = gpuColorTargetInfoTexture
+    let (SDLGPUTexture texture_ptr) = texture
     #{poke SDL_GPUColorTargetInfo, texture} ptr texture_ptr
-    #{poke SDL_GPUColorTargetInfo, mip_level} ptr (fromIntegral gpuColorTargetInfoMipLevel :: CUInt)
-    #{poke SDL_GPUColorTargetInfo, layer_or_depth_plane} ptr (fromIntegral gpuColorTargetInfoLayerOrDepthPlane :: CUInt)
-    poke (#{ptr SDL_GPUColorTargetInfo, clear_color} ptr) gpuColorTargetInfoClearColor
-    #{poke SDL_GPUColorTargetInfo, load_op} ptr ( (\(SDLGPULoadOp i) -> i) gpuColorTargetInfoLoadOp :: CInt)
-    #{poke SDL_GPUColorTargetInfo, store_op} ptr ( (\(SDLGPUStoreOp i) -> i) gpuColorTargetInfoStoreOp :: CInt)
-    let resolveTexturePtr = case gpuColorTargetInfoResolveTexture of
+    #{poke SDL_GPUColorTargetInfo, mip_level} ptr (fromIntegral mipLevel :: CUInt)
+    #{poke SDL_GPUColorTargetInfo, layer_or_depth_plane} ptr (fromIntegral layerOrDepthPlane :: CUInt)
+    poke (#{ptr SDL_GPUColorTargetInfo, clear_color} ptr) clearColor
+    #{poke SDL_GPUColorTargetInfo, load_op} ptr ( (\(SDLGPULoadOp i) -> i) loadOp :: CInt)
+    #{poke SDL_GPUColorTargetInfo, store_op} ptr ( (\(SDLGPUStoreOp i) -> i) storeOp :: CInt)
+    let resolveTexturePtr = case resolveTexture of
                               Just (SDLGPUTexture p) -> p
                               Nothing -> nullPtr
     #{poke SDL_GPUColorTargetInfo, resolve_texture} ptr resolveTexturePtr
-    #{poke SDL_GPUColorTargetInfo, resolve_mip_level} ptr (fromIntegral gpuColorTargetInfoResolveMipLevel :: CUInt)
-    #{poke SDL_GPUColorTargetInfo, resolve_layer} ptr (fromIntegral gpuColorTargetInfoResolveLayer :: CUInt)
-    #{poke SDL_GPUColorTargetInfo, cycle} ptr (fromBool gpuColorTargetInfoCycle :: CBool)
-    #{poke SDL_GPUColorTargetInfo, cycle_resolve_texture} ptr (fromBool gpuColorTargetInfoCycleResolve :: CBool)
+    #{poke SDL_GPUColorTargetInfo, resolve_mip_level} ptr (fromIntegral resolveMipLevel :: CUInt)
+    #{poke SDL_GPUColorTargetInfo, resolve_layer} ptr (fromIntegral resolveLayer :: CUInt)
+    #{poke SDL_GPUColorTargetInfo, cycle} ptr (fromBool targetCycle :: CBool)
+    #{poke SDL_GPUColorTargetInfo, cycle_resolve_texture} ptr (fromBool targetCycleResolve :: CBool)
     #{poke SDL_GPUColorTargetInfo, padding1} ptr (0 :: CUChar)
     #{poke SDL_GPUColorTargetInfo, padding2} ptr (0 :: CUChar)
 
@@ -2229,8 +2229,8 @@ instance Storable SDLGPUBlitInfo where
 
 -- SDL_GPUBufferBinding
 data SDLGPUBufferBinding = SDLGPUBufferBinding
-  { gpuBufBindBuffer :: SDLGPUBuffer
-  , gpuBufBindOffset :: Word32
+  { bindingBuffer :: SDLGPUBuffer
+  , bindingOffset :: Word32
   } deriving (Show, Eq)
 
 instance Storable SDLGPUBufferBinding where
@@ -2240,13 +2240,13 @@ instance Storable SDLGPUBufferBinding where
     buffer_ptr <- #{peek SDL_GPUBufferBinding, buffer} ptr :: IO (Ptr SDLGPUBuffer)
     offset <- fromIntegral <$> (#{peek SDL_GPUBufferBinding, offset} ptr :: IO CUInt)
     return SDLGPUBufferBinding
-      { gpuBufBindBuffer = SDLGPUBuffer buffer_ptr
-      , gpuBufBindOffset = offset
+      { bindingBuffer = SDLGPUBuffer buffer_ptr
+      , bindingOffset = offset
       }
   poke ptr SDLGPUBufferBinding{..} = do
-    let (SDLGPUBuffer buffer_ptr) = gpuBufBindBuffer
+    let (SDLGPUBuffer buffer_ptr) = bindingBuffer
     #{poke SDL_GPUBufferBinding, buffer} ptr buffer_ptr
-    #{poke SDL_GPUBufferBinding, offset} ptr (fromIntegral gpuBufBindOffset :: CUInt)
+    #{poke SDL_GPUBufferBinding, offset} ptr (fromIntegral bindingOffset :: CUInt)
 
 -- SDL_GPUTextureSamplerBinding
 data SDLGPUTextureSamplerBinding = SDLGPUTextureSamplerBinding
