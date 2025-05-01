@@ -1,266 +1,335 @@
+-- SDL/Tray.hsc
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE DerivingStrategies #-}
+
+-- |
+-- Module      : SDL.Tray
+-- Description : SDL system tray notification area functions
+-- Copyright   : Kyle Lukaszek, 2025
+-- License     : BSD3
+--
+-- This module provides bindings to the SDL3 system tray API, allowing applications
+-- to create and manage icons and menus in the system notification area (often called the "system tray").
 
 module SDL.Tray
   ( -- * Types
-    SDLTray(..),
-    SDLTrayMenu(..),
-    SDLTrayEntry(..),
-    SDLTrayEntryFlags(..),
-    SDLTrayCallback,
+    SDLTray(..)
+  , SDLTrayMenu(..)
+  , SDLTrayEntry(..)
+  , SDLTrayEntryFlags(..)
+  , SDLTrayCallback
+
+    -- * Patterns / Constants
+  , pattern SDL_TRAYENTRY_BUTTON
+  , pattern SDL_TRAYENTRY_CHECKBOX
+  , pattern SDL_TRAYENTRY_SUBMENU
+  , pattern SDL_TRAYENTRY_DISABLED
+  , pattern SDL_TRAYENTRY_CHECKED
 
     -- * Tray Management
-    sdlCreateTray,
-    sdlSetTrayIcon,
-    sdlSetTrayTooltip,
-    sdlDestroyTray,
-    sdlUpdateTrays,
+  , sdlCreateTray
+  , sdlSetTrayIcon
+  , sdlSetTrayTooltip
+  , sdlDestroyTray
+  , sdlUpdateTrays
 
     -- * Menu Management
-    sdlCreateTrayMenu,
-    sdlCreateTraySubmenu,
-    sdlGetTrayMenu,
-    sdlGetTraySubmenu,
-    sdlGetTrayEntries,
-    sdlGetTrayEntryParent,
-    sdlGetTrayMenuParentEntry,
-    sdlGetTrayMenuParentTray,
+  , sdlCreateTrayMenu
+  , sdlCreateTraySubmenu
+  , sdlGetTrayMenu
+  , sdlGetTraySubmenu
+  , sdlGetTrayEntries
+  , sdlGetTrayEntryParent
+  , sdlGetTrayMenuParentEntry
+  , sdlGetTrayMenuParentTray
 
     -- * Entry Management
-    sdlInsertTrayEntryAt,
-    sdlRemoveTrayEntry,
-    sdlSetTrayEntryLabel,
-    sdlGetTrayEntryLabel,
-    sdlSetTrayEntryChecked,
-    sdlGetTrayEntryChecked,
-    sdlSetTrayEntryEnabled,
-    sdlGetTrayEntryEnabled,
-    sdlSetTrayEntryCallback,
-    sdlClickTrayEntry
+  , sdlInsertTrayEntryAt
+  , sdlRemoveTrayEntry
+  , sdlSetTrayEntryLabel
+  , sdlGetTrayEntryLabel
+  , sdlSetTrayEntryChecked
+  , sdlGetTrayEntryChecked
+  , sdlSetTrayEntryEnabled
+  , sdlGetTrayEntryEnabled
+  , sdlSetTrayEntryCallback
+  , sdlClickTrayEntry
   ) where
 
 #include <SDL3/SDL_tray.h>
 
 import Foreign.C.String (CString, withCString, peekCString)
 import Foreign.C.Types
-import Foreign.Ptr (Ptr, nullPtr, FunPtr, nullFunPtr)
+import Foreign.Ptr (castPtr, Ptr, nullPtr, FunPtr, nullFunPtr)
 import Foreign.Marshal.Alloc (alloca)
-import Foreign.Marshal.Array (peekArray0)
-import Foreign.Storable (peek)
-import Data.Bits (Bits)
-import SDL.Surface (SDLSurface)  -- For type reference, not used directly
+import Foreign.Marshal.Array (peekArray) -- Use peekArray instead of peekArray0 for counted arrays
+import Foreign.Storable (Storable, peek)
+import Foreign.Marshal.Utils (maybeWith, with, toBool) -- Added toBool
+import Data.Bits (Bits, (.|.), zeroBits) -- Added zeroBits
+import SDL.Surface (SDLSurface(..)) -- Assuming this is defined as newtype SDLSurface (Ptr SDL_Surface)
 
-newtype SDLTray = SDLTray (Ptr SDLTray) deriving (Show, Eq)
-newtype SDLTrayMenu = SDLTrayMenu (Ptr SDLTrayMenu) deriving (Show, Eq)
-newtype SDLTrayEntry = SDLTrayEntry (Ptr SDLTrayEntry) deriving (Show, Eq)
+-- Opaque C struct types
+data SDL_Tray
+data SDL_TrayMenu
+data SDL_TrayEntry
+data SDL_Surface
 
-newtype SDLTrayEntryFlags = SDLTrayEntryFlags { sdlTrayEntryFlags :: CUInt }
-  deriving (Show, Eq, Bits)
+-- | Opaque handle for a system tray icon instance.
+newtype SDLTray = SDLTray (Ptr SDL_Tray) deriving (Show, Eq)
+-- | Opaque handle for a menu associated with a tray icon or submenu entry.
+newtype SDLTrayMenu = SDLTrayMenu (Ptr SDL_TrayMenu) deriving (Show, Eq)
+-- | Opaque handle for an entry within a system tray menu.
+newtype SDLTrayEntry = SDLTrayEntry (Ptr SDL_TrayEntry) deriving (Show, Eq)
 
-#{enum SDLTrayEntryFlags, SDLTrayEntryFlags
- , sdlTrayEntryButton     = SDL_TRAYENTRY_BUTTON
- , sdlTrayEntryCheckbox   = SDL_TRAYENTRY_CHECKBOX
- , sdlTrayEntrySubmenu    = SDL_TRAYENTRY_SUBMENU
- , sdlTrayEntryDisabled   = SDL_TRAYENTRY_DISABLED
- , sdlTrayEntryChecked    = SDL_TRAYENTRY_CHECKED
- }
+-- | Flags defining the type and state of a tray menu entry.
+newtype SDLTrayEntryFlags = SDLTrayEntryFlags CUInt
+  deriving newtype (Show, Eq, Bits, Num, Storable) -- Added Num for zeroBits
 
+pattern SDL_TRAYENTRY_BUTTON :: SDLTrayEntryFlags
+pattern SDL_TRAYENTRY_BUTTON   = SDLTrayEntryFlags #{const SDL_TRAYENTRY_BUTTON}
+pattern SDL_TRAYENTRY_CHECKBOX :: SDLTrayEntryFlags
+pattern SDL_TRAYENTRY_CHECKBOX = SDLTrayEntryFlags #{const SDL_TRAYENTRY_CHECKBOX}
+pattern SDL_TRAYENTRY_SUBMENU :: SDLTrayEntryFlags
+pattern SDL_TRAYENTRY_SUBMENU  = SDLTrayEntryFlags #{const SDL_TRAYENTRY_SUBMENU}
+pattern SDL_TRAYENTRY_DISABLED :: SDLTrayEntryFlags
+pattern SDL_TRAYENTRY_DISABLED = SDLTrayEntryFlags #{const SDL_TRAYENTRY_DISABLED}
+pattern SDL_TRAYENTRY_CHECKED :: SDLTrayEntryFlags
+pattern SDL_TRAYENTRY_CHECKED  = SDLTrayEntryFlags #{const SDL_TRAYENTRY_CHECKED}
+
+-- | Callback function prototype for when a tray menu entry is clicked.
+--   Arguments: userdata pointer, SDLTrayEntry handle.
 type SDLTrayCallback = Ptr () -> SDLTrayEntry -> IO ()
 
-cToBool :: CInt -> Bool
-cToBool 0 = False
-cToBool _ = True
+-- Wrapper for C boolean results (assuming 1=true, 0=false)
+cIntToBool :: CInt -> Bool
+cIntToBool 0 = False
+cIntToBool _ = True
 
-foreign import ccall "SDL_CreateTray"
-  sdlCreateTray_c :: Ptr SDLSurface -> CString -> IO (Ptr SDLTray)
+-- * Tray Management
 
-sdlCreateTray :: Maybe (Ptr SDLSurface) -> Maybe String -> IO (Maybe SDLTray)
-sdlCreateTray icon tooltip = do
-  let iconPtr = maybe nullPtr id icon
-  case tooltip of
-    Nothing -> do
-      ptr <- sdlCreateTray_c iconPtr nullPtr
-      return $ if ptr == nullPtr then Nothing else Just (SDLTray ptr)
-    Just tt -> withCString tt $ \cTooltip -> do
-      ptr <- sdlCreateTray_c iconPtr cTooltip
-      return $ if ptr == nullPtr then Nothing else Just (SDLTray ptr)
+-- | Creates a new system tray icon instance.
+foreign import ccall unsafe "SDL_CreateTray"
+  c_sdlCreateTray :: Ptr SDL_Surface -> CString -> IO (Ptr SDL_Tray)
 
-foreign import ccall "SDL_SetTrayIcon"
-  sdlSetTrayIcon_c :: Ptr SDLTray -> Ptr SDLSurface -> IO ()
+sdlCreateTray :: Maybe SDLSurface -> Maybe String -> IO (Maybe SDLTray)
+sdlCreateTray mIcon mTooltip = do
+  ptr <- case mIcon of
+           Nothing -> maybeWith withCString mTooltip $ \cTooltip ->
+                        c_sdlCreateTray nullPtr cTooltip
+           Just iconRec -> with iconRec $ \iconRecPtr -> -- This pointer is Ptr SDLSurface
+                             maybeWith withCString mTooltip $ \cTooltip ->
+                               -- Cast the Ptr SDLSurface to Ptr SDL_Surface for C function
+                               c_sdlCreateTray (castPtr iconRecPtr) cTooltip
+  pure $ if ptr == nullPtr then Nothing else Just (SDLTray ptr)
 
-sdlSetTrayIcon :: SDLTray -> Maybe (Ptr SDLSurface) -> IO ()
-sdlSetTrayIcon (SDLTray tray) icon =
-  sdlSetTrayIcon_c tray (maybe nullPtr id icon)
 
-foreign import ccall "SDL_SetTrayTooltip"
-  sdlSetTrayTooltip_c :: Ptr SDLTray -> CString -> IO ()
+-- | Sets the icon for a system tray instance. Pass Nothing to remove the icon.
+foreign import ccall unsafe "SDL_SetTrayIcon"
+  c_sdlSetTrayIcon :: Ptr SDL_Tray -> Ptr SDL_Surface -> IO ()
+
+sdlSetTrayIcon :: SDLTray -> Maybe SDLSurface -> IO ()
+sdlSetTrayIcon (SDLTray trayPtr) mIcon =
+  case mIcon of
+    Nothing -> c_sdlSetTrayIcon trayPtr nullPtr
+    Just iconRec -> with iconRec $ \iconRecPtr -> -- This pointer is Ptr SDLSurface
+                      -- Cast the Ptr SDLSurface to Ptr SDL_Surface for C function
+                      c_sdlSetTrayIcon trayPtr (castPtr iconRecPtr)
+
+-- | Sets the tooltip (hover text) for a system tray icon. Pass Nothing to remove tooltip.
+foreign import ccall unsafe "SDL_SetTrayTooltip"
+  c_sdlSetTrayTooltip :: Ptr SDL_Tray -> CString -> IO ()
 
 sdlSetTrayTooltip :: SDLTray -> Maybe String -> IO ()
-sdlSetTrayTooltip (SDLTray tray) tooltip =
-  case tooltip of
-    Nothing -> sdlSetTrayTooltip_c tray nullPtr
-    Just tt -> withCString tt $ sdlSetTrayTooltip_c tray
+sdlSetTrayTooltip (SDLTray trayPtr) mTooltip =
+  maybeWith withCString mTooltip $ \cTooltip ->
+    c_sdlSetTrayTooltip trayPtr cTooltip
 
-foreign import ccall "SDL_DestroyTray"
-  sdlDestroyTray_c :: Ptr SDLTray -> IO ()
+-- | Destroys a system tray icon instance and its associated menus/entries.
+foreign import ccall unsafe "SDL_DestroyTray"
+  c_sdlDestroyTray :: Ptr SDL_Tray -> IO ()
 
 sdlDestroyTray :: SDLTray -> IO ()
-sdlDestroyTray (SDLTray tray) = sdlDestroyTray_c tray
+sdlDestroyTray (SDLTray trayPtr) = c_sdlDestroyTray trayPtr
 
-foreign import ccall "SDL_CreateTrayMenu"
-  sdlCreateTrayMenu_c :: Ptr SDLTray -> IO (Ptr SDLTrayMenu)
+-- | Update system tray items. Required after making changes on some platforms.
+foreign import ccall unsafe "SDL_UpdateTrays"
+  c_sdlUpdateTrays :: IO ()
+
+sdlUpdateTrays :: IO ()
+sdlUpdateTrays = c_sdlUpdateTrays
+
+-- * Menu Management
+
+-- | Creates the main menu for a system tray icon. Only one main menu per tray.
+foreign import ccall unsafe "SDL_CreateTrayMenu"
+  c_sdlCreateTrayMenu :: Ptr SDL_Tray -> IO (Ptr SDL_TrayMenu)
 
 sdlCreateTrayMenu :: SDLTray -> IO (Maybe SDLTrayMenu)
-sdlCreateTrayMenu (SDLTray tray) = do
-  ptr <- sdlCreateTrayMenu_c tray
-  return $ if ptr == nullPtr then Nothing else Just (SDLTrayMenu ptr)
+sdlCreateTrayMenu (SDLTray trayPtr) = do
+  ptr <- c_sdlCreateTrayMenu trayPtr
+  pure $ if ptr == nullPtr then Nothing else Just (SDLTrayMenu ptr)
 
-foreign import ccall "SDL_CreateTraySubmenu"
-  sdlCreateTraySubmenu_c :: Ptr SDLTrayEntry -> IO (Ptr SDLTrayMenu)
+-- | Creates a submenu attached to a specific menu entry (must have SDL_TRAYENTRY_SUBMENU flag).
+foreign import ccall unsafe "SDL_CreateTraySubmenu"
+  c_sdlCreateTraySubmenu :: Ptr SDL_TrayEntry -> IO (Ptr SDL_TrayMenu)
 
 sdlCreateTraySubmenu :: SDLTrayEntry -> IO (Maybe SDLTrayMenu)
-sdlCreateTraySubmenu (SDLTrayEntry entry) = do
-  ptr <- sdlCreateTraySubmenu_c entry
-  return $ if ptr == nullPtr then Nothing else Just (SDLTrayMenu ptr)
+sdlCreateTraySubmenu (SDLTrayEntry entryPtr) = do
+  ptr <- c_sdlCreateTraySubmenu entryPtr
+  pure $ if ptr == nullPtr then Nothing else Just (SDLTrayMenu ptr)
 
-foreign import ccall "SDL_GetTrayMenu"
-  sdlGetTrayMenu_c :: Ptr SDLTray -> IO (Ptr SDLTrayMenu)
+-- | Gets the main menu associated with a system tray icon.
+foreign import ccall unsafe "SDL_GetTrayMenu"
+  c_sdlGetTrayMenu :: Ptr SDL_Tray -> IO (Ptr SDL_TrayMenu)
 
 sdlGetTrayMenu :: SDLTray -> IO (Maybe SDLTrayMenu)
-sdlGetTrayMenu (SDLTray tray) = do
-  ptr <- sdlGetTrayMenu_c tray
-  return $ if ptr == nullPtr then Nothing else Just (SDLTrayMenu ptr)
+sdlGetTrayMenu (SDLTray trayPtr) = do
+  ptr <- c_sdlGetTrayMenu trayPtr
+  pure $ if ptr == nullPtr then Nothing else Just (SDLTrayMenu ptr)
 
-foreign import ccall "SDL_GetTraySubmenu"
-  sdlGetTraySubmenu_c :: Ptr SDLTrayEntry -> IO (Ptr SDLTrayMenu)
+-- | Gets the submenu associated with a menu entry (if it has one).
+foreign import ccall unsafe "SDL_GetTraySubmenu"
+  c_sdlGetTraySubmenu :: Ptr SDL_TrayEntry -> IO (Ptr SDL_TrayMenu)
 
 sdlGetTraySubmenu :: SDLTrayEntry -> IO (Maybe SDLTrayMenu)
-sdlGetTraySubmenu (SDLTrayEntry entry) = do
-  ptr <- sdlGetTraySubmenu_c entry
-  return $ if ptr == nullPtr then Nothing else Just (SDLTrayMenu ptr)
+sdlGetTraySubmenu (SDLTrayEntry entryPtr) = do
+  ptr <- c_sdlGetTraySubmenu entryPtr
+  pure $ if ptr == nullPtr then Nothing else Just (SDLTrayMenu ptr)
 
-foreign import ccall "SDL_GetTrayEntries"
-  sdlGetTrayEntries_c :: Ptr SDLTrayMenu -> Ptr CInt -> IO (Ptr (Ptr SDLTrayEntry))
+-- | Gets a list of all entries currently in a menu.
+foreign import ccall unsafe "SDL_GetTrayEntries"
+  c_sdlGetTrayEntries :: Ptr SDL_TrayMenu -> Ptr CInt -> IO (Ptr (Ptr SDL_TrayEntry))
 
 sdlGetTrayEntries :: SDLTrayMenu -> IO [SDLTrayEntry]
-sdlGetTrayEntries (SDLTrayMenu menu) = alloca $ \countPtr -> do
-  ptr <- sdlGetTrayEntries_c menu countPtr
+sdlGetTrayEntries (SDLTrayMenu menuPtr) = alloca $ \countPtr -> do
+  entryPtrArray <- c_sdlGetTrayEntries menuPtr countPtr
   count <- fromIntegral <$> peek countPtr
-  if ptr == nullPtr
+  if entryPtrArray == nullPtr || count == 0
     then return []
     else do
-      entries <- peekArray0 nullPtr ptr
-      return $ map SDLTrayEntry entries
+      -- Use peekArray which takes the count directly
+      entryPtrs <- peekArray count entryPtrArray
+      -- Wrap pointers in the newtype
+      return $ map SDLTrayEntry entryPtrs
 
-foreign import ccall "SDL_InsertTrayEntryAt"
-  sdlInsertTrayEntryAt_c :: Ptr SDLTrayMenu -> CInt -> CString -> CUInt -> IO (Ptr SDLTrayEntry)
+-- | Gets the parent menu that contains a specific menu entry.
+foreign import ccall unsafe "SDL_GetTrayEntryParent"
+  c_sdlGetTrayEntryParent :: Ptr SDL_TrayEntry -> IO (Ptr SDL_TrayMenu)
+
+sdlGetTrayEntryParent :: SDLTrayEntry -> IO (Maybe SDLTrayMenu)
+sdlGetTrayEntryParent (SDLTrayEntry entryPtr) = do
+  ptr <- c_sdlGetTrayEntryParent entryPtr
+  pure $ if ptr == nullPtr then Nothing else Just (SDLTrayMenu ptr)
+
+-- | Gets the parent menu entry that owns a specific submenu.
+foreign import ccall unsafe "SDL_GetTrayMenuParentEntry"
+  c_sdlGetTrayMenuParentEntry :: Ptr SDL_TrayMenu -> IO (Ptr SDL_TrayEntry)
+
+sdlGetTrayMenuParentEntry :: SDLTrayMenu -> IO (Maybe SDLTrayEntry)
+sdlGetTrayMenuParentEntry (SDLTrayMenu menuPtr) = do
+  ptr <- c_sdlGetTrayMenuParentEntry menuPtr
+  pure $ if ptr == nullPtr then Nothing else Just (SDLTrayEntry ptr)
+
+-- | Gets the parent tray icon instance that owns a menu (either main or submenu).
+foreign import ccall unsafe "SDL_GetTrayMenuParentTray"
+  c_sdlGetTrayMenuParentTray :: Ptr SDL_TrayMenu -> IO (Ptr SDL_Tray)
+
+sdlGetTrayMenuParentTray :: SDLTrayMenu -> IO (Maybe SDLTray)
+sdlGetTrayMenuParentTray (SDLTrayMenu menuPtr) = do
+  ptr <- c_sdlGetTrayMenuParentTray menuPtr
+  pure $ if ptr == nullPtr then Nothing else Just (SDLTray ptr)
+
+-- * Entry Management
+
+-- | Inserts a new entry into a menu at a specific position.
+foreign import ccall unsafe "SDL_InsertTrayEntryAt"
+  c_sdlInsertTrayEntryAt :: Ptr SDL_TrayMenu -> CInt -> CString -> CUInt -> IO (Ptr SDL_TrayEntry)
 
 sdlInsertTrayEntryAt :: SDLTrayMenu -> Int -> Maybe String -> SDLTrayEntryFlags -> IO (Maybe SDLTrayEntry)
-sdlInsertTrayEntryAt (SDLTrayMenu menu) pos label (SDLTrayEntryFlags flags) =
-  case label of
-    Nothing -> do
-      ptr <- sdlInsertTrayEntryAt_c menu (fromIntegral pos) nullPtr flags
-      return $ if ptr == nullPtr then Nothing else Just (SDLTrayEntry ptr)
-    Just lbl -> withCString lbl $ \cLabel -> do
-      ptr <- sdlInsertTrayEntryAt_c menu (fromIntegral pos) cLabel flags
-      return $ if ptr == nullPtr then Nothing else Just (SDLTrayEntry ptr)
+sdlInsertTrayEntryAt (SDLTrayMenu menuPtr) pos mLabel (SDLTrayEntryFlags flags) = do
+  ptr <- maybeWith withCString mLabel $ \cLabel ->
+           c_sdlInsertTrayEntryAt menuPtr (fromIntegral pos) cLabel flags
+  pure $ if ptr == nullPtr then Nothing else Just (SDLTrayEntry ptr)
 
-foreign import ccall "SDL_RemoveTrayEntry"
-  sdlRemoveTrayEntry_c :: Ptr SDLTrayEntry -> IO ()
+-- | Removes a specific entry from its parent menu.
+foreign import ccall unsafe "SDL_RemoveTrayEntry"
+  c_sdlRemoveTrayEntry :: Ptr SDL_TrayEntry -> IO ()
 
 sdlRemoveTrayEntry :: SDLTrayEntry -> IO ()
-sdlRemoveTrayEntry (SDLTrayEntry entry) = sdlRemoveTrayEntry_c entry
+sdlRemoveTrayEntry (SDLTrayEntry entryPtr) = c_sdlRemoveTrayEntry entryPtr
 
-foreign import ccall "SDL_SetTrayEntryLabel"
-  sdlSetTrayEntryLabel_c :: Ptr SDLTrayEntry -> CString -> IO ()
+-- | Sets the text label for a menu entry. Pass Nothing to remove label.
+foreign import ccall unsafe "SDL_SetTrayEntryLabel"
+  c_sdlSetTrayEntryLabel :: Ptr SDL_TrayEntry -> CString -> IO ()
 
 sdlSetTrayEntryLabel :: SDLTrayEntry -> Maybe String -> IO ()
-sdlSetTrayEntryLabel (SDLTrayEntry entry) label =
-  case label of
-    Nothing -> sdlSetTrayEntryLabel_c entry nullPtr
-    Just lbl -> withCString lbl $ sdlSetTrayEntryLabel_c entry
+sdlSetTrayEntryLabel (SDLTrayEntry entryPtr) mLabel =
+  maybeWith withCString mLabel $ \cLabel ->
+    c_sdlSetTrayEntryLabel entryPtr cLabel
 
-foreign import ccall "SDL_GetTrayEntryLabel"
-  sdlGetTrayEntryLabel_c :: Ptr SDLTrayEntry -> IO CString
+-- | Gets the text label of a menu entry.
+foreign import ccall unsafe "SDL_GetTrayEntryLabel"
+  c_sdlGetTrayEntryLabel :: Ptr SDL_TrayEntry -> IO CString
 
 sdlGetTrayEntryLabel :: SDLTrayEntry -> IO (Maybe String)
-sdlGetTrayEntryLabel (SDLTrayEntry entry) = do
-  cstr <- sdlGetTrayEntryLabel_c entry
-  if cstr == nullPtr
+sdlGetTrayEntryLabel (SDLTrayEntry entryPtr) = do
+  cStr <- c_sdlGetTrayEntryLabel entryPtr
+  if cStr == nullPtr
     then return Nothing
-    else Just <$> peekCString cstr
+    else Just <$> peekCString cStr
 
-foreign import ccall "SDL_SetTrayEntryChecked"
-  sdlSetTrayEntryChecked_c :: Ptr SDLTrayEntry -> CInt -> IO ()
+-- | Sets the checked state for a checkbox menu entry.
+foreign import ccall unsafe "SDL_SetTrayEntryChecked"
+  c_sdlSetTrayEntryChecked :: Ptr SDL_TrayEntry -> CBool -> IO ()
 
 sdlSetTrayEntryChecked :: SDLTrayEntry -> Bool -> IO ()
-sdlSetTrayEntryChecked (SDLTrayEntry entry) checked =
-  sdlSetTrayEntryChecked_c entry (if checked then 1 else 0)
+sdlSetTrayEntryChecked (SDLTrayEntry entryPtr) checked =
+  -- Use CBool for clarity if available, otherwise CInt
+  c_sdlSetTrayEntryChecked entryPtr (fromIntegral $ fromEnum checked)
 
-foreign import ccall "SDL_GetTrayEntryChecked"
-  sdlGetTrayEntryChecked_c :: Ptr SDLTrayEntry -> IO CInt
+-- | Gets the checked state of a checkbox menu entry.
+foreign import ccall unsafe "SDL_GetTrayEntryChecked"
+  c_sdlGetTrayEntryChecked :: Ptr SDL_TrayEntry -> IO CBool
 
 sdlGetTrayEntryChecked :: SDLTrayEntry -> IO Bool
-sdlGetTrayEntryChecked (SDLTrayEntry entry) = cToBool <$> sdlGetTrayEntryChecked_c entry
+sdlGetTrayEntryChecked (SDLTrayEntry entryPtr) = toBool <$> c_sdlGetTrayEntryChecked entryPtr
 
-foreign import ccall "SDL_SetTrayEntryEnabled"
-  sdlSetTrayEntryEnabled_c :: Ptr SDLTrayEntry -> CInt -> IO ()
+-- | Sets the enabled/disabled state of a menu entry.
+foreign import ccall unsafe "SDL_SetTrayEntryEnabled"
+  c_sdlSetTrayEntryEnabled :: Ptr SDL_TrayEntry -> CBool -> IO ()
 
 sdlSetTrayEntryEnabled :: SDLTrayEntry -> Bool -> IO ()
-sdlSetTrayEntryEnabled (SDLTrayEntry entry) enabled =
-  sdlSetTrayEntryEnabled_c entry (if enabled then 1 else 0)
+sdlSetTrayEntryEnabled (SDLTrayEntry entryPtr) enabled =
+  c_sdlSetTrayEntryEnabled entryPtr (fromIntegral $ fromEnum enabled)
 
-foreign import ccall "SDL_GetTrayEntryEnabled"
-  sdlGetTrayEntryEnabled_c :: Ptr SDLTrayEntry -> IO CInt
+-- | Gets the enabled/disabled state of a menu entry.
+foreign import ccall unsafe "SDL_GetTrayEntryEnabled"
+  c_sdlGetTrayEntryEnabled :: Ptr SDL_TrayEntry -> IO CBool
 
 sdlGetTrayEntryEnabled :: SDLTrayEntry -> IO Bool
-sdlGetTrayEntryEnabled (SDLTrayEntry entry) = cToBool <$> sdlGetTrayEntryEnabled_c entry
+sdlGetTrayEntryEnabled (SDLTrayEntry entryPtr) = toBool <$> c_sdlGetTrayEntryEnabled entryPtr
 
+-- | Dynamically create a wrapper for the Haskell callback function.
 foreign import ccall "wrapper"
   mkTrayCallback :: SDLTrayCallback -> IO (FunPtr SDLTrayCallback)
 
-foreign import ccall "SDL_SetTrayEntryCallback"
-  sdlSetTrayEntryCallback_c :: Ptr SDLTrayEntry -> FunPtr SDLTrayCallback -> Ptr () -> IO ()
+-- | Set the callback function and userdata for a menu entry.
+foreign import ccall unsafe "SDL_SetTrayEntryCallback"
+  c_sdlSetTrayEntryCallback :: Ptr SDL_TrayEntry -> FunPtr SDLTrayCallback -> Ptr () -> IO ()
 
 sdlSetTrayEntryCallback :: SDLTrayEntry -> Maybe (SDLTrayCallback, Ptr ()) -> IO ()
-sdlSetTrayEntryCallback (SDLTrayEntry entry) Nothing =
-  sdlSetTrayEntryCallback_c entry nullFunPtr nullPtr
-sdlSetTrayEntryCallback (SDLTrayEntry entry) (Just (cb, userdata)) = do
-  cbPtr <- mkTrayCallback cb
-  sdlSetTrayEntryCallback_c entry cbPtr userdata
+sdlSetTrayEntryCallback (SDLTrayEntry entryPtr) Nothing =
+  c_sdlSetTrayEntryCallback entryPtr nullFunPtr nullPtr
+sdlSetTrayEntryCallback (SDLTrayEntry entryPtr) (Just (callback, userdata)) = do
+  -- Create the function pointer from the Haskell function
+  callbackFunPtr <- mkTrayCallback callback
+  c_sdlSetTrayEntryCallback entryPtr callbackFunPtr userdata
 
-foreign import ccall "SDL_ClickTrayEntry"
-  sdlClickTrayEntry_c :: Ptr SDLTrayEntry -> IO ()
+-- | Programmatically clicks a menu entry, triggering its callback.
+foreign import ccall unsafe "SDL_ClickTrayEntry"
+  c_sdlClickTrayEntry :: Ptr SDL_TrayEntry -> IO ()
 
 sdlClickTrayEntry :: SDLTrayEntry -> IO ()
-sdlClickTrayEntry (SDLTrayEntry entry) = sdlClickTrayEntry_c entry
-
-foreign import ccall "SDL_GetTrayEntryParent"
-  sdlGetTrayEntryParent_c :: Ptr SDLTrayEntry -> IO (Ptr SDLTrayMenu)
-
-sdlGetTrayEntryParent :: SDLTrayEntry -> IO (Maybe SDLTrayMenu)
-sdlGetTrayEntryParent (SDLTrayEntry entry) = do
-  ptr <- sdlGetTrayEntryParent_c entry
-  return $ if ptr == nullPtr then Nothing else Just (SDLTrayMenu ptr)
-
-foreign import ccall "SDL_GetTrayMenuParentEntry"
-  sdlGetTrayMenuParentEntry_c :: Ptr SDLTrayMenu -> IO (Ptr SDLTrayEntry)
-
-sdlGetTrayMenuParentEntry :: SDLTrayMenu -> IO (Maybe SDLTrayEntry)
-sdlGetTrayMenuParentEntry (SDLTrayMenu menu) = do
-  ptr <- sdlGetTrayMenuParentEntry_c menu
-  return $ if ptr == nullPtr then Nothing else Just (SDLTrayEntry ptr)
-
-foreign import ccall "SDL_GetTrayMenuParentTray"
-  sdlGetTrayMenuParentTray_c :: Ptr SDLTrayMenu -> IO (Ptr SDLTray)
-
-sdlGetTrayMenuParentTray :: SDLTrayMenu -> IO (Maybe SDLTray)
-sdlGetTrayMenuParentTray (SDLTrayMenu menu) = do
-  ptr <- sdlGetTrayMenuParentTray_c menu
-  return $ if ptr == nullPtr then Nothing else Just (SDLTray ptr)
-
-foreign import ccall "SDL_UpdateTrays"
-  sdlUpdateTrays_c :: IO ()
-
-sdlUpdateTrays :: IO ()
-sdlUpdateTrays = sdlUpdateTrays_c
+sdlClickTrayEntry (SDLTrayEntry entryPtr) = c_sdlClickTrayEntry entryPtr

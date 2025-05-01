@@ -32,7 +32,7 @@ main = do
       surface <- peek surfacePtr
       sdlLog $ "Surface details: " ++ show surface
       
-      mTray <- sdlCreateTray (Just surfacePtr) (Just "My Tray Icon")
+      mTray <- sdlCreateTray (Just surface) (Just "My Tray Icon")
       case mTray of
         Nothing -> do
           err <- sdlGetError
@@ -41,7 +41,7 @@ main = do
           sdlQuit
           exitFailure
         Just tray -> do
-          sdlSetTrayIcon tray (Just surfacePtr)
+          sdlSetTrayIcon tray (Just surface)
           -- Keep the program running to observe the tray
           sdlLog "Tray created. Press Enter to exit..."
           _ <- getLine

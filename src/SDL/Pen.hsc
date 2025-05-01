@@ -1,93 +1,109 @@
+-- SDL/Pen.hsc
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE DerivingStrategies #-}
 
-{-|
-Module      : SDL.Pen
-Description : SDL pen event handling functions
-Copyright   : Kyle Lukaszek, 2025
-License     : BSD3
-
-This module provides bindings to the SDL3 pen API, allowing Haskell applications
-to handle pressure-sensitive pen input (stylus and/or eraser) for devices such as
-drawing tablets and suitably equipped mobile/tablet devices.
-
-To use these functions, SDL must be initialized and the application should handle
-SDL_EVENT_PEN_* events.
--}
-
-module SDL.Pen
-  ( -- * Types
-    SDLPenID(..)
-  , SDLPenInputFlags(..)
-  , SDLPenAxis(..)
-  
-    -- * Constants
-  , sdlPenMouseID
-  , sdlPenTouchID
-  , sdlPenInputDown
-  , sdlPenInputButton1
-  , sdlPenInputButton2
-  , sdlPenInputButton3
-  , sdlPenInputButton4
-  , sdlPenInputButton5
-  , sdlPenInputEraserTip
-  ) where
-
-import Foreign
-import Foreign.C.Types
-import Data.Word
-import Data.Bits
-import SDL.Mouse
-import SDL.Touch
+-- |
+-- Module      : SDL.Pen
+-- Description : SDL pen event handling functions
+-- Copyright   : Kyle Lukaszek, 2025
+-- License     : BSD3
+--
+-- This module provides bindings to the SDL3 pen API, allowing Haskell applications
+-- to handle pressure-sensitive pen input (stylus and/or eraser) for devices such as
+-- drawing tablets and suitably equipped mobile/tablet devices.
+--
+-- To use these functions, SDL must be initialized and the application should handle
+-- SDL_EVENT_PEN_* events.
 
 #include <SDL3/SDL_pen.h>
 
--- | SDL pen instance ID
--- Zero signifies an invalid/null device
+module SDL.Pen
+  ( -- * Types
+    SDLPenID
+  , SDLPenInputFlags(..)
+  , SDLPenAxis(..)
+
+    -- * Constants / Patterns
+  , pattern SDL_PEN_MOUSEID
+  , pattern SDL_PEN_TOUCHID
+  , pattern SDL_PEN_INPUT_DOWN
+  , pattern SDL_PEN_INPUT_BUTTON_1
+  , pattern SDL_PEN_INPUT_BUTTON_2
+  , pattern SDL_PEN_INPUT_BUTTON_3
+  , pattern SDL_PEN_INPUT_BUTTON_4
+  , pattern SDL_PEN_INPUT_BUTTON_5
+  , pattern SDL_PEN_INPUT_ERASER_TIP
+  , pattern SDL_PEN_AXIS_PRESSURE
+  , pattern SDL_PEN_AXIS_XTILT
+  , pattern SDL_PEN_AXIS_YTILT
+  , pattern SDL_PEN_AXIS_DISTANCE
+  , pattern SDL_PEN_AXIS_ROTATION
+  , pattern SDL_PEN_AXIS_SLIDER
+  , pattern SDL_PEN_AXIS_TANGENTIAL_PRESSURE
+  , pattern SDL_PEN_AXIS_COUNT
+  ) where
+
+import Foreign (Ptr, FunPtr, nullPtr, nullFunPtr)
+import Foreign.C.Types (CInt(..))
+import Foreign.Storable (Storable)
+import Data.Word (Word32, Word64)
+import Data.Bits (Bits, (.|.))
+import SDL.Mouse (SDLMouseID) -- Assuming SDLMouseID is Word32 or similar
+import SDL.Touch (SDLTouchID) -- Assuming SDLTouchID is Word64 or similar
+
+-- | SDL pen instance ID.
+-- Zero signifies an invalid/null device.
+-- Using a type alias as it's just an identifier.
 type SDLPenID = Word32
 
--- | Pen input flags as reported in pen events' pen_state field
+-- | Pen input flags as reported in pen events' pen_state field.
+-- Wraps a Word32 as the C #defines are flags (bitmasks).
 newtype SDLPenInputFlags = SDLPenInputFlags Word32
-  deriving (Show, Eq, Bits)
+  deriving newtype (Show, Eq, Bits, Num, Storable) -- Added Num for convenience with bitwise OR
 
--- | Pen axis indices for SDL_PenAxisEvent
-data SDLPenAxis
-  = SDL_PEN_AXIS_PRESSURE            -- ^ Pen pressure (0 to 1.0)
-  | SDL_PEN_AXIS_XTILT              -- ^ Horizontal tilt (-90.0 to 90.0)
-  | SDL_PEN_AXIS_YTILT              -- ^ Vertical tilt (-90.0 to 90.0)
-  | SDL_PEN_AXIS_DISTANCE           -- ^ Distance to surface (0.0 to 1.0)
-  | SDL_PEN_AXIS_ROTATION           -- ^ Barrel rotation (-180.0 to 179.9)
-  | SDL_PEN_AXIS_SLIDER             -- ^ Finger wheel/slider (0 to 1.0)
-  | SDL_PEN_AXIS_TANGENTIAL_PRESSURE -- ^ Barrel pressure
-  | SDL_PEN_AXIS_COUNT              -- ^ Total known pen axes
-  deriving (Show, Eq, Enum)
+pattern SDL_PEN_INPUT_DOWN :: SDLPenInputFlags
+pattern SDL_PEN_INPUT_DOWN = SDLPenInputFlags #{const SDL_PEN_INPUT_DOWN}
+pattern SDL_PEN_INPUT_BUTTON_1 :: SDLPenInputFlags
+pattern SDL_PEN_INPUT_BUTTON_1 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_1}
+pattern SDL_PEN_INPUT_BUTTON_2 :: SDLPenInputFlags
+pattern SDL_PEN_INPUT_BUTTON_2 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_2}
+pattern SDL_PEN_INPUT_BUTTON_3 :: SDLPenInputFlags
+pattern SDL_PEN_INPUT_BUTTON_3 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_3}
+pattern SDL_PEN_INPUT_BUTTON_4 :: SDLPenInputFlags
+pattern SDL_PEN_INPUT_BUTTON_4 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_4}
+pattern SDL_PEN_INPUT_BUTTON_5 :: SDLPenInputFlags
+pattern SDL_PEN_INPUT_BUTTON_5 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_5}
+pattern SDL_PEN_INPUT_ERASER_TIP :: SDLPenInputFlags
+pattern SDL_PEN_INPUT_ERASER_TIP = SDLPenInputFlags #{const SDL_PEN_INPUT_ERASER_TIP}
 
--- | Mouse ID for mouse events simulated with pen input
-sdlPenMouseID :: SDLMouseID
-sdlPenMouseID = 0xFFFFFFFE
+-- | Pen axis indices for SDL_PenAxisEvent.
+-- Wraps CInt as the C type is a standard enum.
+newtype SDLPenAxis = SDLPenAxis CInt
+  deriving newtype (Show, Eq, Ord, Storable, Enum)
 
--- | Touch ID for touch events simulated with pen input
-sdlPenTouchID :: SDLTouchID
-sdlPenTouchID = 0xFFFFFFFFFFFFFFFE
+pattern SDL_PEN_AXIS_PRESSURE :: SDLPenAxis
+pattern SDL_PEN_AXIS_PRESSURE = SDLPenAxis #{const SDL_PEN_AXIS_PRESSURE}
+pattern SDL_PEN_AXIS_XTILT :: SDLPenAxis
+pattern SDL_PEN_AXIS_XTILT = SDLPenAxis #{const SDL_PEN_AXIS_XTILT}
+pattern SDL_PEN_AXIS_YTILT :: SDLPenAxis
+pattern SDL_PEN_AXIS_YTILT = SDLPenAxis #{const SDL_PEN_AXIS_YTILT}
+pattern SDL_PEN_AXIS_DISTANCE :: SDLPenAxis
+pattern SDL_PEN_AXIS_DISTANCE = SDLPenAxis #{const SDL_PEN_AXIS_DISTANCE}
+pattern SDL_PEN_AXIS_ROTATION :: SDLPenAxis
+pattern SDL_PEN_AXIS_ROTATION = SDLPenAxis #{const SDL_PEN_AXIS_ROTATION}
+pattern SDL_PEN_AXIS_SLIDER :: SDLPenAxis
+pattern SDL_PEN_AXIS_SLIDER = SDLPenAxis #{const SDL_PEN_AXIS_SLIDER}
+pattern SDL_PEN_AXIS_TANGENTIAL_PRESSURE :: SDLPenAxis
+pattern SDL_PEN_AXIS_TANGENTIAL_PRESSURE = SDLPenAxis #{const SDL_PEN_AXIS_TANGENTIAL_PRESSURE}
+pattern SDL_PEN_AXIS_COUNT :: SDLPenAxis
+pattern SDL_PEN_AXIS_COUNT = SDLPenAxis #{const SDL_PEN_AXIS_COUNT}
 
--- | Pen input flag constants
-sdlPenInputDown :: SDLPenInputFlags
-sdlPenInputDown = SDLPenInputFlags #{const SDL_PEN_INPUT_DOWN}
+-- | Mouse ID for mouse events simulated with pen input.
+pattern SDL_PEN_MOUSEID :: SDLMouseID
+pattern SDL_PEN_MOUSEID = #{const SDL_PEN_MOUSEID}
 
-sdlPenInputButton1 :: SDLPenInputFlags
-sdlPenInputButton1 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_1}
-
-sdlPenInputButton2 :: SDLPenInputFlags
-sdlPenInputButton2 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_2}
-
-sdlPenInputButton3 :: SDLPenInputFlags
-sdlPenInputButton3 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_3}
-
-sdlPenInputButton4 :: SDLPenInputFlags
-sdlPenInputButton4 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_4}
-
-sdlPenInputButton5 :: SDLPenInputFlags
-sdlPenInputButton5 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_5}
-
-sdlPenInputEraserTip :: SDLPenInputFlags
-sdlPenInputEraserTip = SDLPenInputFlags #{const SDL_PEN_INPUT_ERASER_TIP}
+-- | Touch ID for touch events simulated with pen input.
+pattern SDL_PEN_TOUCHID :: SDLTouchID
+pattern SDL_PEN_TOUCHID = #{const SDL_PEN_TOUCHID}

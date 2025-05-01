@@ -99,7 +99,9 @@ defaultStencilOpState :: SDLGPUStencilOpState
 defaultStencilOpState = SDLGPUStencilOpState { stencilFailOp = SDL_GPU_STENCILOP_KEEP, stencilPassOp = SDL_GPU_STENCILOP_KEEP, stencilDepthFailOp = SDL_GPU_STENCILOP_KEEP, stencilCompareOp = SDL_GPU_COMPAREOP_ALWAYS }
 defaultDepthStencilState :: SDLGPUDepthStencilState
 defaultDepthStencilState = SDLGPUDepthStencilState { enableDepthTest = False, enableDepthWrite = False, depthStencilCompareOp = SDL_GPU_COMPAREOP_ALWAYS, enableStencilTest = False, backStencilState = defaultStencilOpState, frontStencilState = defaultStencilOpState, stencilCompareMask = 0xFF, stencilWriteMask = 0xFF }
-        
+defaultVertexInputState :: SDLGPUVertexInputState
+defaultVertexInputState = SDLGPUVertexInputState { inputVertexBuffers = [], inputVertexAttribs = [] }        
+
 -- | commonInit
 commonInit :: String -> [SDLWindowFlags] -> IO (Maybe Context)
 commonInit exampleName windowFlags = do
