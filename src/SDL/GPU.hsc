@@ -572,7 +572,7 @@ newtype SDLGPUFence = SDLGPUFence (Ptr SDLGPUFence) deriving (Show, Eq)
 
 -- Enum Types (Using CInt as underlying type for enums)
 
-newtype SDLGPUPrimitiveType = SDLGPUPrimitiveType CInt deriving (Show, Eq, Storable)
+newtype SDLGPUPrimitiveType = SDLGPUPrimitiveType CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_PRIMITIVETYPE_TRIANGLELIST :: SDLGPUPrimitiveType
 pattern SDL_GPU_PRIMITIVETYPE_TRIANGLELIST = SDLGPUPrimitiveType #{const SDL_GPU_PRIMITIVETYPE_TRIANGLELIST}
 pattern SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP :: SDLGPUPrimitiveType
@@ -584,7 +584,7 @@ pattern SDL_GPU_PRIMITIVETYPE_LINESTRIP = SDLGPUPrimitiveType #{const SDL_GPU_PR
 pattern SDL_GPU_PRIMITIVETYPE_POINTLIST :: SDLGPUPrimitiveType
 pattern SDL_GPU_PRIMITIVETYPE_POINTLIST = SDLGPUPrimitiveType #{const SDL_GPU_PRIMITIVETYPE_POINTLIST}
 
-newtype SDLGPULoadOp = SDLGPULoadOp CInt deriving (Show, Eq, Storable)
+newtype SDLGPULoadOp = SDLGPULoadOp CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_LOADOP_LOAD :: SDLGPULoadOp
 pattern SDL_GPU_LOADOP_LOAD = SDLGPULoadOp #{const SDL_GPU_LOADOP_LOAD}
 pattern SDL_GPU_LOADOP_CLEAR :: SDLGPULoadOp
@@ -592,7 +592,7 @@ pattern SDL_GPU_LOADOP_CLEAR = SDLGPULoadOp #{const SDL_GPU_LOADOP_CLEAR}
 pattern SDL_GPU_LOADOP_DONT_CARE :: SDLGPULoadOp
 pattern SDL_GPU_LOADOP_DONT_CARE = SDLGPULoadOp #{const SDL_GPU_LOADOP_DONT_CARE}
 
-newtype SDLGPUStoreOp = SDLGPUStoreOp CInt deriving (Show, Eq, Storable)
+newtype SDLGPUStoreOp = SDLGPUStoreOp CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_STOREOP_STORE :: SDLGPUStoreOp
 pattern SDL_GPU_STOREOP_STORE = SDLGPUStoreOp #{const SDL_GPU_STOREOP_STORE}
 pattern SDL_GPU_STOREOP_DONT_CARE :: SDLGPUStoreOp
@@ -602,13 +602,13 @@ pattern SDL_GPU_STOREOP_RESOLVE = SDLGPUStoreOp #{const SDL_GPU_STOREOP_RESOLVE}
 pattern SDL_GPU_STOREOP_RESOLVE_AND_STORE :: SDLGPUStoreOp
 pattern SDL_GPU_STOREOP_RESOLVE_AND_STORE = SDLGPUStoreOp #{const SDL_GPU_STOREOP_RESOLVE_AND_STORE}
 
-newtype SDLGPUIndexElementSize = SDLGPUIndexElementSize CInt deriving (Show, Eq, Storable)
+newtype SDLGPUIndexElementSize = SDLGPUIndexElementSize CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_INDEXELEMENTSIZE_16BIT :: SDLGPUIndexElementSize
 pattern SDL_GPU_INDEXELEMENTSIZE_16BIT = SDLGPUIndexElementSize #{const SDL_GPU_INDEXELEMENTSIZE_16BIT}
 pattern SDL_GPU_INDEXELEMENTSIZE_32BIT :: SDLGPUIndexElementSize
 pattern SDL_GPU_INDEXELEMENTSIZE_32BIT = SDLGPUIndexElementSize #{const SDL_GPU_INDEXELEMENTSIZE_32BIT}
 
-newtype SDLGPUTextureFormat = SDLGPUTextureFormat CInt deriving (Show, Eq, Storable)
+newtype SDLGPUTextureFormat = SDLGPUTextureFormat CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_TEXTUREFORMAT_INVALID :: SDLGPUTextureFormat
 pattern SDL_GPU_TEXTUREFORMAT_INVALID = SDLGPUTextureFormat #{const SDL_GPU_TEXTUREFORMAT_INVALID}
 pattern SDL_GPU_TEXTUREFORMAT_A8_UNORM :: SDLGPUTextureFormat
@@ -820,7 +820,7 @@ pattern SDL_GPU_TEXTUREFORMAT_ASTC_12x10_FLOAT = SDLGPUTextureFormat #{const SDL
 pattern SDL_GPU_TEXTUREFORMAT_ASTC_12x12_FLOAT :: SDLGPUTextureFormat
 pattern SDL_GPU_TEXTUREFORMAT_ASTC_12x12_FLOAT = SDLGPUTextureFormat #{const SDL_GPU_TEXTUREFORMAT_ASTC_12x12_FLOAT}
 
-newtype SDLGPUTextureType = SDLGPUTextureType CInt deriving (Show, Eq, Storable)
+newtype SDLGPUTextureType = SDLGPUTextureType CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_TEXTURETYPE_2D :: SDLGPUTextureType
 pattern SDL_GPU_TEXTURETYPE_2D = SDLGPUTextureType #{const SDL_GPU_TEXTURETYPE_2D}
 pattern SDL_GPU_TEXTURETYPE_2D_ARRAY :: SDLGPUTextureType
@@ -832,7 +832,7 @@ pattern SDL_GPU_TEXTURETYPE_CUBE = SDLGPUTextureType #{const SDL_GPU_TEXTURETYPE
 pattern SDL_GPU_TEXTURETYPE_CUBE_ARRAY :: SDLGPUTextureType
 pattern SDL_GPU_TEXTURETYPE_CUBE_ARRAY = SDLGPUTextureType #{const SDL_GPU_TEXTURETYPE_CUBE_ARRAY}
 
-newtype SDLGPUSampleCount = SDLGPUSampleCount CInt deriving (Show, Eq, Storable)
+newtype SDLGPUSampleCount = SDLGPUSampleCount CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_SAMPLECOUNT_1 :: SDLGPUSampleCount
 pattern SDL_GPU_SAMPLECOUNT_1 = SDLGPUSampleCount #{const SDL_GPU_SAMPLECOUNT_1}
 pattern SDL_GPU_SAMPLECOUNT_2 :: SDLGPUSampleCount
@@ -842,7 +842,7 @@ pattern SDL_GPU_SAMPLECOUNT_4 = SDLGPUSampleCount #{const SDL_GPU_SAMPLECOUNT_4}
 pattern SDL_GPU_SAMPLECOUNT_8 :: SDLGPUSampleCount
 pattern SDL_GPU_SAMPLECOUNT_8 = SDLGPUSampleCount #{const SDL_GPU_SAMPLECOUNT_8}
 
-newtype SDLGPUCubeMapFace = SDLGPUCubeMapFace CInt deriving (Show, Eq, Storable)
+newtype SDLGPUCubeMapFace = SDLGPUCubeMapFace CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_CUBEMAPFACE_POSITIVEX :: SDLGPUCubeMapFace
 pattern SDL_GPU_CUBEMAPFACE_POSITIVEX = SDLGPUCubeMapFace #{const SDL_GPU_CUBEMAPFACE_POSITIVEX}
 pattern SDL_GPU_CUBEMAPFACE_NEGATIVEX :: SDLGPUCubeMapFace
@@ -856,19 +856,19 @@ pattern SDL_GPU_CUBEMAPFACE_POSITIVEZ = SDLGPUCubeMapFace #{const SDL_GPU_CUBEMA
 pattern SDL_GPU_CUBEMAPFACE_NEGATIVEZ :: SDLGPUCubeMapFace
 pattern SDL_GPU_CUBEMAPFACE_NEGATIVEZ = SDLGPUCubeMapFace #{const SDL_GPU_CUBEMAPFACE_NEGATIVEZ}
 
-newtype SDLGPUTransferBufferUsage = SDLGPUTransferBufferUsage CInt deriving (Show, Eq, Storable)
+newtype SDLGPUTransferBufferUsage = SDLGPUTransferBufferUsage CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD :: SDLGPUTransferBufferUsage
 pattern SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD = SDLGPUTransferBufferUsage #{const SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD}
 pattern SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD :: SDLGPUTransferBufferUsage
 pattern SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD = SDLGPUTransferBufferUsage #{const SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD}
 
-newtype SDLGPUShaderStage = SDLGPUShaderStage CInt deriving (Show, Eq, Storable)
+newtype SDLGPUShaderStage = SDLGPUShaderStage CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_SHADERSTAGE_VERTEX :: SDLGPUShaderStage
 pattern SDL_GPU_SHADERSTAGE_VERTEX = SDLGPUShaderStage #{const SDL_GPU_SHADERSTAGE_VERTEX}
 pattern SDL_GPU_SHADERSTAGE_FRAGMENT :: SDLGPUShaderStage
 pattern SDL_GPU_SHADERSTAGE_FRAGMENT = SDLGPUShaderStage #{const SDL_GPU_SHADERSTAGE_FRAGMENT}
 
-newtype SDLGPUVertexElementFormat = SDLGPUVertexElementFormat CInt deriving (Show, Eq, Storable)
+newtype SDLGPUVertexElementFormat = SDLGPUVertexElementFormat CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_VERTEXELEMENTFORMAT_INVALID :: SDLGPUVertexElementFormat
 pattern SDL_GPU_VERTEXELEMENTFORMAT_INVALID = SDLGPUVertexElementFormat #{const SDL_GPU_VERTEXELEMENTFORMAT_INVALID}
 pattern SDL_GPU_VERTEXELEMENTFORMAT_INT :: SDLGPUVertexElementFormat
@@ -938,13 +938,13 @@ pattern SDL_GPU_VERTEXINPUTRATE_VERTEX = SDLGPUVertexInputRate #{const SDL_GPU_V
 pattern SDL_GPU_VERTEXINPUTRATE_INSTANCE :: SDLGPUVertexInputRate
 pattern SDL_GPU_VERTEXINPUTRATE_INSTANCE = SDLGPUVertexInputRate #{const SDL_GPU_VERTEXINPUTRATE_INSTANCE}
 
-newtype SDLGPUFillMode = SDLGPUFillMode CInt deriving (Show, Eq, Storable)
+newtype SDLGPUFillMode = SDLGPUFillMode CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_FILLMODE_FILL :: SDLGPUFillMode
 pattern SDL_GPU_FILLMODE_FILL = SDLGPUFillMode #{const SDL_GPU_FILLMODE_FILL}
 pattern SDL_GPU_FILLMODE_LINE :: SDLGPUFillMode
 pattern SDL_GPU_FILLMODE_LINE = SDLGPUFillMode #{const SDL_GPU_FILLMODE_LINE}
 
-newtype SDLGPUCullMode = SDLGPUCullMode CInt deriving (Show, Eq, Storable)
+newtype SDLGPUCullMode = SDLGPUCullMode CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_CULLMODE_NONE :: SDLGPUCullMode
 pattern SDL_GPU_CULLMODE_NONE = SDLGPUCullMode #{const SDL_GPU_CULLMODE_NONE}
 pattern SDL_GPU_CULLMODE_FRONT :: SDLGPUCullMode
@@ -952,13 +952,13 @@ pattern SDL_GPU_CULLMODE_FRONT = SDLGPUCullMode #{const SDL_GPU_CULLMODE_FRONT}
 pattern SDL_GPU_CULLMODE_BACK :: SDLGPUCullMode
 pattern SDL_GPU_CULLMODE_BACK = SDLGPUCullMode #{const SDL_GPU_CULLMODE_BACK}
 
-newtype SDLGPUFrontFace = SDLGPUFrontFace CInt deriving (Show, Eq, Storable)
+newtype SDLGPUFrontFace = SDLGPUFrontFace CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE :: SDLGPUFrontFace
 pattern SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE = SDLGPUFrontFace #{const SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE}
 pattern SDL_GPU_FRONTFACE_CLOCKWISE :: SDLGPUFrontFace
 pattern SDL_GPU_FRONTFACE_CLOCKWISE = SDLGPUFrontFace #{const SDL_GPU_FRONTFACE_CLOCKWISE}
 
-newtype SDLGPUCompareOp = SDLGPUCompareOp CInt deriving (Show, Eq, Storable)
+newtype SDLGPUCompareOp = SDLGPUCompareOp CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_COMPAREOP_INVALID :: SDLGPUCompareOp
 pattern SDL_GPU_COMPAREOP_INVALID = SDLGPUCompareOp #{const SDL_GPU_COMPAREOP_INVALID}
 pattern SDL_GPU_COMPAREOP_NEVER :: SDLGPUCompareOp
@@ -978,7 +978,7 @@ pattern SDL_GPU_COMPAREOP_GREATER_OR_EQUAL = SDLGPUCompareOp #{const SDL_GPU_COM
 pattern SDL_GPU_COMPAREOP_ALWAYS :: SDLGPUCompareOp
 pattern SDL_GPU_COMPAREOP_ALWAYS = SDLGPUCompareOp #{const SDL_GPU_COMPAREOP_ALWAYS}
 
-newtype SDLGPUStencilOp = SDLGPUStencilOp CInt deriving (Show, Eq, Storable)
+newtype SDLGPUStencilOp = SDLGPUStencilOp CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_STENCILOP_INVALID :: SDLGPUStencilOp
 pattern SDL_GPU_STENCILOP_INVALID = SDLGPUStencilOp #{const SDL_GPU_STENCILOP_INVALID}
 pattern SDL_GPU_STENCILOP_KEEP :: SDLGPUStencilOp
@@ -998,7 +998,7 @@ pattern SDL_GPU_STENCILOP_INCREMENT_AND_WRAP = SDLGPUStencilOp #{const SDL_GPU_S
 pattern SDL_GPU_STENCILOP_DECREMENT_AND_WRAP :: SDLGPUStencilOp
 pattern SDL_GPU_STENCILOP_DECREMENT_AND_WRAP = SDLGPUStencilOp #{const SDL_GPU_STENCILOP_DECREMENT_AND_WRAP}
 
-newtype SDLGPUBlendOp = SDLGPUBlendOp CInt deriving (Show, Eq, Storable)
+newtype SDLGPUBlendOp = SDLGPUBlendOp CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_BLENDOP_INVALID :: SDLGPUBlendOp
 pattern SDL_GPU_BLENDOP_INVALID = SDLGPUBlendOp #{const SDL_GPU_BLENDOP_INVALID}
 pattern SDL_GPU_BLENDOP_ADD :: SDLGPUBlendOp
@@ -1012,7 +1012,7 @@ pattern SDL_GPU_BLENDOP_MIN = SDLGPUBlendOp #{const SDL_GPU_BLENDOP_MIN}
 pattern SDL_GPU_BLENDOP_MAX :: SDLGPUBlendOp
 pattern SDL_GPU_BLENDOP_MAX = SDLGPUBlendOp #{const SDL_GPU_BLENDOP_MAX}
 
-newtype SDLGPUBlendFactor = SDLGPUBlendFactor CInt deriving (Show, Eq, Storable)
+newtype SDLGPUBlendFactor = SDLGPUBlendFactor CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_BLENDFACTOR_INVALID :: SDLGPUBlendFactor
 pattern SDL_GPU_BLENDFACTOR_INVALID = SDLGPUBlendFactor #{const SDL_GPU_BLENDFACTOR_INVALID}
 pattern SDL_GPU_BLENDFACTOR_ZERO :: SDLGPUBlendFactor
@@ -1042,19 +1042,19 @@ pattern SDL_GPU_BLENDFACTOR_ONE_MINUS_CONSTANT_COLOR = SDLGPUBlendFactor #{const
 pattern SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE :: SDLGPUBlendFactor
 pattern SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE = SDLGPUBlendFactor #{const SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE}
 
-newtype SDLGPUFilter = SDLGPUFilter CInt deriving (Show, Eq, Storable)
+newtype SDLGPUFilter = SDLGPUFilter CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_FILTER_NEAREST :: SDLGPUFilter
 pattern SDL_GPU_FILTER_NEAREST = SDLGPUFilter #{const SDL_GPU_FILTER_NEAREST}
 pattern SDL_GPU_FILTER_LINEAR :: SDLGPUFilter
 pattern SDL_GPU_FILTER_LINEAR = SDLGPUFilter #{const SDL_GPU_FILTER_LINEAR}
 
-newtype SDLGPUSamplerMipmapMode = SDLGPUSamplerMipmapMode CInt deriving (Show, Eq, Storable)
+newtype SDLGPUSamplerMipmapMode = SDLGPUSamplerMipmapMode CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_SAMPLERMIPMAPMODE_NEAREST :: SDLGPUSamplerMipmapMode
 pattern SDL_GPU_SAMPLERMIPMAPMODE_NEAREST = SDLGPUSamplerMipmapMode #{const SDL_GPU_SAMPLERMIPMAPMODE_NEAREST}
 pattern SDL_GPU_SAMPLERMIPMAPMODE_LINEAR :: SDLGPUSamplerMipmapMode
 pattern SDL_GPU_SAMPLERMIPMAPMODE_LINEAR = SDLGPUSamplerMipmapMode #{const SDL_GPU_SAMPLERMIPMAPMODE_LINEAR}
 
-newtype SDLGPUSamplerAddressMode = SDLGPUSamplerAddressMode CInt deriving (Show, Eq, Storable)
+newtype SDLGPUSamplerAddressMode = SDLGPUSamplerAddressMode CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_SAMPLERADDRESSMODE_REPEAT :: SDLGPUSamplerAddressMode
 pattern SDL_GPU_SAMPLERADDRESSMODE_REPEAT = SDLGPUSamplerAddressMode #{const SDL_GPU_SAMPLERADDRESSMODE_REPEAT}
 pattern SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT :: SDLGPUSamplerAddressMode
@@ -1062,7 +1062,7 @@ pattern SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT = SDLGPUSamplerAddressMode #{
 pattern SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE :: SDLGPUSamplerAddressMode
 pattern SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE = SDLGPUSamplerAddressMode #{const SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE}
 
-newtype SDLGPUPresentMode = SDLGPUPresentMode CInt deriving (Show, Eq, Storable)
+newtype SDLGPUPresentMode = SDLGPUPresentMode CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_PRESENTMODE_VSYNC :: SDLGPUPresentMode
 pattern SDL_GPU_PRESENTMODE_VSYNC = SDLGPUPresentMode #{const SDL_GPU_PRESENTMODE_VSYNC}
 pattern SDL_GPU_PRESENTMODE_IMMEDIATE :: SDLGPUPresentMode
@@ -1070,7 +1070,7 @@ pattern SDL_GPU_PRESENTMODE_IMMEDIATE = SDLGPUPresentMode #{const SDL_GPU_PRESEN
 pattern SDL_GPU_PRESENTMODE_MAILBOX :: SDLGPUPresentMode
 pattern SDL_GPU_PRESENTMODE_MAILBOX = SDLGPUPresentMode #{const SDL_GPU_PRESENTMODE_MAILBOX}
 
-newtype SDLGPUSwapchainComposition = SDLGPUSwapchainComposition CInt deriving (Show, Eq, Storable)
+newtype SDLGPUSwapchainComposition = SDLGPUSwapchainComposition CInt deriving (Show, Eq, Storable, Enum)
 pattern SDL_GPU_SWAPCHAINCOMPOSITION_SDR :: SDLGPUSwapchainComposition
 pattern SDL_GPU_SWAPCHAINCOMPOSITION_SDR = SDLGPUSwapchainComposition #{const SDL_GPU_SWAPCHAINCOMPOSITION_SDR}
 pattern SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR :: SDLGPUSwapchainComposition
@@ -1082,7 +1082,7 @@ pattern SDL_GPU_SWAPCHAINCOMPOSITION_HDR10_ST2084 = SDLGPUSwapchainComposition #
 
 -- Bitmask Types
 newtype SDLGPUTextureUsageFlags = SDLGPUTextureUsageFlags CUInt
-  deriving newtype (Show, Eq, Bits, Num, Storable) -- Num allows bitwise OR with literals
+  deriving newtype (Show, Eq, Bits, Num, Storable, Enum) -- Num allows bitwise OR with literals
 
 pattern SDL_GPU_TEXTUREUSAGE_SAMPLER                                 :: SDLGPUTextureUsageFlags
 pattern SDL_GPU_TEXTUREUSAGE_SAMPLER                                 = SDLGPUTextureUsageFlags #{const SDL_GPU_TEXTUREUSAGE_SAMPLER}
@@ -1100,7 +1100,7 @@ pattern SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_SIMULTANEOUS_READ_WRITE :: SDLGPUTe
 pattern SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_SIMULTANEOUS_READ_WRITE = SDLGPUTextureUsageFlags #{const SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_SIMULTANEOUS_READ_WRITE}
 
 newtype SDLGPUBufferUsageFlags = SDLGPUBufferUsageFlags CUInt
-  deriving newtype (Show, Eq, Bits, Num, Storable)
+  deriving newtype (Show, Eq, Bits, Num, Storable, Enum)
 
 pattern SDL_GPU_BUFFERUSAGE_VERTEX                                  :: SDLGPUBufferUsageFlags
 pattern SDL_GPU_BUFFERUSAGE_VERTEX                                  = SDLGPUBufferUsageFlags #{const SDL_GPU_BUFFERUSAGE_VERTEX}
@@ -1116,7 +1116,7 @@ pattern SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE                   :: SDLGPUBuf
 pattern SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE                   = SDLGPUBufferUsageFlags #{const SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE}
 
 newtype SDLGPUShaderFormat = SDLGPUShaderFormat CUInt
-  deriving newtype (Show, Eq, Bits, Num, Storable)
+  deriving newtype (Show, Eq, Bits, Num, Storable, Enum)
 
 pattern SDL_GPU_SHADERFORMAT_INVALID  :: SDLGPUShaderFormat
 pattern SDL_GPU_SHADERFORMAT_INVALID  = SDLGPUShaderFormat #{const SDL_GPU_SHADERFORMAT_INVALID}
@@ -1134,7 +1134,7 @@ pattern SDL_GPU_SHADERFORMAT_METALLIB :: SDLGPUShaderFormat
 pattern SDL_GPU_SHADERFORMAT_METALLIB = SDLGPUShaderFormat #{const SDL_GPU_SHADERFORMAT_METALLIB}
 
 newtype SDLGPUColorComponentFlags = SDLGPUColorComponentFlags CUChar
-  deriving newtype (Show, Eq, Bits, Num, Storable)
+  deriving newtype (Show, Eq, Bits, Num, Storable, Enum)
 
 pattern SDL_GPU_COLORCOMPONENT_R :: SDLGPUColorComponentFlags
 pattern SDL_GPU_COLORCOMPONENT_R = SDLGPUColorComponentFlags #{const SDL_GPU_COLORCOMPONENT_R}

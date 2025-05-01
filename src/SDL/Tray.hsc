@@ -54,7 +54,7 @@ newtype SDLTray = SDLTray (Ptr SDLTray) deriving (Show, Eq)
 newtype SDLTrayMenu = SDLTrayMenu (Ptr SDLTrayMenu) deriving (Show, Eq)
 newtype SDLTrayEntry = SDLTrayEntry (Ptr SDLTrayEntry) deriving (Show, Eq)
 
-newtype SDLTrayEntryFlags = SDLTrayEntryFlags { unSDLTrayEntryFlags :: CUInt }
+newtype SDLTrayEntryFlags = SDLTrayEntryFlags { sdlTrayEntryFlags :: CUInt }
   deriving (Show, Eq, Bits)
 
 #{enum SDLTrayEntryFlags, SDLTrayEntryFlags
