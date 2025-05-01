@@ -1492,72 +1492,72 @@ instance Storable SDLGPUIndirectDispatchCommand where
 
 -- SDL_GPUSamplerCreateInfo
 data SDLGPUSamplerCreateInfo = SDLGPUSamplerCreateInfo
-  { gpuSamplerInfoMinFilter        :: SDLGPUFilter
-  , gpuSamplerInfoMagFilter        :: SDLGPUFilter
-  , gpuSamplerInfoMipmapMode       :: SDLGPUSamplerMipmapMode
-  , gpuSamplerInfoAddressModeU     :: SDLGPUSamplerAddressMode
-  , gpuSamplerInfoAddressModeV     :: SDLGPUSamplerAddressMode
-  , gpuSamplerInfoAddressModeW     :: SDLGPUSamplerAddressMode
-  , gpuSamplerInfoMipLodBias       :: Float
-  , gpuSamplerInfoMaxAnisotropy    :: Float
-  , gpuSamplerInfoCompareOp        :: SDLGPUCompareOp
-  , gpuSamplerInfoMinLod           :: Float
-  , gpuSamplerInfoMaxLod           :: Float
-  , gpuSamplerInfoEnableAnisotropy :: Bool
-  , gpuSamplerInfoEnableCompare    :: Bool
-  , gpuSamplerInfoProps            :: SDLPropertiesID
+  { samplerMinFilter        :: SDLGPUFilter
+  , samplerMagFilter        :: SDLGPUFilter
+  , samplerMipmapMode       :: SDLGPUSamplerMipmapMode
+  , samplerAddressModeU     :: SDLGPUSamplerAddressMode
+  , samplerAddressModeV     :: SDLGPUSamplerAddressMode
+  , samplerAddressModeW     :: SDLGPUSamplerAddressMode
+  , samplerMipLodBias       :: Float
+  , samplerMaxAnisotropy    :: Float
+  , samplerCompareOp        :: SDLGPUCompareOp
+  , samplerMinLod           :: Float
+  , samplerMaxLod           :: Float
+  , samplerEnableAnisotropy :: Bool
+  , samplerEnableCompare    :: Bool
+  , samplerProps            :: SDLPropertiesID
   } deriving (Show, Eq)
 
 instance Storable SDLGPUSamplerCreateInfo where
   sizeOf _ = #{size SDL_GPUSamplerCreateInfo}
   alignment _ = #{alignment SDL_GPUSamplerCreateInfo}
   peek ptr = do
-    gpuSamplerInfoMinFilter        <- SDLGPUFilter              <$> (#{peek SDL_GPUSamplerCreateInfo, min_filter} ptr        :: IO CInt)
-    gpuSamplerInfoMagFilter        <- SDLGPUFilter              <$> (#{peek SDL_GPUSamplerCreateInfo, mag_filter} ptr        :: IO CInt)
-    gpuSamplerInfoMipmapMode       <- SDLGPUSamplerMipmapMode   <$> (#{peek SDL_GPUSamplerCreateInfo, mipmap_mode} ptr       :: IO CInt)
-    gpuSamplerInfoAddressModeU     <- SDLGPUSamplerAddressMode  <$> (#{peek SDL_GPUSamplerCreateInfo, address_mode_u} ptr     :: IO CInt)
-    gpuSamplerInfoAddressModeV     <- SDLGPUSamplerAddressMode  <$> (#{peek SDL_GPUSamplerCreateInfo, address_mode_v} ptr     :: IO CInt)
-    gpuSamplerInfoAddressModeW     <- SDLGPUSamplerAddressMode  <$> (#{peek SDL_GPUSamplerCreateInfo, address_mode_w} ptr     :: IO CInt)
-    gpuSamplerInfoMipLodBias       <- realToFrac                <$> (#{peek SDL_GPUSamplerCreateInfo, mip_lod_bias} ptr      :: IO CFloat)
-    gpuSamplerInfoMaxAnisotropy    <- realToFrac                <$> (#{peek SDL_GPUSamplerCreateInfo, max_anisotropy} ptr    :: IO CFloat)
-    gpuSamplerInfoCompareOp        <- SDLGPUCompareOp           <$> (#{peek SDL_GPUSamplerCreateInfo, compare_op} ptr        :: IO CInt)
-    gpuSamplerInfoMinLod           <- realToFrac                <$> (#{peek SDL_GPUSamplerCreateInfo, min_lod} ptr           :: IO CFloat)
-    gpuSamplerInfoMaxLod           <- realToFrac                <$> (#{peek SDL_GPUSamplerCreateInfo, max_lod} ptr           :: IO CFloat)
-    gpuSamplerInfoEnableAnisotropy <- toBool                    <$> (#{peek SDL_GPUSamplerCreateInfo, enable_anisotropy} ptr :: IO CBool)
-    gpuSamplerInfoEnableCompare    <- toBool                    <$> (#{peek SDL_GPUSamplerCreateInfo, enable_compare} ptr    :: IO CBool)
-    gpuSamplerInfoProps            <-                             (#{peek SDL_GPUSamplerCreateInfo, props} ptr             :: IO SDLPropertiesID)
-    return SDLGPUSamplerCreateInfo { gpuSamplerInfoMinFilter        = gpuSamplerInfoMinFilter
-                                   , gpuSamplerInfoMagFilter        = gpuSamplerInfoMagFilter
-                                   , gpuSamplerInfoMipmapMode       = gpuSamplerInfoMipmapMode
-                                   , gpuSamplerInfoAddressModeU     = gpuSamplerInfoAddressModeU
-                                   , gpuSamplerInfoAddressModeV     = gpuSamplerInfoAddressModeV
-                                   , gpuSamplerInfoAddressModeW     = gpuSamplerInfoAddressModeW
-                                   , gpuSamplerInfoMipLodBias       = gpuSamplerInfoMipLodBias
-                                   , gpuSamplerInfoMaxAnisotropy    = gpuSamplerInfoMaxAnisotropy
-                                   , gpuSamplerInfoCompareOp        = gpuSamplerInfoCompareOp
-                                   , gpuSamplerInfoMinLod           = gpuSamplerInfoMinLod
-                                   , gpuSamplerInfoMaxLod           = gpuSamplerInfoMaxLod
-                                   , gpuSamplerInfoEnableAnisotropy = gpuSamplerInfoEnableAnisotropy
-                                   , gpuSamplerInfoEnableCompare    = gpuSamplerInfoEnableCompare
-                                   , gpuSamplerInfoProps            = gpuSamplerInfoProps
+    samplerMinFilter        <- SDLGPUFilter              <$> (#{peek SDL_GPUSamplerCreateInfo, min_filter} ptr        :: IO CInt)
+    samplerMagFilter        <- SDLGPUFilter              <$> (#{peek SDL_GPUSamplerCreateInfo, mag_filter} ptr        :: IO CInt)
+    samplerMipmapMode       <- SDLGPUSamplerMipmapMode   <$> (#{peek SDL_GPUSamplerCreateInfo, mipmap_mode} ptr       :: IO CInt)
+    samplerAddressModeU     <- SDLGPUSamplerAddressMode  <$> (#{peek SDL_GPUSamplerCreateInfo, address_mode_u} ptr     :: IO CInt)
+    samplerAddressModeV     <- SDLGPUSamplerAddressMode  <$> (#{peek SDL_GPUSamplerCreateInfo, address_mode_v} ptr     :: IO CInt)
+    samplerAddressModeW     <- SDLGPUSamplerAddressMode  <$> (#{peek SDL_GPUSamplerCreateInfo, address_mode_w} ptr     :: IO CInt)
+    samplerMipLodBias       <- realToFrac                <$> (#{peek SDL_GPUSamplerCreateInfo, mip_lod_bias} ptr      :: IO CFloat)
+    samplerMaxAnisotropy    <- realToFrac                <$> (#{peek SDL_GPUSamplerCreateInfo, max_anisotropy} ptr    :: IO CFloat)
+    samplerCompareOp        <- SDLGPUCompareOp           <$> (#{peek SDL_GPUSamplerCreateInfo, compare_op} ptr        :: IO CInt)
+    samplerMinLod           <- realToFrac                <$> (#{peek SDL_GPUSamplerCreateInfo, min_lod} ptr           :: IO CFloat)
+    samplerMaxLod           <- realToFrac                <$> (#{peek SDL_GPUSamplerCreateInfo, max_lod} ptr           :: IO CFloat)
+    samplerEnableAnisotropy <- toBool                    <$> (#{peek SDL_GPUSamplerCreateInfo, enable_anisotropy} ptr :: IO CBool)
+    samplerEnableCompare    <- toBool                    <$> (#{peek SDL_GPUSamplerCreateInfo, enable_compare} ptr    :: IO CBool)
+    samplerProps            <-                             (#{peek SDL_GPUSamplerCreateInfo, props} ptr             :: IO SDLPropertiesID)
+    return SDLGPUSamplerCreateInfo { samplerMinFilter        = samplerMinFilter
+                                   , samplerMagFilter        = samplerMagFilter
+                                   , samplerMipmapMode       = samplerMipmapMode
+                                   , samplerAddressModeU     = samplerAddressModeU
+                                   , samplerAddressModeV     = samplerAddressModeV
+                                   , samplerAddressModeW     = samplerAddressModeW
+                                   , samplerMipLodBias       = samplerMipLodBias
+                                   , samplerMaxAnisotropy    = samplerMaxAnisotropy
+                                   , samplerCompareOp        = samplerCompareOp
+                                   , samplerMinLod           = samplerMinLod
+                                   , samplerMaxLod           = samplerMaxLod
+                                   , samplerEnableAnisotropy = samplerEnableAnisotropy
+                                   , samplerEnableCompare    = samplerEnableCompare
+                                   , samplerProps            = samplerProps
                                    }
   poke ptr SDLGPUSamplerCreateInfo{..} = do
-    #{poke SDL_GPUSamplerCreateInfo, min_filter} ptr        ( (\(SDLGPUFilter            i) -> i) gpuSamplerInfoMinFilter        :: CInt)
-    #{poke SDL_GPUSamplerCreateInfo, mag_filter} ptr        ( (\(SDLGPUFilter            i) -> i) gpuSamplerInfoMagFilter        :: CInt)
-    #{poke SDL_GPUSamplerCreateInfo, mipmap_mode} ptr       ( (\(SDLGPUSamplerMipmapMode i) -> i) gpuSamplerInfoMipmapMode       :: CInt)
-    #{poke SDL_GPUSamplerCreateInfo, address_mode_u} ptr     ( (\(SDLGPUSamplerAddressMode i) -> i) gpuSamplerInfoAddressModeU     :: CInt)
-    #{poke SDL_GPUSamplerCreateInfo, address_mode_v} ptr     ( (\(SDLGPUSamplerAddressMode i) -> i) gpuSamplerInfoAddressModeV     :: CInt)
-    #{poke SDL_GPUSamplerCreateInfo, address_mode_w} ptr     ( (\(SDLGPUSamplerAddressMode i) -> i) gpuSamplerInfoAddressModeW     :: CInt)
-    #{poke SDL_GPUSamplerCreateInfo, mip_lod_bias} ptr      (realToFrac gpuSamplerInfoMipLodBias       :: CFloat)
-    #{poke SDL_GPUSamplerCreateInfo, max_anisotropy} ptr    (realToFrac gpuSamplerInfoMaxAnisotropy    :: CFloat)
-    #{poke SDL_GPUSamplerCreateInfo, compare_op} ptr        ( (\(SDLGPUCompareOp         i) -> i) gpuSamplerInfoCompareOp        :: CInt)
-    #{poke SDL_GPUSamplerCreateInfo, min_lod} ptr           (realToFrac gpuSamplerInfoMinLod           :: CFloat)
-    #{poke SDL_GPUSamplerCreateInfo, max_lod} ptr           (realToFrac gpuSamplerInfoMaxLod           :: CFloat)
-    #{poke SDL_GPUSamplerCreateInfo, enable_anisotropy} ptr (fromBool gpuSamplerInfoEnableAnisotropy :: CBool)
-    #{poke SDL_GPUSamplerCreateInfo, enable_compare} ptr    (fromBool gpuSamplerInfoEnableCompare    :: CBool)
+    #{poke SDL_GPUSamplerCreateInfo, min_filter} ptr        ( (\(SDLGPUFilter            i) -> i) samplerMinFilter        :: CInt)
+    #{poke SDL_GPUSamplerCreateInfo, mag_filter} ptr        ( (\(SDLGPUFilter            i) -> i) samplerMagFilter        :: CInt)
+    #{poke SDL_GPUSamplerCreateInfo, mipmap_mode} ptr       ( (\(SDLGPUSamplerMipmapMode i) -> i) samplerMipmapMode       :: CInt)
+    #{poke SDL_GPUSamplerCreateInfo, address_mode_u} ptr     ( (\(SDLGPUSamplerAddressMode i) -> i) samplerAddressModeU     :: CInt)
+    #{poke SDL_GPUSamplerCreateInfo, address_mode_v} ptr     ( (\(SDLGPUSamplerAddressMode i) -> i) samplerAddressModeV     :: CInt)
+    #{poke SDL_GPUSamplerCreateInfo, address_mode_w} ptr     ( (\(SDLGPUSamplerAddressMode i) -> i) samplerAddressModeW     :: CInt)
+    #{poke SDL_GPUSamplerCreateInfo, mip_lod_bias} ptr      (realToFrac samplerMipLodBias       :: CFloat)
+    #{poke SDL_GPUSamplerCreateInfo, max_anisotropy} ptr    (realToFrac samplerMaxAnisotropy    :: CFloat)
+    #{poke SDL_GPUSamplerCreateInfo, compare_op} ptr        ( (\(SDLGPUCompareOp         i) -> i) samplerCompareOp        :: CInt)
+    #{poke SDL_GPUSamplerCreateInfo, min_lod} ptr           (realToFrac samplerMinLod           :: CFloat)
+    #{poke SDL_GPUSamplerCreateInfo, max_lod} ptr           (realToFrac samplerMaxLod           :: CFloat)
+    #{poke SDL_GPUSamplerCreateInfo, enable_anisotropy} ptr (fromBool samplerEnableAnisotropy :: CBool)
+    #{poke SDL_GPUSamplerCreateInfo, enable_compare} ptr    (fromBool samplerEnableCompare    :: CBool)
     #{poke SDL_GPUSamplerCreateInfo, padding1} ptr (0 :: CUChar)
     #{poke SDL_GPUSamplerCreateInfo, padding2} ptr (0 :: CUChar)
-    #{poke SDL_GPUSamplerCreateInfo, props} ptr             gpuSamplerInfoProps
+    #{poke SDL_GPUSamplerCreateInfo, props} ptr             samplerProps
 
 -- SDL_GPUVertexBufferDescription
 data SDLGPUVertexBufferDescription = SDLGPUVertexBufferDescription

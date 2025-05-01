@@ -291,7 +291,7 @@ import Control.Exception (bracket)
 import SDL.BlendMode (SDLBlendMode(..))
 import SDL.Error (sdlGetError)
 import SDL.Events (SDLEvent) -- Assuming Ptr SDLEvent underneath
-import SDL.Pixels (SDLPixelFormat(..), SDLFColor(..))
+import SDL.Pixels (SDLPixelFormat(..), SDLFColor(..), pixelFormatToCUInt)
 import SDL.Properties (SDLPropertiesID(..))
 import SDL.Rect (SDLRect(..), SDLFPoint(..), SDLFRect(..))
 import SDL.Surface (SDLSurface(..), SDLFlipMode(..), SDLScaleMode(..))
@@ -541,7 +541,7 @@ foreign import ccall unsafe "SDL_CreateTexture"
   
 sdlCreateTexture :: SDLRenderer -> SDLPixelFormat -> SDLTextureAccess -> Int -> Int -> IO (Maybe SDLTexture)
 sdlCreateTexture (SDLRenderer renderer) format access w h = do
-  ptr <- c_sdlCreateTexture renderer (fromIntegral $ fromEnum format) access (fromIntegral w) (fromIntegral h)
+  ptr <- c_sdlCreateTexture renderer (pixelFormatToCUInt format) access (fromIntegral w) (fromIntegral h)
   if ptr == nullPtr
     then return Nothing
     else return $ Just (SDLTexture ptr)

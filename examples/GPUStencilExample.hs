@@ -64,18 +64,6 @@ data AppResources = AppResources
 -- 3. Define Application State (Empty for this example)
 data AppState = AppState -- No mutable state needed
 
--- Reuse default states (as needed)
--- ... (defaultShaderCreateInfo, defaultColorTargetBlendState, etc. from previous example)
--- We will define specific DepthStencilStates below.
-defaultShaderCreateInfo :: SDLGPUShaderCreateInfo
-defaultShaderCreateInfo = SDLGPUShaderCreateInfo { shaderCode = nullPtr, shaderCodeSize = 0, shaderEntryPoint = "", shaderFormat = SDL_GPU_SHADERFORMAT_INVALID, shaderStage = SDL_GPU_SHADERSTAGE_VERTEX, shaderNumSamplers = 0, shaderNumStorageTextures = 0, shaderNumStorageBuffers = 0, shaderNumUniformBuffers = 0, shaderProps = 0 }
-defaultColorTargetBlendState :: SDLGPUColorTargetBlendState
-defaultColorTargetBlendState = SDLGPUColorTargetBlendState { writeMask = 0x0F, enableBlend = False, blendOp = SDL_GPU_BLENDOP_ADD, srcColorFactor = SDL_GPU_BLENDFACTOR_ONE, dstColorFactor = SDL_GPU_BLENDFACTOR_ZERO, alphaOp = SDL_GPU_BLENDOP_ADD, srcAlphaFactor = SDL_GPU_BLENDFACTOR_ONE, dstAlphaFactor = SDL_GPU_BLENDFACTOR_ZERO, enableColorWrite = True }
-defaultRasterizerState :: SDLGPURasterizerState
-defaultRasterizerState = SDLGPURasterizerState { fillMode = SDL_GPU_FILLMODE_FILL, cullMode = SDL_GPU_CULLMODE_NONE, frontFace = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE, enableDepthBias = False, depthBiasConstantFactor = 0.0, depthBiasClamp = 0.0, depthBiasSlopeFactor = 0.0, enableDepthClip = False }
-defaultMultiSampleState :: SDLGPUMultisampleState
-defaultMultiSampleState = SDLGPUMultisampleState { sampleCount = SDL_GPU_SAMPLECOUNT_1, sampleMask = 0, enableAlphaToCoverage = False, enableMask = False }
-
 main :: IO ()
 main = do
   sdlLog $ "Compiled SDL Version: " ++ show sdlVersion

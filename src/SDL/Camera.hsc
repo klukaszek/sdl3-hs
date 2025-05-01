@@ -53,7 +53,7 @@ import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Array (peekArray)
 import Data.Word
 import Data.Int
-import SDL.Pixels (SDLPixelFormat(..), pixelFormatToWord32, SDLColorspace(..), colorspaceToWord32)
+import SDL.Pixels (SDLPixelFormat(..), pixelFormatToCUInt, SDLColorspace(..), colorspaceToWord32, cUIntToPixelFormat, cUIntToColorspace)
 import SDL.Surface (SDLSurface)
 
 -- | A unique ID for a camera device, valid while connected to the system.
@@ -91,10 +91,10 @@ instance Storable SDLCameraSpec where
     h      <- peekByteOff ptr 12 :: IO Int32  -- Specify Int32
     num    <- peekByteOff ptr 16 :: IO Int32  -- Specify Int32
     denom  <- peekByteOff ptr 20 :: IO Int32  -- Specify Int32
-    return $ SDLCameraSpec (toEnum $ fromIntegral fmt) (toEnum $ fromIntegral cspace)
+    return $ SDLCameraSpec (cUIntToPixelFormat (fromIntegral fmt)) (cUIntToColorspace (fromIntegral cspace))
                             (fromIntegral w) (fromIntegral h) (fromIntegral num) (fromIntegral denom)
   poke ptr (SDLCameraSpec fmt cspace w h num denom) = do
-    pokeByteOff ptr 0 (pixelFormatToWord32 fmt)
+    pokeByteOff ptr 0 (pixelFormatToCUInt fmt)
     pokeByteOff ptr 4 (colorspaceToWord32 cspace)
     pokeByteOff ptr 8 (fromIntegral w :: CInt)
     pokeByteOff ptr 12 (fromIntegral h :: CInt)

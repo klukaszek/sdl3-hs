@@ -75,7 +75,7 @@ import Foreign.Marshal.Array (peekArray0, withArrayLen)
 import Foreign.Storable (Storable(..))
 import Control.Monad (liftM)
 import SDL.Rect (SDLRect(..))
-import SDL.Pixels (SDLPixelFormat(..))
+import SDL.Pixels (SDLPixelFormat(..), cUIntToPixelFormat, pixelFormatToCUInt)
 import SDL.Properties (SDLPropertiesID(..))
 import SDL.Surface (SDLSurface)
 import Data.Bits
@@ -123,7 +123,7 @@ instance Storable SDLDisplayMode where
     rawDid <- (# peek SDL_DisplayMode, displayID ) ptr :: IO CUInt
     let did = rawDid
     fmtVal <- (# peek SDL_DisplayMode, format ) ptr :: IO CUInt
-    let fmt = toEnum (fromIntegral fmtVal) :: SDLPixelFormat
+    let fmt = (cUIntToPixelFormat (fromIntegral fmtVal)) :: SDLPixelFormat
     w <- (# peek SDL_DisplayMode, w ) ptr :: IO CInt
     h <- (# peek SDL_DisplayMode, h ) ptr :: IO CInt
     pd <- (# peek SDL_DisplayMode, pixel_density ) ptr :: IO CFloat
@@ -132,7 +132,7 @@ instance Storable SDLDisplayMode where
 
   poke ptr (SDLDisplayMode did fmt w h pd rr) = do
     (# poke SDL_DisplayMode, displayID ) ptr did
-    (# poke SDL_DisplayMode, format ) ptr (fromIntegral (fromEnum fmt) :: CUInt)
+    (# poke SDL_DisplayMode, format ) ptr ((pixelFormatToCUInt fmt) :: CUInt)
     (# poke SDL_DisplayMode, w ) ptr (fromIntegral w :: CInt)
     (# poke SDL_DisplayMode, h ) ptr (fromIntegral h :: CInt)
     (# poke SDL_DisplayMode, pixel_density ) ptr (realToFrac pd :: CFloat)

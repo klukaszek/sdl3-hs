@@ -44,8 +44,6 @@ data Context = Context
     , contextWindow :: SDLWindow
     } deriving (Show)
 
-
--- 1. Define Vertex Structure and Storable Instance (Same as previous examples)
 data PositionColorVertex = PositionColorVertex
     { pcVertexX :: {-# UNPACK #-} !CFloat
     , pcVertexY :: {-# UNPACK #-} !CFloat
@@ -64,6 +62,44 @@ instance Storable PositionColorVertex where
         pokeByteOff ptr 0 x; pokeByteOff ptr 4 y; pokeByteOff ptr 8 z;
         pokeByteOff ptr 12 r; pokeByteOff ptr 13 g; pokeByteOff ptr 14 b; pokeByteOff ptr 15 a
 
+data PositionTextureVertex = PositionTextureVertex
+    { ptVertexX :: {-# UNPACK #-} !CFloat -- pos.x
+    , ptVertexY :: {-# UNPACK #-} !CFloat -- pos.y
+    , ptVertexZ :: {-# UNPACK #-} !CFloat -- pos.z
+    , ptVertexU :: {-# UNPACK #-} !CFloat -- tex.u
+    , ptVertexV :: {-# UNPACK #-} !CFloat -- tex.v
+    } deriving (Show, Eq)
+
+instance Storable PositionTextureVertex where
+    sizeOf _ = 5 * sizeOf (undefined :: CFloat) -- 5 floats = 20 bytes
+    alignment _ = alignment (undefined :: CFloat)
+    peek ptr = PositionTextureVertex
+                <$> peekByteOff ptr 0
+                <*> peekByteOff ptr 4
+                <*> peekByteOff ptr 8
+                <*> peekByteOff ptr 12
+                <*> peekByteOff ptr 16
+    poke ptr (PositionTextureVertex x y z u v) = do
+        pokeByteOff ptr 0 x
+        pokeByteOff ptr 4 y
+        pokeByteOff ptr 8 z
+        pokeByteOff ptr 12 u
+        pokeByteOff ptr 16 v
+
+-- Default Structs
+defaultShaderCreateInfo :: SDLGPUShaderCreateInfo
+defaultShaderCreateInfo = SDLGPUShaderCreateInfo { shaderCode = nullPtr, shaderCodeSize = 0, shaderEntryPoint = "", shaderFormat = SDL_GPU_SHADERFORMAT_INVALID, shaderStage = SDL_GPU_SHADERSTAGE_VERTEX, shaderNumSamplers = 0, shaderNumStorageTextures = 0, shaderNumStorageBuffers = 0, shaderNumUniformBuffers = 0, shaderProps = 0 }
+defaultColorTargetBlendState :: SDLGPUColorTargetBlendState
+defaultColorTargetBlendState = SDLGPUColorTargetBlendState { writeMask = 0x0F, enableBlend = False, blendOp = SDL_GPU_BLENDOP_ADD, srcColorFactor = SDL_GPU_BLENDFACTOR_ONE, dstColorFactor = SDL_GPU_BLENDFACTOR_ZERO, alphaOp = SDL_GPU_BLENDOP_ADD, srcAlphaFactor = SDL_GPU_BLENDFACTOR_ONE, dstAlphaFactor = SDL_GPU_BLENDFACTOR_ZERO, enableColorWrite = True }
+defaultRasterizerState :: SDLGPURasterizerState
+defaultRasterizerState = SDLGPURasterizerState { fillMode = SDL_GPU_FILLMODE_FILL, cullMode = SDL_GPU_CULLMODE_NONE, frontFace = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE, enableDepthBias = False, depthBiasConstantFactor = 0.0, depthBiasClamp = 0.0, depthBiasSlopeFactor = 0.0, enableDepthClip = False }
+defaultMultiSampleState :: SDLGPUMultisampleState
+defaultMultiSampleState = SDLGPUMultisampleState { sampleCount = SDL_GPU_SAMPLECOUNT_1, sampleMask = 0, enableAlphaToCoverage = False, enableMask = False }
+defaultStencilOpState :: SDLGPUStencilOpState
+defaultStencilOpState = SDLGPUStencilOpState { stencilFailOp = SDL_GPU_STENCILOP_KEEP, stencilPassOp = SDL_GPU_STENCILOP_KEEP, stencilDepthFailOp = SDL_GPU_STENCILOP_KEEP, stencilCompareOp = SDL_GPU_COMPAREOP_ALWAYS }
+defaultDepthStencilState :: SDLGPUDepthStencilState
+defaultDepthStencilState = SDLGPUDepthStencilState { enableDepthTest = False, enableDepthWrite = False, depthStencilCompareOp = SDL_GPU_COMPAREOP_ALWAYS, enableStencilTest = False, backStencilState = defaultStencilOpState, frontStencilState = defaultStencilOpState, stencilCompareMask = 0xFF, stencilWriteMask = 0xFF }
+        
 -- | commonInit
 commonInit :: String -> [SDLWindowFlags] -> IO (Maybe Context)
 commonInit exampleName windowFlags = do
