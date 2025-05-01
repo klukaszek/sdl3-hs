@@ -37,42 +37,6 @@ import Text.Printf (printf)
 import Data.Maybe (isJust, fromJust, fromMaybe, isNothing)
 import Data.Bits ((.|.)) -- For color component flags if needed
 
--- 1. Define Vertex Structure and Storable Instance
-data PositionColorVertex = PositionColorVertex
-    { pcVertexX :: {-# UNPACK #-} !CFloat
-    , pcVertexY :: {-# UNPACK #-} !CFloat
-    , pcVertexZ :: {-# UNPACK #-} !CFloat
-    , pcVertexR :: {-# UNPACK #-} !Word8
-    , pcVertexG :: {-# UNPACK #-} !Word8
-    , pcVertexB :: {-# UNPACK #-} !Word8
-    , pcVertexA :: {-# UNPACK #-} !Word8
-    } deriving (Show, Eq)
-
-instance Storable PositionColorVertex where
-    -- Size: 3 floats (3*4=12) + 4 bytes (4*1=4) = 16 bytes
-    sizeOf _ = (3 * sizeOf (undefined :: CFloat)) + (4 * sizeOf (undefined :: Word8))
-    -- Align based on the largest member (CFloat)
-    alignment _ = alignment (undefined :: CFloat)
-
-    peek ptr = do
-        x <- peekByteOff ptr 0
-        y <- peekByteOff ptr 4 -- Offset after x (float)
-        z <- peekByteOff ptr 8 -- Offset after y (float)
-        r <- peekByteOff ptr 12 -- Offset after z (float)
-        g <- peekByteOff ptr 13 -- Offset after r (byte)
-        b <- peekByteOff ptr 14 -- Offset after g (byte)
-        a <- peekByteOff ptr 15 -- Offset after b (byte)
-        return (PositionColorVertex x y z r g b a)
-
-    poke ptr (PositionColorVertex x y z r g b a) = do
-        pokeByteOff ptr  0 x
-        pokeByteOff ptr  4 y
-        pokeByteOff ptr  8 z
-        pokeByteOff ptr 12 r
-        pokeByteOff ptr 13 g
-        pokeByteOff ptr 14 b
-        pokeByteOff ptr 15 a
-
 -- Define vertex data
 vertexData :: [PositionColorVertex]
 vertexData =

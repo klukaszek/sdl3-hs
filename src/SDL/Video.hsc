@@ -42,6 +42,7 @@ module SDL.Video
     sdlGetWindowPosition,
     sdlSetWindowSize,
     sdlGetWindowSize,
+    sdlGetWindowSizeInPixels,
     sdlShowWindow,
     sdlHideWindow,
 
@@ -299,6 +300,29 @@ sdlGetWindowSize (SDLWindow ptr) =
     w <- fromIntegral <$> peek wPtr
     h <- fromIntegral <$> peek hPtr
     return (w, h)
+
+-- | Get the size of a window's client area, in pixels.
+--   Corresponds to C's SDL_GetWindowSizeInPixels.
+--   Returns 'True' on success.
+foreign import ccall "SDL_GetWindowSizeInPixels"
+  sdlGetWindowSizeInPixels_c :: Ptr SDLWindow -> Ptr CInt -> Ptr CInt -> IO CBool
+
+-- | Get the size of a window's client area in pixels (the drawable size).
+--
+--   Returns `Just (width, height)` on success, or `Nothing` on failure
+--   (e.g., if the window is invalid).
+sdlGetWindowSizeInPixels :: SDLWindow -> IO (Maybe (Int, Int))
+sdlGetWindowSizeInPixels (SDLWindow ptr) =
+  alloca $ \wPtr -> alloca $ \hPtr -> do
+    success_c <- sdlGetWindowSizeInPixels_c ptr wPtr hPtr
+    -- Compare CBool directly: 0 means false, non-zero means true
+    if success_c /= 0
+    then do
+      w <- fromIntegral <$> peek wPtr
+      h <- fromIntegral <$> peek hPtr
+      return (Just (w, h))
+    else do
+      return Nothing
 
 -- | Show a window.
 foreign import ccall "SDL_ShowWindow"

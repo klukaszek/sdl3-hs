@@ -35,6 +35,7 @@ import System.Directory (doesFileExist) -- Need this directly now
 import Data.Maybe (fromMaybe, isNothing, isJust, fromJust)
 import Data.Bits ((.|.), (.&.))
 import Data.List (find)
+import Data.Word (Word8)
 import qualified Data.ByteString as BS
 
 -- | Context structure
@@ -42,6 +43,26 @@ data Context = Context
     { contextDevice :: SDLGPUDevice
     , contextWindow :: SDLWindow
     } deriving (Show)
+
+
+-- 1. Define Vertex Structure and Storable Instance (Same as previous examples)
+data PositionColorVertex = PositionColorVertex
+    { pcVertexX :: {-# UNPACK #-} !CFloat
+    , pcVertexY :: {-# UNPACK #-} !CFloat
+    , pcVertexZ :: {-# UNPACK #-} !CFloat
+    , pcVertexR :: {-# UNPACK #-} !Word8
+    , pcVertexG :: {-# UNPACK #-} !Word8
+    , pcVertexB :: {-# UNPACK #-} !Word8
+    , pcVertexA :: {-# UNPACK #-} !Word8
+    } deriving (Show, Eq)
+
+instance Storable PositionColorVertex where
+    sizeOf _ = 16 -- 3*float (4 bytes) + 4*word8 (1 byte) = 12 + 4 = 16
+    alignment _ = alignment (undefined :: CFloat)
+    peek ptr = PositionColorVertex <$> peekByteOff ptr 0 <*> peekByteOff ptr 4 <*> peekByteOff ptr 8 <*> peekByteOff ptr 12 <*> peekByteOff ptr 13 <*> peekByteOff ptr 14 <*> peekByteOff ptr 15
+    poke ptr (PositionColorVertex x y z r g b a) = do
+        pokeByteOff ptr 0 x; pokeByteOff ptr 4 y; pokeByteOff ptr 8 z;
+        pokeByteOff ptr 12 r; pokeByteOff ptr 13 g; pokeByteOff ptr 14 b; pokeByteOff ptr 15 a
 
 -- | commonInit
 commonInit :: String -> [SDLWindowFlags] -> IO (Maybe Context)

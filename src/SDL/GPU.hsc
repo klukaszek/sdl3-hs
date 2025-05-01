@@ -1741,15 +1741,15 @@ withGPUShaderCreateInfo SDLGPUShaderCreateInfo{..} f =
 
 -- SDL_GPUTextureCreateInfo
 data SDLGPUTextureCreateInfo = SDLGPUTextureCreateInfo
-  { gpuTextureInfoType             :: SDLGPUTextureType
-  , gpuTextureInfoFormat           :: SDLGPUTextureFormat
-  , gpuTextureInfoUsage            :: SDLGPUTextureUsageFlags
-  , gpuTextureInfoWidth            :: Word32
-  , gpuTextureInfoHeight           :: Word32
-  , gpuTextureInfoLayerCountOrDepth :: Word32
-  , gpuTextureInfoNumLevels        :: Word32
-  , gpuTextureInfoSampleCount      :: SDLGPUSampleCount
-  , gpuTextureInfoProps            :: SDLPropertiesID
+  { texInfoType             :: SDLGPUTextureType
+  , texInfoFormat           :: SDLGPUTextureFormat
+  , texInfoUsage            :: SDLGPUTextureUsageFlags
+  , texInfoWidth            :: Word32
+  , texInfoHeight           :: Word32
+  , texInfoLayerCountOrDepth :: Word32
+  , texInfoNumLevels        :: Word32
+  , texInfoSampleCount      :: SDLGPUSampleCount
+  , texInfoProps            :: SDLPropertiesID
   } deriving (Show, Eq)
 
 instance Storable SDLGPUTextureCreateInfo where
@@ -1766,26 +1766,26 @@ instance Storable SDLGPUTextureCreateInfo where
     sample_count <- #{peek SDL_GPUTextureCreateInfo, sample_count} ptr
     props <- #{peek SDL_GPUTextureCreateInfo, props} ptr
     return SDLGPUTextureCreateInfo
-      { gpuTextureInfoType = type_
-      , gpuTextureInfoFormat = format
-      , gpuTextureInfoUsage = usage
-      , gpuTextureInfoWidth = width
-      , gpuTextureInfoHeight = height
-      , gpuTextureInfoLayerCountOrDepth = layer_count_or_depth
-      , gpuTextureInfoNumLevels = num_levels
-      , gpuTextureInfoSampleCount = sample_count
-      , gpuTextureInfoProps = props
+      { texInfoType = type_
+      , texInfoFormat = format
+      , texInfoUsage = usage
+      , texInfoWidth = width
+      , texInfoHeight = height
+      , texInfoLayerCountOrDepth = layer_count_or_depth
+      , texInfoNumLevels = num_levels
+      , texInfoSampleCount = sample_count
+      , texInfoProps = props
       }
   poke ptr SDLGPUTextureCreateInfo{..} = do
-    #{poke SDL_GPUTextureCreateInfo, type} ptr gpuTextureInfoType
-    #{poke SDL_GPUTextureCreateInfo, format} ptr gpuTextureInfoFormat
-    #{poke SDL_GPUTextureCreateInfo, usage} ptr gpuTextureInfoUsage
-    #{poke SDL_GPUTextureCreateInfo, width} ptr (fromIntegral gpuTextureInfoWidth :: CUInt)
-    #{poke SDL_GPUTextureCreateInfo, height} ptr (fromIntegral gpuTextureInfoHeight :: CUInt)
-    #{poke SDL_GPUTextureCreateInfo, layer_count_or_depth} ptr (fromIntegral gpuTextureInfoLayerCountOrDepth :: CUInt)
-    #{poke SDL_GPUTextureCreateInfo, num_levels} ptr (fromIntegral gpuTextureInfoNumLevels :: CUInt)
-    #{poke SDL_GPUTextureCreateInfo, sample_count} ptr gpuTextureInfoSampleCount
-    #{poke SDL_GPUTextureCreateInfo, props} ptr gpuTextureInfoProps
+    #{poke SDL_GPUTextureCreateInfo, type} ptr texInfoType
+    #{poke SDL_GPUTextureCreateInfo, format} ptr texInfoFormat
+    #{poke SDL_GPUTextureCreateInfo, usage} ptr texInfoUsage
+    #{poke SDL_GPUTextureCreateInfo, width} ptr (fromIntegral texInfoWidth :: CUInt)
+    #{poke SDL_GPUTextureCreateInfo, height} ptr (fromIntegral texInfoHeight :: CUInt)
+    #{poke SDL_GPUTextureCreateInfo, layer_count_or_depth} ptr (fromIntegral texInfoLayerCountOrDepth :: CUInt)
+    #{poke SDL_GPUTextureCreateInfo, num_levels} ptr (fromIntegral texInfoNumLevels :: CUInt)
+    #{poke SDL_GPUTextureCreateInfo, sample_count} ptr texInfoSampleCount
+    #{poke SDL_GPUTextureCreateInfo, props} ptr texInfoProps
 
 -- SDL_GPUBufferCreateInfo
 data SDLGPUBufferCreateInfo = SDLGPUBufferCreateInfo
@@ -2156,14 +2156,14 @@ instance Storable SDLGPUColorTargetInfo where
 
 -- SDL_GPUDepthStencilTargetInfo
 data SDLGPUDepthStencilTargetInfo = SDLGPUDepthStencilTargetInfo
-  { gpuDepthStencilTargetTexture       :: SDLGPUTexture
-  , gpuDepthStencilTargetClearDepth    :: Float
-  , gpuDepthStencilTargetLoadOp        :: SDLGPULoadOp
-  , gpuDepthStencilTargetStoreOp       :: SDLGPUStoreOp
-  , gpuDepthStencilTargetStencilLoadOp :: SDLGPULoadOp
-  , gpuDepthStencilTargetStencilStoreOp:: SDLGPUStoreOp
-  , gpuDepthStencilTargetCycle         :: Bool
-  , gpuDepthStencilTargetClearStencil  :: Word8
+  { depthStencilTexture       :: SDLGPUTexture
+  , depthStencilClearDepth    :: Float
+  , depthStencilLoadOp        :: SDLGPULoadOp
+  , depthStencilStoreOp       :: SDLGPUStoreOp
+  , depthStencilStencilLoadOp :: SDLGPULoadOp
+  , depthStencilStencilStoreOp:: SDLGPUStoreOp
+  , depthStencilCycle         :: Bool
+  , depthStencilClearStencil  :: Word8
   } deriving (Show, Eq)
 
 instance Storable SDLGPUDepthStencilTargetInfo where
@@ -2171,34 +2171,34 @@ instance Storable SDLGPUDepthStencilTargetInfo where
   alignment _ = #{alignment SDL_GPUDepthStencilTargetInfo}
   peek ptr = do
     texture_ptr <- #{peek SDL_GPUDepthStencilTargetInfo, texture} ptr :: IO (Ptr SDLGPUTexture)
-    let gpuDepthStencilTargetTexture = SDLGPUTexture texture_ptr
-    gpuDepthStencilTargetClearDepth    <- realToFrac <$> (#{peek SDL_GPUDepthStencilTargetInfo, clear_depth} ptr :: IO CFloat)
-    gpuDepthStencilTargetLoadOp        <- SDLGPULoadOp <$> (#{peek SDL_GPUDepthStencilTargetInfo, load_op} ptr :: IO CInt)
-    gpuDepthStencilTargetStoreOp       <- SDLGPUStoreOp <$> (#{peek SDL_GPUDepthStencilTargetInfo, store_op} ptr :: IO CInt)
-    gpuDepthStencilTargetStencilLoadOp <- SDLGPULoadOp <$> (#{peek SDL_GPUDepthStencilTargetInfo, stencil_load_op} ptr :: IO CInt)
-    gpuDepthStencilTargetStencilStoreOp<- SDLGPUStoreOp <$> (#{peek SDL_GPUDepthStencilTargetInfo, stencil_store_op} ptr :: IO CInt)
-    gpuDepthStencilTargetCycle         <- toBool <$> (#{peek SDL_GPUDepthStencilTargetInfo, cycle} ptr :: IO CBool)
+    let depthStencilTexture = SDLGPUTexture texture_ptr
+    depthStencilClearDepth    <- realToFrac <$> (#{peek SDL_GPUDepthStencilTargetInfo, clear_depth} ptr :: IO CFloat)
+    depthStencilLoadOp        <- SDLGPULoadOp <$> (#{peek SDL_GPUDepthStencilTargetInfo, load_op} ptr :: IO CInt)
+    depthStencilStoreOp       <- SDLGPUStoreOp <$> (#{peek SDL_GPUDepthStencilTargetInfo, store_op} ptr :: IO CInt)
+    depthStencilStencilLoadOp <- SDLGPULoadOp <$> (#{peek SDL_GPUDepthStencilTargetInfo, stencil_load_op} ptr :: IO CInt)
+    depthStencilStencilStoreOp<- SDLGPUStoreOp <$> (#{peek SDL_GPUDepthStencilTargetInfo, stencil_store_op} ptr :: IO CInt)
+    depthStencilCycle         <- toBool <$> (#{peek SDL_GPUDepthStencilTargetInfo, cycle} ptr :: IO CBool)
     clear_stencil_c <- #{peek SDL_GPUDepthStencilTargetInfo, clear_stencil} ptr :: IO CUChar -- Peek as CUChar
-    let gpuDepthStencilTargetClearStencil = fromIntegral clear_stencil_c :: Word8 -- Convert to Word8
-    return SDLGPUDepthStencilTargetInfo { gpuDepthStencilTargetTexture       = gpuDepthStencilTargetTexture
-                                        , gpuDepthStencilTargetClearDepth    = gpuDepthStencilTargetClearDepth
-                                        , gpuDepthStencilTargetLoadOp        = gpuDepthStencilTargetLoadOp
-                                        , gpuDepthStencilTargetStoreOp       = gpuDepthStencilTargetStoreOp
-                                        , gpuDepthStencilTargetStencilLoadOp = gpuDepthStencilTargetStencilLoadOp
-                                        , gpuDepthStencilTargetStencilStoreOp= gpuDepthStencilTargetStencilStoreOp
-                                        , gpuDepthStencilTargetCycle         = gpuDepthStencilTargetCycle
-                                        , gpuDepthStencilTargetClearStencil  = gpuDepthStencilTargetClearStencil -- Use converted Word8
+    let depthStencilClearStencil = fromIntegral clear_stencil_c :: Word8 -- Convert to Word8
+    return SDLGPUDepthStencilTargetInfo { depthStencilTexture       = depthStencilTexture
+                                        , depthStencilClearDepth    = depthStencilClearDepth
+                                        , depthStencilLoadOp        = depthStencilLoadOp
+                                        , depthStencilStoreOp       = depthStencilStoreOp
+                                        , depthStencilStencilLoadOp = depthStencilStencilLoadOp
+                                        , depthStencilStencilStoreOp= depthStencilStencilStoreOp
+                                        , depthStencilCycle         = depthStencilCycle
+                                        , depthStencilClearStencil  = depthStencilClearStencil -- Use converted Word8
                                         }
   poke ptr SDLGPUDepthStencilTargetInfo{..} = do
-    let (SDLGPUTexture texture_ptr) = gpuDepthStencilTargetTexture
+    let (SDLGPUTexture texture_ptr) = depthStencilTexture
     #{poke SDL_GPUDepthStencilTargetInfo, texture} ptr texture_ptr
-    #{poke SDL_GPUDepthStencilTargetInfo, clear_depth} ptr (realToFrac gpuDepthStencilTargetClearDepth :: CFloat)
-    #{poke SDL_GPUDepthStencilTargetInfo, load_op} ptr ( (\(SDLGPULoadOp i) -> i) gpuDepthStencilTargetLoadOp :: CInt)
-    #{poke SDL_GPUDepthStencilTargetInfo, store_op} ptr ( (\(SDLGPUStoreOp i) -> i) gpuDepthStencilTargetStoreOp :: CInt)
-    #{poke SDL_GPUDepthStencilTargetInfo, stencil_load_op} ptr ( (\(SDLGPULoadOp i) -> i) gpuDepthStencilTargetStencilLoadOp :: CInt)
-    #{poke SDL_GPUDepthStencilTargetInfo, stencil_store_op} ptr ( (\(SDLGPUStoreOp i) -> i) gpuDepthStencilTargetStencilStoreOp :: CInt)
-    #{poke SDL_GPUDepthStencilTargetInfo, cycle} ptr (fromBool gpuDepthStencilTargetCycle :: CBool)
-    #{poke SDL_GPUDepthStencilTargetInfo, clear_stencil} ptr (fromIntegral gpuDepthStencilTargetClearStencil :: CUChar) -- Convert Word8 to CUChar
+    #{poke SDL_GPUDepthStencilTargetInfo, clear_depth} ptr (realToFrac depthStencilClearDepth :: CFloat)
+    #{poke SDL_GPUDepthStencilTargetInfo, load_op} ptr ( (\(SDLGPULoadOp i) -> i) depthStencilLoadOp :: CInt)
+    #{poke SDL_GPUDepthStencilTargetInfo, store_op} ptr ( (\(SDLGPUStoreOp i) -> i) depthStencilStoreOp :: CInt)
+    #{poke SDL_GPUDepthStencilTargetInfo, stencil_load_op} ptr ( (\(SDLGPULoadOp i) -> i) depthStencilStencilLoadOp :: CInt)
+    #{poke SDL_GPUDepthStencilTargetInfo, stencil_store_op} ptr ( (\(SDLGPUStoreOp i) -> i) depthStencilStencilStoreOp :: CInt)
+    #{poke SDL_GPUDepthStencilTargetInfo, cycle} ptr (fromBool depthStencilCycle :: CBool)
+    #{poke SDL_GPUDepthStencilTargetInfo, clear_stencil} ptr (fromIntegral depthStencilClearStencil :: CUChar) -- Convert Word8 to CUChar
     #{poke SDL_GPUDepthStencilTargetInfo, padding1} ptr (0 :: CUChar)
     #{poke SDL_GPUDepthStencilTargetInfo, padding2} ptr (0 :: CUChar)
 
@@ -2897,7 +2897,7 @@ sdlBindGPUFragmentStorageBuffers (SDLGPURenderPass rp) firstSlot buffers =
 foreign import ccall unsafe "SDL_DrawGPUIndexedPrimitives"
   c_sdlDrawGPUIndexedPrimitives :: Ptr SDLGPURenderPass -> CUInt -> CUInt -> CUInt -> CInt -> CUInt -> IO ()
 
-sdlDrawGPUIndexedPrimitives :: SDLGPURenderPass -> Word32 -> Word32 -> Word32 -> Int32 -> Word32 -> IO ()
+sdlDrawGPUIndexedPrimitives :: SDLGPURenderPass -> Word32 -> Word32 -> Word32 -> Word32 -> Word32 -> IO ()
 sdlDrawGPUIndexedPrimitives (SDLGPURenderPass rp) numIndices numInstances firstIndex vertexOffset firstInstance =
   c_sdlDrawGPUIndexedPrimitives rp
     (fromIntegral numIndices)
