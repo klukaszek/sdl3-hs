@@ -20,7 +20,7 @@ main :: IO ()
 main = do
   -- Check compiled version
   sdlLog $ "Compiled SDL Version: " ++ show sdlVersion
-  when (sdlVersionAtLeast 3 2 0) $ sdlLog "Compiled with at least SDL 3.2.0"
+  when (sdlVersionAtLeast 3 3 0) $ sdlLog "Compiled with at least SDL 3.3.0"
 
   -- Get linked version
   linkedVersion <- sdlGetVersion

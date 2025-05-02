@@ -12,9 +12,9 @@ SDL assertions operate like your usual assert macro, but with additional feature
 module SDL.Assert
   (
   -- * Types
-    SDL_AssertState(..)
-  , SDL_AssertData(..)
-  , SDL_AssertionHandler
+    SDLAssertState(..)
+  , SDLAssertData(..)
+  , SDLAssertionHandler
   
   -- * Functions
   , sdlReportAssertion
@@ -42,7 +42,7 @@ import Control.Monad
 import SDL.Stdinc (SDLBool)
 
 -- | Possible outcomes from a triggered assertion
-data SDL_AssertState = 
+data SDLAssertState = 
     SDL_ASSERTION_RETRY         -- ^ Retry the assert immediately
   | SDL_ASSERTION_BREAK         -- ^ Make the debugger trigger a breakpoint
   | SDL_ASSERTION_ABORT         -- ^ Terminate the program
@@ -51,21 +51,21 @@ data SDL_AssertState =
   deriving (Eq, Show, Enum)
 
 -- | Information about an assertion failure
-data SDL_AssertData = SDL_AssertData {
+data SDLAssertData = SDLAssertData {
     alwaysIgnore  :: Bool,             -- ^ true if app should always continue when assertion is triggered
     triggerCount  :: Word,             -- ^ Number of times this assertion has been triggered
     condition     :: String,           -- ^ A string of this assert's test code
     filename      :: String,           -- ^ The source file where this assert lives
     linenum       :: Int,              -- ^ The line in `filename` where this assert lives
     function      :: String,           -- ^ The name of the function where this assert lives
-    next          :: Maybe SDL_AssertData -- ^ next item in the linked list
+    next          :: Maybe SDLAssertData -- ^ next item in the linked list
 }
 
--- | Foreign representation of the SDL_AssertData structure
-data SDL_AssertData_FFI
+-- | Foreign representation of the SDLAssertData structure
+data SDLAssertDataFFI
 
 -- | Callback type for custom assertion handlers
-type SDL_AssertionHandler = Ptr SDL_AssertData_FFI -> Ptr () -> IO CInt
+type SDLAssertionHandler = Ptr SDLAssertDataFFI -> Ptr () -> IO CInt
 
 -- | The level of assertion aggressiveness
 sdlAssertLevel :: Int
@@ -77,23 +77,23 @@ sdlAssertLevel = 1  -- Release settings
 
 -- | Report an assertion failure
 foreign import ccall unsafe "SDL_ReportAssertion"
-  sdlReportAssertion :: Ptr SDL_AssertData_FFI -> CString -> CString -> CInt -> IO CInt
+  sdlReportAssertion :: Ptr SDLAssertDataFFI -> CString -> CString -> CInt -> IO CInt
 
 -- | Set an application-defined assertion handler
 foreign import ccall unsafe "SDL_SetAssertionHandler"
-  sdlSetAssertionHandler :: FunPtr SDL_AssertionHandler -> Ptr () -> IO ()
+  sdlSetAssertionHandler :: FunPtr SDLAssertionHandler -> Ptr () -> IO ()
 
 -- | Get the default assertion handler
 foreign import ccall unsafe "SDL_GetDefaultAssertionHandler"
-  sdlGetDefaultAssertionHandler :: IO (FunPtr SDL_AssertionHandler)
+  sdlGetDefaultAssertionHandler :: IO (FunPtr SDLAssertionHandler)
 
 -- | Get the current assertion handler
 foreign import ccall unsafe "SDL_GetAssertionHandler"
-  sdlGetAssertionHandler :: Ptr (Ptr ()) -> IO (FunPtr SDL_AssertionHandler)
+  sdlGetAssertionHandler :: Ptr (Ptr ()) -> IO (FunPtr SDLAssertionHandler)
 
 -- | Get a list of all assertion failures
 foreign import ccall unsafe "SDL_GetAssertionReport"
-  sdlGetAssertionReport :: IO (Ptr SDL_AssertData_FFI)
+  sdlGetAssertionReport :: IO (Ptr SDLAssertDataFFI)
 
 -- | Clear the list of all assertion failures
 foreign import ccall unsafe "SDL_ResetAssertionReport"
