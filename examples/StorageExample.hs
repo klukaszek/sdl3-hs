@@ -134,7 +134,7 @@ listDirectory storage = do
         pathStr <- peekCString path
         nameStr <- peekCString name
         sdlLog $ " - " ++ pathStr ++ "/" ++ nameStr
-        return sdlEnumSUCCESS
+        return SDL_ENUM_SUCCESS
   success <- sdlEnumerateStorageDirectory storage Nothing callback nullPtr
   unless success $ do
     sdlLog "Failed to enumerate directory!"

@@ -94,13 +94,13 @@ main = do
           sdlLog $ "Confirmed name: " ++ maybe "Unknown" id mName'
       
           -- Check for specific buttons and axes
-          forM_ [SDLGamepadButtonSouth, SDLGamepadButtonEast, SDLGamepadButtonWest, SDLGamepadButtonNorth] $ \btn -> do
+          forM_ [SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_EAST, SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_NORTH ] $ \btn -> do
             hasButton <- sdlGamepadHasButton gamepad btn
             when hasButton $ do
               btnLabel <- sdlGetGamepadButtonLabel gamepad btn
               sdlLog $ "Has button " ++ show btn ++ " with label: " ++ show btnLabel
 
-          forM_ [SDLGamepadAxisLeftX, SDLGamepadAxisLeftY, SDLGamepadAxisRightX, SDLGamepadAxisRightY] $ \axis -> do
+          forM_ [SDL_GAMEPAD_AXIS_LEFTX, SDL_GAMEPAD_AXIS_LEFTY, SDL_GAMEPAD_AXIS_RIGHTX, SDL_GAMEPAD_AXIS_RIGHTY] $ \axis -> do
             hasAxis <- sdlGamepadHasAxis gamepad axis
             when hasAxis $ do
               mAxisName <- sdlGetGamepadStringForAxis axis
@@ -145,12 +145,12 @@ main = do
             sdlUpdateGamepads  -- Update gamepad state
         
           -- Check some button states
-          forM_ [SDLGamepadButtonSouth, SDLGamepadButtonEast, SDLGamepadButtonWest, SDLGamepadButtonNorth] $ \btn -> do
+          forM_ [SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_EAST, SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_NORTH] $ \btn -> do
             pressed <- sdlGetGamepadButton gamepad btn
             when pressed $ sdlLog $ "Button " ++ show btn ++ " is pressed!"
         
           -- Check some axis values
-          forM_ [SDLGamepadAxisLeftX, SDLGamepadAxisLeftY, SDLGamepadAxisRightX, SDLGamepadAxisRightY] $ \axis -> do
+          forM_ [SDL_GAMEPAD_AXIS_LEFTX, SDL_GAMEPAD_AXIS_LEFTY, SDL_GAMEPAD_AXIS_RIGHTX, SDL_GAMEPAD_AXIS_RIGHTY] $ \axis -> do
             value <- sdlGetGamepadAxis gamepad axis
             when (abs (fromIntegral value) > 8000) $ 
               sdlLog $ "Axis " ++ show axis ++ " value: " ++ show value
@@ -158,7 +158,7 @@ main = do
           threadDelay 100000  -- 100ms delay between updates
       
           -- Close gamepad
-          sdlCloseGamepad (unSDLGamepad gamepad)
+          sdlCloseGamepad gamepad
           sdlLog "Gamepad closed."
 
   -- Clean up

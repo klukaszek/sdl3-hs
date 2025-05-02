@@ -1,4 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 -- SDL/Filesystem.hsc
 {-|
@@ -29,29 +30,13 @@ module SDL.Filesystem
 
     -- * Types and Enums
   , SDLFolder(..)
-  , sdlFolderHOME
-  , sdlFolderDESKTOP
-  , sdlFolderDOCUMENTS
-  , sdlFolderDOWNLOADS
-  , sdlFolderMUSIC
-  , sdlFolderPICTURES
-  , sdlFolderPUBLICSHARE
-  , sdlFolderSAVEDGAMES
-  , sdlFolderSCREENSHOTS
-  , sdlFolderTEMPLATES
-  , sdlFolderVIDEOS
+
   , SDLPathType(..)
-  , sdlPathTypeNONE
-  , sdlPathTypeFILE
-  , sdlPathTypeDIRECTORY
-  , sdlPathTypeOTHER
+
   , SDLPathInfo(..)
   , SDLGlobFlags(..)
-  , sdlGlobCaseInsensitive
+  , pattern SDL_GLOB_CASEINSENSITIVE
   , SDLEnumerationResult(..)
-  , sdlEnumCONTINUE
-  , sdlEnumSUCCESS
-  , sdlEnumFAILURE
   , SDLEnumerateDirectoryCallback
   ) where
 
@@ -65,33 +50,27 @@ import Control.Exception (bracket)
 import Control.Monad (when)
 
 -- | Type of OS-provided default folder (enum).
-newtype SDLFolder = SDLFolder { unSDLFolder :: CInt }
-  deriving (Show, Eq, Bits)
-
-#{enum SDLFolder, SDLFolder
- , sdlFolderHOME = SDL_FOLDER_HOME
- , sdlFolderDESKTOP = SDL_FOLDER_DESKTOP
- , sdlFolderDOCUMENTS = SDL_FOLDER_DOCUMENTS
- , sdlFolderDOWNLOADS = SDL_FOLDER_DOWNLOADS
- , sdlFolderMUSIC = SDL_FOLDER_MUSIC
- , sdlFolderPICTURES = SDL_FOLDER_PICTURES
- , sdlFolderPUBLICSHARE = SDL_FOLDER_PUBLICSHARE
- , sdlFolderSAVEDGAMES = SDL_FOLDER_SAVEDGAMES
- , sdlFolderSCREENSHOTS = SDL_FOLDER_SCREENSHOTS
- , sdlFolderTEMPLATES = SDL_FOLDER_TEMPLATES
- , sdlFolderVIDEOS = SDL_FOLDER_VIDEOS
- }
+data SDLFolder
+  = SDL_FOLDER_HOME
+  | SDL_FOLDER_DESKTOP
+  | SDL_FOLDER_DOCUMENTS
+  | SDL_FOLDER_DOWNLOADS
+  | SDL_FOLDER_MUSIC
+  | SDL_FOLDER_PICTURES
+  | SDL_FOLDER_PUBLICSHARE
+  | SDL_FOLDER_SAVEDGAMES
+  | SDL_FOLDER_SCREENSHOTS
+  | SDL_FOLDER_TEMPLATES
+  | SDL_FOLDER_VIDEOS
+  deriving (Show, Eq, Enum)
 
 -- | Types of filesystem entries (enum).
-newtype SDLPathType = SDLPathType { unSDLPathType :: CInt }
-  deriving (Show, Eq, Bits)
-
-#{enum SDLPathType, SDLPathType
- , sdlPathTypeNONE = SDL_PATHTYPE_NONE
- , sdlPathTypeFILE = SDL_PATHTYPE_FILE
- , sdlPathTypeDIRECTORY = SDL_PATHTYPE_DIRECTORY
- , sdlPathTypeOTHER = SDL_PATHTYPE_OTHER
- }
+data SDLPathType
+  = SDL_PATHTYPE_NONE
+  | SDL_PATHTYPE_FILE
+  | SDL_PATHTYPE_DIRECTORY
+  | SDL_PATHTYPE_OTHER
+  deriving (Show, Eq, Enum)
 
 -- | Information about a path on the filesystem
 data SDLPathInfo = SDLPathInfo
@@ -111,33 +90,30 @@ instance Storable SDLPathInfo where
     pCreate <- #{peek SDL_PathInfo, create_time} ptr
     pModify <- #{peek SDL_PathInfo, modify_time} ptr
     pAccess <- #{peek SDL_PathInfo, access_time} ptr
-    return $ SDLPathInfo (SDLPathType pType) pSize pCreate pModify pAccess
+    return $ SDLPathInfo (toEnum $ fromIntegral pType) pSize pCreate pModify pAccess
   poke ptr (SDLPathInfo pType pSize pCreate pModify pAccess) = do
-    #{poke SDL_PathInfo, type} ptr (unSDLPathType pType :: CInt)
+    #{poke SDL_PathInfo, type} ptr (fromEnum pType)
     #{poke SDL_PathInfo, size} ptr pSize
     #{poke SDL_PathInfo, create_time} ptr pCreate
     #{poke SDL_PathInfo, modify_time} ptr pModify
     #{poke SDL_PathInfo, access_time} ptr pAccess
 
 -- | Flags for path matching (bitfield).
-newtype SDLGlobFlags = SDLGlobFlags { unSDLGlobFlags :: Word32 }
+newtype SDLGlobFlags = SDLGlobFlags Word32
   deriving (Show, Eq, Bits)
 
-sdlGlobCaseInsensitive :: SDLGlobFlags
-sdlGlobCaseInsensitive = SDLGlobFlags #{const SDL_GLOB_CASEINSENSITIVE}
+pattern SDL_GLOB_CASEINSENSITIVE :: SDLGlobFlags
+pattern SDL_GLOB_CASEINSENSITIVE = SDLGlobFlags #{const SDL_GLOB_CASEINSENSITIVE}
 
 -- | Results from enumeration callback (enum).
-newtype SDLEnumerationResult = SDLEnumerationResult { unSDLEnumerationResult :: CInt }
-  deriving (Show, Eq, Bits)
-
-#{enum SDLEnumerationResult, SDLEnumerationResult
- , sdlEnumCONTINUE = SDL_ENUM_CONTINUE
- , sdlEnumSUCCESS = SDL_ENUM_SUCCESS
- , sdlEnumFAILURE = SDL_ENUM_FAILURE
- }
+data SDLEnumerationResult
+  = SDL_ENUM_CONTINUE
+  | SDL_ENUM_SUCCESS
+  | SDL_ENUM_FAILURE
+  deriving (Show, Eq, Enum)
 
 -- | Callback for directory enumeration
-type SDLEnumerateDirectoryCallback = Ptr () -> CString -> CString -> IO SDLEnumerationResult
+type SDLEnumerateDirectoryCallback = Ptr () -> CString -> CString -> IO CInt
 
 -- FFI Imports
 
@@ -190,7 +166,7 @@ sdlGetPrefPath org app =
 -- | Find the most suitable user folder for a specific purpose
 sdlGetUserFolder :: SDLFolder -> IO (Maybe String)
 sdlGetUserFolder folder = do
-  path <- sdlGetUserFolder_ (unSDLFolder folder)
+  path <- sdlGetUserFolder_ (fromIntegral $ fromEnum folder)
   if path == nullPtr
     then return Nothing
     else Just <$> peekCString path
@@ -238,11 +214,11 @@ sdlGetPathInfo path =
 
 -- | Enumerate a directory tree, filtered by pattern, and return a list
 sdlGlobDirectory :: String -> Maybe String -> SDLGlobFlags -> IO (Maybe [String])
-sdlGlobDirectory path pattern flags =
+sdlGlobDirectory path pat (SDLGlobFlags flags) =
   withCString path $ \pathPtr ->
-  maybeWith withCString pattern $ \patternPtr ->
+  maybeWith withCString pat $ \patternPtr ->
   alloca $ \countPtr -> do
-    results <- sdlGlobDirectory_ pathPtr patternPtr (unSDLGlobFlags flags) countPtr
+    results <- sdlGlobDirectory_ pathPtr patternPtr flags countPtr
     if results == nullPtr
       then return Nothing
       else do

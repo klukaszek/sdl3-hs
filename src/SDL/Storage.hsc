@@ -40,7 +40,7 @@ module SDL.Storage
 
 import Foreign
 import Foreign.C
-import SDL.Filesystem (SDLPathInfo, SDLEnumerationResult, unSDLEnumerationResult)
+import SDL.Filesystem (SDLPathInfo, SDLEnumerationResult(..), SDLGlobFlags(..))
 import SDL.Properties (SDLPropertiesID(..))
 
 -- | An opaque handle representing a storage container.
@@ -187,7 +187,7 @@ sdlCreateStorageDirectory storage path =
 sdlEnumerateStorageDirectory :: Ptr SDLStorage -> Maybe String -> (Ptr () -> CString -> CString -> IO SDLEnumerationResult) -> Ptr () -> IO Bool
 sdlEnumerateStorageDirectory storage path callback userdata =
   maybeWith withCString path $ \pathPtr -> do
-    callbackPtr <- mkEnumerateCallback $ \ud p n -> unSDLEnumerationResult <$> callback ud p n
+    callbackPtr <- mkEnumerateCallback $ \ud p n -> fromIntegral . fromEnum <$> callback ud p n
     result <- sdlEnumerateStorageDirectory_ storage pathPtr callbackPtr userdata
     freeHaskellFunPtr callbackPtr
     return result
@@ -228,11 +228,11 @@ sdlGetStorageSpaceRemaining = sdlGetStorageSpaceRemaining_
 
 -- | Enumerate a directory tree, filtered by pattern, and return a list.
 sdlGlobStorageDirectory :: Ptr SDLStorage -> Maybe String -> Maybe String -> SDLGlobFlags -> IO (Maybe [String])
-sdlGlobStorageDirectory storage path pattern flags =
+sdlGlobStorageDirectory storage path pattern (SDLGlobFlags flags) =
   maybeWith withCString path $ \pathPtr ->
   maybeWith withCString pattern $ \patternPtr ->
   alloca $ \countPtr -> do
-    result <- sdlGlobStorageDirectory_ storage pathPtr patternPtr (unSDLGlobFlags flags) countPtr
+    result <- sdlGlobStorageDirectory_ storage pathPtr patternPtr (fromIntegral flags) countPtr
     if result == nullPtr
       then return Nothing
       else do
@@ -241,13 +241,3 @@ sdlGlobStorageDirectory storage path pattern flags =
         free result
         return $ Just strings
 
--- Helper type for SDL_GlobFlags
-newtype SDLGlobFlags = SDLGlobFlags CInt
-  deriving (Show, Eq, Bits, Num)
-
-unSDLGlobFlags :: SDLGlobFlags -> CInt
-unSDLGlobFlags (SDLGlobFlags x) = x
-
-#{enum SDLGlobFlags, SDLGlobFlags
- , sdlGlobCaseInsensitive = SDL_GLOB_CASEINSENSITIVE
- }

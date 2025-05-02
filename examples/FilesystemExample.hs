@@ -45,7 +45,7 @@ main = do
         Just contents -> mapM_ (sdlLog . ("  - " ++)) contents
 
   -- Get and print the user's Documents folder
-  docsPath <- sdlGetUserFolder sdlFolderDOCUMENTS
+  docsPath <- sdlGetUserFolder SDL_FOLDER_DOCUMENTS
   sdlLog $ "Documents Path: " ++ maybe "Not available" id docsPath
 
   -- Clean up and quit

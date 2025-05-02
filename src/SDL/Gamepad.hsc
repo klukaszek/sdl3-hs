@@ -922,7 +922,10 @@ sdlSendGamepadEffect (SDLGamepad ptr) dataPtr size =
 
 -- | Close gamepad
 foreign import ccall "SDL_CloseGamepad"
-  sdlCloseGamepad :: Ptr SDLGamepad -> IO ()
+  sdlCloseGamepad_ :: Ptr SDLGamepad -> IO ()
+
+sdlCloseGamepad :: SDLGamepad -> IO ()
+sdlCloseGamepad (SDLGamepad ptr) = sdlCloseGamepad_ ptr   
 
 -- | Get Apple SF Symbols name for button
 foreign import ccall "SDL_GetGamepadAppleSFSymbolsNameForButton"
