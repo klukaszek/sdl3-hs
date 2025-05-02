@@ -62,7 +62,7 @@ module SDL.Video
     sdlGLCreateContext,
     sdlGLMakeCurrent,
     sdlGLSwapWindow,
-    sdlGLDestroyContext
+    sdlGLDestroyContext,
   ) where
 
 #include <SDL3/SDL_video.h>
@@ -74,6 +74,7 @@ import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Array (peekArray0, withArrayLen)
 import Foreign.Storable (Storable(..))
 import Control.Monad (liftM)
+import SDL.Raw
 import SDL.Rect (SDLRect(..))
 import SDL.Pixels (SDLPixelFormat(..), cUIntToPixelFormat, pixelFormatToCUInt)
 import SDL.Properties (SDLPropertiesID(..))
@@ -87,7 +88,7 @@ type SDLDisplayID = CUInt
 type SDLWindowID = CUInt
 
 -- | An opaque handle to an SDL window.
-newtype SDLWindow = SDLWindow { unSDLWindow :: Ptr SDLWindow }
+newtype SDLWindow = SDLWindow (Ptr SDLWindow)
   deriving (Show, Eq)
 
 -- | System theme enumeration.

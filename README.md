@@ -27,7 +27,7 @@ package *
 - [x] SDL3/SDL_camera.h
 - [x] SDL3/SDL_clipboard.h
 - [x] SDL3/SDL_cpuinfo.h
-- [x] SDL3/SDL_dialog.h
+- [x] SDL3/SDL_dialog.h (Example stopped working, must investigate)
 - [x] SDL3/SDL_endian.h
 - [x] SDL3/SDL_error.h
 - [x] SDL3/SDL_events.h

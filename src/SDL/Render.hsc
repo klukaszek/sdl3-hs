@@ -295,7 +295,7 @@ import SDL.Pixels (SDLPixelFormat(..), SDLFColor(..), pixelFormatToCUInt)
 import SDL.Properties (SDLPropertiesID(..))
 import SDL.Rect (SDLRect(..), SDLFPoint(..), SDLFRect(..))
 import SDL.Surface (SDLSurface(..), SDLFlipMode(..), SDLScaleMode(..))
-import SDL.Video (SDLWindow(..), SDLWindowFlags) -- Assuming Ptr SDLWindow, SDLWindowFlags=Word32
+import SDL.Video (SDLWindow(..), SDLWindowFlags)
 import SDL.GPU (SDLGPUShaderFormat(..), SDLGPUDevice(..), SDLGPUShader(..), SDLGPUTextureSamplerBinding(..), SDLGPUTexture(..), SDLGPUBuffer(..)) -- Import necessary GPU types
 
 -- Opaque Handle Types

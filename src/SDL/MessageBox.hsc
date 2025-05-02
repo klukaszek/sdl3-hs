@@ -52,6 +52,9 @@ import SDL.Pixels
 import SDL.Video
 import Data.Bits
 
+unSDLWindow :: SDLWindow -> Ptr SDLWindow
+unSDLWindow (SDLWindow ptr) = ptr
+
 -- | Flags for message box display properties
 data SDLMessageBoxFlags
   = SDLMessageBoxError                    -- ^ error dialog

@@ -63,29 +63,29 @@ main = do
         sdlShowOpenFileDialog 
           callbackPtr
           nullPtr       
-          (unSDLWindow window)
+          (Just window)
           filtersPtr    
-          nfilters      
-          nullPtr       
-          1            -- allow multiple selection (1 for True)
+          (fromIntegral nfilters)      
+          Nothing
+          True
 
       sdlLog "\nShowing Save File Dialog..."
       withFilters filters $ \filtersPtr nfilters ->
         sdlShowSaveFileDialog
           callbackPtr
           nullPtr       
-          (unSDLWindow window)
+          (Just window)
           filtersPtr    
-          nfilters      
-          nullPtr       
+          (fromIntegral nfilters)      
+          Nothing       
 
       sdlLog "\nShowing Folder Dialog..."
       sdlShowOpenFolderDialog
         callbackPtr
         nullPtr        
-        (unSDLWindow window)
-        nullPtr        
-        0             -- single selection only (0 for False)
+        (Just window)
+        Nothing
+        False 
 
       -- Show a dialog with custom properties
       sdlLog "\nShowing Custom Dialog..."
@@ -97,7 +97,7 @@ main = do
       sdlSetStringProperty props sdlPropFileDialogCancelString "Never Mind"
 
       sdlShowFileDialogWithProperties 
-        (fromIntegral $ fromEnum SDL_FILEDIALOG_OPENFILE)
+        SDL_FILEDIALOG_OPENFILE
         callbackPtr
         nullPtr
         props

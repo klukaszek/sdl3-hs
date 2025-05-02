@@ -41,7 +41,7 @@ main = do
   mapM_ printSubsystem initializedSystems
 
   -- Load the WAV file
-  maybeWav <- sdlLoadWAV "assets/sound.wav"
+  maybeWav <- sdlLoadWAV "examples/Content/Audio/sound.wav"
   case maybeWav of
     Nothing -> do
       sdlLog "Failed to load WAV file!"

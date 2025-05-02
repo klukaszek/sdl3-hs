@@ -1,38 +1,87 @@
+-- SDL/Mouse.hsc
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE DerivingStrategies #-}
 
-{-|
-Module      : SDL.Mouse
-Description : Mouse input handling for SDL applications
-Copyright   : (c) Kyle Lukaszek, 2025
-License     : BSD3
+-- |
+-- Module      : SDL.Mouse
+-- Description : Mouse input handling for SDL applications
+-- Copyright   : (c) Kyle Lukaszek, 2025
+-- License     : BSD3
+--
+-- This module provides bindings to the SDL3 mouse handling API, allowing Haskell applications
+-- to interact with mouse input. It supports cursor management, mouse state tracking,
+-- multiple mice, and relative mouse mode.
+--
+-- Functions are provided to query mouse position and button states, create and manage
+-- cursors, and handle mouse capture for operations like dragging.
 
-This module provides bindings to the SDL3 mouse handling API, allowing Haskell applications
-to interact with mouse input. It supports cursor management, mouse state tracking, 
-multiple mice, and relative mouse mode.
-
-Functions are provided to query mouse position and button states, create and manage
-cursors, and handle mouse capture for operations like dragging.
--}
+#include <SDL3/SDL_mouse.h>
+#include <SDL3/SDL_stdinc.h> -- For CBool
 
 module SDL.Mouse
-  ( -- * Mouse Management
-    SDLMouseID(..)
+  ( -- * Types
+    SDLMouseID
+  , SDLCursor(..)
+  , SDLMouseButtonFlags
+  , SDLSystemCursor(..)
+  , SDLMouseWheelDirection(..)
+  , SDLMouseMotionTransformCallback
+
+    -- * Patterns / Constants
+    -- ** System Cursors
+  , pattern SDL_SYSTEM_CURSOR_DEFAULT
+  , pattern SDL_SYSTEM_CURSOR_TEXT
+  , pattern SDL_SYSTEM_CURSOR_WAIT
+  , pattern SDL_SYSTEM_CURSOR_CROSSHAIR
+  , pattern SDL_SYSTEM_CURSOR_PROGRESS
+  , pattern SDL_SYSTEM_CURSOR_NWSE_RESIZE
+  , pattern SDL_SYSTEM_CURSOR_NESW_RESIZE
+  , pattern SDL_SYSTEM_CURSOR_EW_RESIZE
+  , pattern SDL_SYSTEM_CURSOR_NS_RESIZE
+  , pattern SDL_SYSTEM_CURSOR_MOVE
+  , pattern SDL_SYSTEM_CURSOR_NOT_ALLOWED
+  , pattern SDL_SYSTEM_CURSOR_POINTER
+  , pattern SDL_SYSTEM_CURSOR_NW_RESIZE
+  , pattern SDL_SYSTEM_CURSOR_N_RESIZE
+  , pattern SDL_SYSTEM_CURSOR_NE_RESIZE
+  , pattern SDL_SYSTEM_CURSOR_E_RESIZE
+  , pattern SDL_SYSTEM_CURSOR_SE_RESIZE
+  , pattern SDL_SYSTEM_CURSOR_S_RESIZE
+  , pattern SDL_SYSTEM_CURSOR_SW_RESIZE
+  , pattern SDL_SYSTEM_CURSOR_W_RESIZE
+    -- ** Mouse Wheel Direction
+  , pattern SDL_MOUSEWHEEL_NORMAL
+  , pattern SDL_MOUSEWHEEL_FLIPPED
+    -- ** Mouse Buttons (Indices)
+  , pattern SDL_BUTTON_LEFT
+  , pattern SDL_BUTTON_MIDDLE
+  , pattern SDL_BUTTON_RIGHT
+  , pattern SDL_BUTTON_X1
+  , pattern SDL_BUTTON_X2
+    -- ** Mouse Button Masks
+  , pattern SDL_BUTTON_LMASK
+  , pattern SDL_BUTTON_MMASK
+  , pattern SDL_BUTTON_RMASK
+  , pattern SDL_BUTTON_X1MASK
+  , pattern SDL_BUTTON_X2MASK
+
+    -- * Mouse Management
   , sdlHasMouse
   , sdlGetMice
   , sdlGetMouseNameForID
   , sdlGetMouseFocus
 
     -- * Mouse State
-  , SDLMouseButtonFlags
   , sdlGetMouseState
   , sdlGetGlobalMouseState
   , sdlGetRelativeMouseState
-  
+
     -- * Mouse Position Control
   , sdlWarpMouseInWindow
   , sdlWarpMouseGlobal
   , sdlSetRelativeMouseTransform
-  , SDLMouseMotionTransformCallback
 
     -- * Relative Mouse Mode
   , sdlSetWindowRelativeMouseMode
@@ -40,8 +89,6 @@ module SDL.Mouse
   , sdlCaptureMouse
 
     -- * Cursor Management
-  , SDLCursor(..)
-  , SDLSystemCursor(..)
   , sdlCreateCursor
   , sdlCreateColorCursor
   , sdlCreateSystemCursor
@@ -52,283 +99,366 @@ module SDL.Mouse
   , sdlShowCursor
   , sdlHideCursor
   , sdlCursorVisible
-
-    -- * Mouse Wheel Direction
-  , SDLMouseWheelDirection(..)
-  
-    -- * Mouse Button Constants
-  , sdlBUTTON_LEFT
-  , sdlBUTTON_MIDDLE
-  , sdlBUTTON_RIGHT
-  , sdlBUTTON_X1
-  , sdlBUTTON_X2
-  , sdlBUTTON_LMASK
-  , sdlBUTTON_MMASK
-  , sdlBUTTON_RMASK
-  , sdlBUTTON_X1MASK
-  , sdlBUTTON_X2MASK
   ) where
 
 import Foreign hiding (free)
 import Foreign.C.Types
 import Foreign.C.String
+import Foreign.Marshal.Alloc (alloca)
+import Foreign.Marshal.Array (peekArray)
+import Foreign.Marshal.Utils (maybeWith, with, toBool) -- Added with, toBool
 import Data.Word
 import Data.Int
 import Control.Monad
 
-import SDL.Stdinc
-import SDL.Error
-import SDL.Surface
-import SDL.Video
+-- Assuming these types are defined elsewhere consistently
+import SDL.Error (sdlGetError)
+import SDL.Stdinc (free, SDLBool(..)) -- Or directly use CBool/Bool
+import SDL.Surface (SDLSurface) -- Assuming 'data SDLSurface' with Storable
+import SDL.Video (SDLWindow(..)) -- Assuming 'newtype SDLWindow (Ptr SDL_Window)'
 
-#include <SDL3/SDL_mouse.h>
+-- Opaque C struct types for FFI clarity
+data SDL_Cursor
+data SDL_Surface
 
 -- | Unique ID for a mouse for the time it is connected to the system.
 -- The value 0 is an invalid ID.
 type SDLMouseID = Word32
 
 -- | An opaque structure used to identify an SDL cursor.
-newtype SDLCursor = SDLCursor { unSDLCursor :: Ptr SDLCursor }
+newtype SDLCursor = SDLCursor (Ptr SDL_Cursor)
   deriving (Show, Eq)
 
 -- | A bitmask of pressed mouse buttons, as reported by sdlGetMouseState, etc.
 type SDLMouseButtonFlags = Word32
 
 -- | Callback used to transform mouse motion delta from raw values.
-type SDLMouseMotionTransformCallback = 
+type SDLMouseMotionTransformCallback =
   Ptr () ->              -- userdata
   Word64 ->              -- timestamp
-  Ptr SDLWindow ->       -- window
+  Ptr SDLWindow ->      -- window pointer
   SDLMouseID ->          -- mouseID
   Ptr CFloat ->          -- x pointer
   Ptr CFloat ->          -- y pointer
   IO ()
 
 -- | System cursor types for sdlCreateSystemCursor.
-data SDLSystemCursor
-  = SDL_SYSTEM_CURSOR_DEFAULT      -- ^ Default cursor. Usually an arrow.
-  | SDL_SYSTEM_CURSOR_TEXT         -- ^ Text selection. Usually an I-beam.
-  | SDL_SYSTEM_CURSOR_WAIT         -- ^ Wait. Usually an hourglass or watch or spinning ball.
-  | SDL_SYSTEM_CURSOR_CROSSHAIR    -- ^ Crosshair.
-  | SDL_SYSTEM_CURSOR_PROGRESS     -- ^ Program is busy but still interactive. Usually it's WAIT with an arrow.
-  | SDL_SYSTEM_CURSOR_NWSE_RESIZE  -- ^ Double arrow pointing northwest and southeast.
-  | SDL_SYSTEM_CURSOR_NESW_RESIZE  -- ^ Double arrow pointing northeast and southwest.
-  | SDL_SYSTEM_CURSOR_EW_RESIZE    -- ^ Double arrow pointing west and east.
-  | SDL_SYSTEM_CURSOR_NS_RESIZE    -- ^ Double arrow pointing north and south.
-  | SDL_SYSTEM_CURSOR_MOVE         -- ^ Four pointed arrow pointing north, south, east, and west.
-  | SDL_SYSTEM_CURSOR_NOT_ALLOWED  -- ^ Not permitted. Usually a slashed circle or crossbones.
-  | SDL_SYSTEM_CURSOR_POINTER      -- ^ Pointer that indicates a link. Usually a pointing hand.
-  | SDL_SYSTEM_CURSOR_NW_RESIZE    -- ^ Window resize top-left. This may be a single arrow or a double arrow.
-  | SDL_SYSTEM_CURSOR_N_RESIZE     -- ^ Window resize top. May be NS_RESIZE.
-  | SDL_SYSTEM_CURSOR_NE_RESIZE    -- ^ Window resize top-right. May be NESW_RESIZE.
-  | SDL_SYSTEM_CURSOR_E_RESIZE     -- ^ Window resize right. May be EW_RESIZE.
-  | SDL_SYSTEM_CURSOR_SE_RESIZE    -- ^ Window resize bottom-right. May be NWSE_RESIZE.
-  | SDL_SYSTEM_CURSOR_S_RESIZE     -- ^ Window resize bottom. May be NS_RESIZE.
-  | SDL_SYSTEM_CURSOR_SW_RESIZE    -- ^ Window resize bottom-left. May be NESW_RESIZE.
-  | SDL_SYSTEM_CURSOR_W_RESIZE     -- ^ Window resize left. May be EW_RESIZE.
-  deriving (Show, Eq, Enum)
+newtype SDLSystemCursor = SDLSystemCursor CInt
+  deriving newtype (Show, Eq, Ord, Storable, Enum)
+
+pattern SDL_SYSTEM_CURSOR_DEFAULT :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_DEFAULT      = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_DEFAULT}
+pattern SDL_SYSTEM_CURSOR_TEXT :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_TEXT         = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_TEXT}
+pattern SDL_SYSTEM_CURSOR_WAIT :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_WAIT         = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_WAIT}
+pattern SDL_SYSTEM_CURSOR_CROSSHAIR :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_CROSSHAIR    = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_CROSSHAIR}
+pattern SDL_SYSTEM_CURSOR_PROGRESS :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_PROGRESS     = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_PROGRESS}
+pattern SDL_SYSTEM_CURSOR_NWSE_RESIZE :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_NWSE_RESIZE  = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_NWSE_RESIZE}
+pattern SDL_SYSTEM_CURSOR_NESW_RESIZE :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_NESW_RESIZE  = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_NESW_RESIZE}
+pattern SDL_SYSTEM_CURSOR_EW_RESIZE :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_EW_RESIZE    = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_EW_RESIZE}
+pattern SDL_SYSTEM_CURSOR_NS_RESIZE :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_NS_RESIZE    = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_NS_RESIZE}
+pattern SDL_SYSTEM_CURSOR_MOVE :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_MOVE         = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_MOVE}
+pattern SDL_SYSTEM_CURSOR_NOT_ALLOWED :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_NOT_ALLOWED  = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_NOT_ALLOWED}
+pattern SDL_SYSTEM_CURSOR_POINTER :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_POINTER      = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_POINTER}
+pattern SDL_SYSTEM_CURSOR_NW_RESIZE :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_NW_RESIZE    = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_NW_RESIZE}
+pattern SDL_SYSTEM_CURSOR_N_RESIZE :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_N_RESIZE     = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_N_RESIZE}
+pattern SDL_SYSTEM_CURSOR_NE_RESIZE :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_NE_RESIZE    = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_NE_RESIZE}
+pattern SDL_SYSTEM_CURSOR_E_RESIZE :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_E_RESIZE     = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_E_RESIZE}
+pattern SDL_SYSTEM_CURSOR_SE_RESIZE :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_SE_RESIZE    = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_SE_RESIZE}
+pattern SDL_SYSTEM_CURSOR_S_RESIZE :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_S_RESIZE     = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_S_RESIZE}
+pattern SDL_SYSTEM_CURSOR_SW_RESIZE :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_SW_RESIZE    = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_SW_RESIZE}
+pattern SDL_SYSTEM_CURSOR_W_RESIZE :: SDLSystemCursor
+pattern SDL_SYSTEM_CURSOR_W_RESIZE     = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_W_RESIZE}
 
 -- | Scroll direction types for the Scroll event
-data SDLMouseWheelDirection
-  = SDL_MOUSEWHEEL_NORMAL    -- ^ The scroll direction is normal
-  | SDL_MOUSEWHEEL_FLIPPED   -- ^ The scroll direction is flipped / natural
-  deriving (Show, Eq, Enum)
+newtype SDLMouseWheelDirection = SDLMouseWheelDirection CUInt -- C enum uses Uint32
+  deriving newtype (Show, Eq, Ord, Storable, Enum)
 
--- Mouse button constants
-sdlBUTTON_LEFT, sdlBUTTON_MIDDLE, sdlBUTTON_RIGHT, sdlBUTTON_X1, sdlBUTTON_X2 :: Int
-sdlBUTTON_LEFT   = #{const SDL_BUTTON_LEFT}
-sdlBUTTON_MIDDLE = #{const SDL_BUTTON_MIDDLE}
-sdlBUTTON_RIGHT  = #{const SDL_BUTTON_RIGHT}
-sdlBUTTON_X1     = #{const SDL_BUTTON_X1}
-sdlBUTTON_X2     = #{const SDL_BUTTON_X2}
+pattern SDL_MOUSEWHEEL_NORMAL :: SDLMouseWheelDirection
+pattern SDL_MOUSEWHEEL_NORMAL = SDLMouseWheelDirection #{const SDL_MOUSEWHEEL_NORMAL}
+pattern SDL_MOUSEWHEEL_FLIPPED :: SDLMouseWheelDirection
+pattern SDL_MOUSEWHEEL_FLIPPED = SDLMouseWheelDirection #{const SDL_MOUSEWHEEL_FLIPPED}
 
--- Mouse button masks
-sdlBUTTON_LMASK, sdlBUTTON_MMASK, sdlBUTTON_RMASK, sdlBUTTON_X1MASK, sdlBUTTON_X2MASK :: Word32
-sdlBUTTON_LMASK  = #{const SDL_BUTTON_LMASK}
-sdlBUTTON_MMASK  = #{const SDL_BUTTON_MMASK}
-sdlBUTTON_RMASK  = #{const SDL_BUTTON_RMASK}
-sdlBUTTON_X1MASK = #{const SDL_BUTTON_X1MASK}
-sdlBUTTON_X2MASK = #{const SDL_BUTTON_X2MASK}
+-- Mouse button constants (Indices)
+pattern SDL_BUTTON_LEFT :: Int
+pattern SDL_BUTTON_LEFT   = #{const SDL_BUTTON_LEFT}
+pattern SDL_BUTTON_MIDDLE :: Int
+pattern SDL_BUTTON_MIDDLE = #{const SDL_BUTTON_MIDDLE}
+pattern SDL_BUTTON_RIGHT :: Int
+pattern SDL_BUTTON_RIGHT  = #{const SDL_BUTTON_RIGHT}
+pattern SDL_BUTTON_X1 :: Int
+pattern SDL_BUTTON_X1     = #{const SDL_BUTTON_X1}
+pattern SDL_BUTTON_X2 :: Int
+pattern SDL_BUTTON_X2     = #{const SDL_BUTTON_X2}
+
+-- Mouse button masks (Flags)
+pattern SDL_BUTTON_LMASK :: SDLMouseButtonFlags
+pattern SDL_BUTTON_LMASK  = #{const SDL_BUTTON_LMASK}
+pattern SDL_BUTTON_MMASK :: SDLMouseButtonFlags
+pattern SDL_BUTTON_MMASK  = #{const SDL_BUTTON_MMASK}
+pattern SDL_BUTTON_RMASK :: SDLMouseButtonFlags
+pattern SDL_BUTTON_RMASK  = #{const SDL_BUTTON_RMASK}
+pattern SDL_BUTTON_X1MASK :: SDLMouseButtonFlags
+pattern SDL_BUTTON_X1MASK = #{const SDL_BUTTON_X1MASK}
+pattern SDL_BUTTON_X2MASK :: SDLMouseButtonFlags
+pattern SDL_BUTTON_X2MASK = #{const SDL_BUTTON_X2MASK}
+
+-- * Mouse Management
 
 -- | Return whether a mouse is currently connected.
-foreign import ccall "SDL_HasMouse" sdlHasMouse :: IO Bool
+foreign import ccall unsafe "SDL_HasMouse" sdlHasMouse :: IO CBool
 
 -- | Get a list of currently connected mice.
-foreign import ccall "SDL_GetMice" sdlGetMiceRaw :: Ptr CInt -> IO (Ptr Word32)
+-- Memory allocated by SDL must be freed by the caller.
+foreign import ccall unsafe "SDL_GetMice"
+  c_sdlGetMice :: Ptr CInt -> IO (Ptr SDLMouseID)
 
 sdlGetMice :: IO [SDLMouseID]
 sdlGetMice = alloca $ \countPtr -> do
-  pArr <- sdlGetMiceRaw countPtr
-  if pArr == nullPtr
+  idPtr <- c_sdlGetMice countPtr
+  if idPtr == nullPtr
     then return []
     else do
       count <- peek countPtr
-      arr <- peekArray (fromIntegral count) pArr
-      free (castPtr pArr)
-      return $ arr
+      ids <- peekArray (fromIntegral count) idPtr
+      -- Free the memory allocated by SDL
+      free (castPtr idPtr)
+      return ids
 
--- | Get the name of a mouse.
-foreign import ccall "SDL_GetMouseNameForID" sdlGetMouseNameForIDRaw :: Word32 -> IO CString
+-- | Get the name of a mouse. The returned string is owned by SDL.
+foreign import ccall unsafe "SDL_GetMouseNameForID"
+  c_sdlGetMouseNameForID :: SDLMouseID -> IO CString
 
 sdlGetMouseNameForID :: SDLMouseID -> IO (Maybe String)
-sdlGetMouseNameForID id = do
-  cstr <- sdlGetMouseNameForIDRaw id
-  if cstr == nullPtr
+sdlGetMouseNameForID mid = do
+  cStr <- c_sdlGetMouseNameForID mid
+  if cStr == nullPtr
     then return Nothing
-    else Just <$> peekCString cstr
+    else Just <$> peekCString cStr
 
--- | Get the window which currently has mouse focus.
-foreign import ccall "SDL_GetMouseFocus" sdlGetMouseFocus :: IO (Ptr SDLWindow)
+foreign import ccall unsafe "SDL_GetMouseFocus"
+  c_sdlGetMouseFocus :: IO (Ptr SDLWindow)
+
+sdlGetMouseFocus :: IO (Maybe SDLWindow)
+sdlGetMouseFocus = do
+  ptr <- c_sdlGetMouseFocus
+  -- This works because GHC treats the ptr type from FFI
+  -- as compatible with the Ptr SDL_Window expected by the
+  -- imported SDLWindow constructor (since both ultimately refer
+  -- to the same underlying C type despite the Haskell scoping).
+  pure $ if ptr == nullPtr then Nothing else Just (SDLWindow ptr)
+
+-- * Mouse State
 
 -- | Query SDL's cache for the synchronous mouse button state and the
 -- window-relative SDL-cursor position.
-foreign import ccall "SDL_GetMouseState" sdlGetMouseStateRaw :: Ptr CFloat -> Ptr CFloat -> IO Word32
+foreign import ccall unsafe "SDL_GetMouseState"
+  c_sdlGetMouseState :: Ptr CFloat -> Ptr CFloat -> IO SDLMouseButtonFlags
 
 sdlGetMouseState :: IO (SDLMouseButtonFlags, Maybe (Float, Float))
-sdlGetMouseState = alloca $ \xPtr -> 
+sdlGetMouseState = alloca $ \xPtr ->
   alloca $ \yPtr -> do
-    buttons <- sdlGetMouseStateRaw xPtr yPtr
-    x <- peek xPtr
-    y <- peek yPtr
-    return (buttons, Just (realToFrac x, realToFrac y))
+    buttons <- c_sdlGetMouseState xPtr yPtr
+    -- Check if coordinates are valid (they might not be if no window has focus?)
+    -- SDL doesn't explicitly document this, but it's safer.
+    -- We'll assume non-negative means valid for now.
+    x <- realToFrac <$> peek xPtr
+    y <- realToFrac <$> peek yPtr
+    -- A better check might involve querying focus, but let's return Maybe
+    -- based on some heuristic or always return Just if SDL guarantees it.
+    -- For simplicity, let's assume SDL provides coordinates if focus exists.
+    mFocus <- sdlGetMouseFocus
+    let pos = if mFocus == Nothing && x == 0 && y == 0 -- Heuristic guess
+              then Nothing
+              else Just (x, y)
+    return (buttons, pos)
 
 -- | Query the platform for the asynchronous mouse button state and the
 -- desktop-relative platform-cursor position.
-foreign import ccall "SDL_GetGlobalMouseState" sdlGetGlobalMouseStateRaw :: Ptr CFloat -> Ptr CFloat -> IO Word32
+foreign import ccall unsafe "SDL_GetGlobalMouseState"
+  c_sdlGetGlobalMouseState :: Ptr CFloat -> Ptr CFloat -> IO SDLMouseButtonFlags
 
-sdlGetGlobalMouseState :: IO (SDLMouseButtonFlags, Maybe (Float, Float))
-sdlGetGlobalMouseState = alloca $ \xPtr -> 
+sdlGetGlobalMouseState :: IO (SDLMouseButtonFlags, (Float, Float))
+sdlGetGlobalMouseState = alloca $ \xPtr ->
   alloca $ \yPtr -> do
-    buttons <- sdlGetGlobalMouseStateRaw xPtr yPtr
-    x <- peek xPtr
-    y <- peek yPtr
-    return (buttons, Just (realToFrac x, realToFrac y))
+    buttons <- c_sdlGetGlobalMouseState xPtr yPtr
+    x <- realToFrac <$> peek xPtr
+    y <- realToFrac <$> peek yPtr
+    return (buttons, (x, y))
 
 -- | Query SDL's cache for the synchronous mouse button state and accumulated
 -- mouse delta since last call.
-foreign import ccall "SDL_GetRelativeMouseState" sdlGetRelativeMouseStateRaw :: Ptr CFloat -> Ptr CFloat -> IO Word32
+foreign import ccall unsafe "SDL_GetRelativeMouseState"
+  c_sdlGetRelativeMouseState :: Ptr CFloat -> Ptr CFloat -> IO SDLMouseButtonFlags
 
-sdlGetRelativeMouseState :: IO (SDLMouseButtonFlags, Maybe (Float, Float))
-sdlGetRelativeMouseState = alloca $ \xPtr -> 
+sdlGetRelativeMouseState :: IO (SDLMouseButtonFlags, (Float, Float))
+sdlGetRelativeMouseState = alloca $ \xPtr ->
   alloca $ \yPtr -> do
-    buttons <- sdlGetRelativeMouseStateRaw xPtr yPtr
-    x <- peek xPtr
-    y <- peek yPtr
-    return (buttons, Just (realToFrac x, realToFrac y))
+    buttons <- c_sdlGetRelativeMouseState xPtr yPtr
+    x <- realToFrac <$> peek xPtr
+    y <- realToFrac <$> peek yPtr
+    return (buttons, (x, y))
+
+-- * Mouse Position Control
 
 -- | Move the mouse cursor to the given position within the window.
-foreign import ccall "SDL_WarpMouseInWindow" sdlWarpMouseInWindowRaw :: Ptr SDLWindow -> CFloat -> CFloat -> IO ()
+foreign import ccall unsafe "SDL_WarpMouseInWindow"
+  c_sdlWarpMouseInWindow :: Ptr SDLWindow -> CFloat -> CFloat -> IO ()
 
 sdlWarpMouseInWindow :: Maybe SDLWindow -> Float -> Float -> IO ()
-sdlWarpMouseInWindow window x y = 
-  sdlWarpMouseInWindowRaw windowPtr (realToFrac x) (realToFrac y)
-  where
-    windowPtr = maybe nullPtr unSDLWindow window
+sdlWarpMouseInWindow mWindow x y =
+  let windowPtr = maybe nullPtr (\(SDLWindow p) -> p) mWindow
+  in c_sdlWarpMouseInWindow windowPtr (realToFrac x) (realToFrac y)
 
 -- | Move the mouse to the given position in global screen space.
-foreign import ccall "SDL_WarpMouseGlobal" sdlWarpMouseGlobalRaw :: CFloat -> CFloat -> IO Bool
+foreign import ccall unsafe "SDL_WarpMouseGlobal"
+  c_sdlWarpMouseGlobal :: CFloat -> CFloat -> IO CBool
 
 sdlWarpMouseGlobal :: Float -> Float -> IO Bool
-sdlWarpMouseGlobal x y = sdlWarpMouseGlobalRaw (realToFrac x) (realToFrac y)
+sdlWarpMouseGlobal x y = toBool <$> c_sdlWarpMouseGlobal (realToFrac x) (realToFrac y)
 
 -- | Set a user-defined function by which to transform relative mouse inputs.
-foreign import ccall "wrapper" wrapMouseMotionTransform :: 
-  SDLMouseMotionTransformCallback -> IO (FunPtr SDLMouseMotionTransformCallback)
+foreign import ccall "wrapper"
+  wrapMouseMotionTransform :: SDLMouseMotionTransformCallback -> IO (FunPtr SDLMouseMotionTransformCallback)
 
-foreign import ccall "SDL_SetRelativeMouseTransform" 
-  sdlSetRelativeMouseTransformRaw :: FunPtr SDLMouseMotionTransformCallback -> Ptr () -> IO Bool
+foreign import ccall unsafe "SDL_SetRelativeMouseTransform"
+  c_sdlSetRelativeMouseTransform :: FunPtr SDLMouseMotionTransformCallback -> Ptr () -> IO CBool
 
 sdlSetRelativeMouseTransform :: Maybe SDLMouseMotionTransformCallback -> Ptr () -> IO Bool
-sdlSetRelativeMouseTransform Nothing userdata = 
-  sdlSetRelativeMouseTransformRaw nullFunPtr userdata
+sdlSetRelativeMouseTransform Nothing userdata =
+  toBool <$> c_sdlSetRelativeMouseTransform nullFunPtr userdata
 sdlSetRelativeMouseTransform (Just callback) userdata = do
   callbackPtr <- wrapMouseMotionTransform callback
-  sdlSetRelativeMouseTransformRaw callbackPtr userdata
+  toBool <$> c_sdlSetRelativeMouseTransform callbackPtr userdata
+
+-- * Relative Mouse Mode
 
 -- | Set relative mouse mode for a window.
-foreign import ccall "SDL_SetWindowRelativeMouseMode" 
-  sdlSetWindowRelativeMouseMode :: Ptr SDLWindow -> Bool -> IO Bool
+foreign import ccall unsafe "SDL_SetWindowRelativeMouseMode"
+  c_sdlSetWindowRelativeMouseMode :: Ptr SDLWindow -> CBool -> IO CBool
+
+sdlSetWindowRelativeMouseMode :: SDLWindow -> Bool -> IO Bool
+sdlSetWindowRelativeMouseMode (SDLWindow windowPtr) enabled =
+  toBool <$> c_sdlSetWindowRelativeMouseMode windowPtr (fromIntegral $ fromEnum enabled)
 
 -- | Query whether relative mouse mode is enabled for a window.
-foreign import ccall "SDL_GetWindowRelativeMouseMode" 
-  sdlGetWindowRelativeMouseMode :: Ptr SDLWindow -> IO Bool
+foreign import ccall unsafe "SDL_GetWindowRelativeMouseMode"
+  c_sdlGetWindowRelativeMouseMode :: Ptr SDLWindow -> IO CBool
 
--- | Capture the mouse and to track input outside an SDL window.
-foreign import ccall "SDL_CaptureMouse" sdlCaptureMouse :: Bool -> IO Bool
+sdlGetWindowRelativeMouseMode :: SDLWindow -> IO Bool
+sdlGetWindowRelativeMouseMode (SDLWindow windowPtr) = toBool <$> c_sdlGetWindowRelativeMouseMode windowPtr
+
+-- | Capture the mouse and track input outside an SDL window.
+foreign import ccall unsafe "SDL_CaptureMouse"
+  c_sdlCaptureMouse :: CBool -> IO CBool
+
+sdlCaptureMouse :: Bool -> IO Bool
+sdlCaptureMouse enabled = toBool <$> c_sdlCaptureMouse (fromIntegral $ fromEnum enabled)
+
+-- * Cursor Management
 
 -- | Create a cursor using the specified bitmap data and mask (in MSB format).
-foreign import ccall "SDL_CreateCursor" sdlCreateCursorRaw :: 
-  Ptr Word8 -> Ptr Word8 -> CInt -> CInt -> CInt -> CInt -> IO (Ptr SDLCursor)
+foreign import ccall unsafe "SDL_CreateCursor"
+  c_sdlCreateCursor :: Ptr Word8 -> Ptr Word8 -> CInt -> CInt -> CInt -> CInt -> IO (Ptr SDL_Cursor)
 
-sdlCreateCursor :: Ptr Word8 -> Ptr Word8 -> Int -> Int -> Int -> Int -> IO SDLCursor
-sdlCreateCursor data_ mask w h hot_x hot_y = do
-  cursor <- sdlCreateCursorRaw data_ mask 
-                             (fromIntegral w) 
-                             (fromIntegral h) 
-                             (fromIntegral hot_x) 
-                             (fromIntegral hot_y)
-  return $ SDLCursor cursor
+sdlCreateCursor :: Ptr Word8 -> Ptr Word8 -> Int -> Int -> Int -> Int -> IO (Maybe SDLCursor)
+sdlCreateCursor dataPtr maskPtr w h hot_x hot_y = do
+  ptr <- c_sdlCreateCursor dataPtr maskPtr
+                           (fromIntegral w) (fromIntegral h)
+                           (fromIntegral hot_x) (fromIntegral hot_y)
+  pure $ if ptr == nullPtr then Nothing else Just (SDLCursor ptr)
 
--- | Create a color cursor.
-foreign import ccall "SDL_CreateColorCursor" sdlCreateColorCursorRaw :: 
-  Ptr SDLSurface -> CInt -> CInt -> IO (Ptr SDLCursor)
+-- | Create a color cursor from an SDL surface.
+foreign import ccall unsafe "SDL_CreateColorCursor"
+  c_sdlCreateColorCursor :: Ptr SDL_Surface -> CInt -> CInt -> IO (Ptr SDL_Cursor)
 
-sdlCreateColorCursor :: SDLSurface -> Int -> Int -> IO SDLCursor
-sdlCreateColorCursor surface hot_x hot_y = do
-  -- Use the Storable instance to pass the surface to the C function
-  with surface $ \surfacePtr -> do
-    cursor <- sdlCreateColorCursorRaw 
-                surfacePtr
-                (fromIntegral hot_x) 
-                (fromIntegral hot_y)
-    return $ SDLCursor cursor
+sdlCreateColorCursor :: SDLSurface -> Int -> Int -> IO (Maybe SDLCursor)
+sdlCreateColorCursor surfaceRec hot_x hot_y = do
+  -- Use 'with' as SDLSurface is a Storable data record
+  with surfaceRec $ \surfacePtr -> do
+    ptr <- c_sdlCreateColorCursor (castPtr surfacePtr) -- Cast Ptr SDLSurface to Ptr SDL_Surface
+                                  (fromIntegral hot_x)
+                                  (fromIntegral hot_y)
+    pure $ if ptr == nullPtr then Nothing else Just (SDLCursor ptr)
 
 -- | Create a system cursor.
-foreign import ccall "SDL_CreateSystemCursor" sdlCreateSystemCursorRaw :: 
-  CInt -> IO (Ptr SDLCursor)
+foreign import ccall unsafe "SDL_CreateSystemCursor"
+  c_sdlCreateSystemCursor :: CInt -> IO (Ptr SDL_Cursor)
 
-sdlCreateSystemCursor :: SDLSystemCursor -> IO SDLCursor
+sdlCreateSystemCursor :: SDLSystemCursor -> IO (Maybe SDLCursor)
 sdlCreateSystemCursor cursorType = do
-  cursor <- sdlCreateSystemCursorRaw (fromIntegral $ fromEnum cursorType)
-  return $ SDLCursor cursor
+  -- Use fromIntegral . fromEnum to get CInt from Enum-derived newtype
+  ptr <- c_sdlCreateSystemCursor (fromIntegral $ fromEnum cursorType)
+  pure $ if ptr == nullPtr then Nothing else Just (SDLCursor ptr)
 
--- | Set the active cursor.
-foreign import ccall "SDL_SetCursor" sdlSetCursorRaw :: Ptr SDLCursor -> IO Bool
+-- | Set the active cursor. Pass Nothing to set the default cursor.
+foreign import ccall unsafe "SDL_SetCursor"
+  c_sdlSetCursor :: Ptr SDL_Cursor -> IO CBool
 
-sdlSetCursor :: SDLCursor -> IO Bool
-sdlSetCursor (SDLCursor cursor) = sdlSetCursorRaw cursor
+sdlSetCursor :: Maybe SDLCursor -> IO Bool
+sdlSetCursor mCursor =
+  let cursorPtr = maybe nullPtr (\(SDLCursor p) -> p) mCursor
+  in toBool <$> c_sdlSetCursor cursorPtr
 
--- | Get the active cursor.
-foreign import ccall "SDL_GetCursor" sdlGetCursorRaw :: IO (Ptr SDLCursor)
+-- | Get the active cursor. Returns Nothing if default cursor is active or no cursor shown.
+foreign import ccall unsafe "SDL_GetCursor"
+  c_sdlGetCursor :: IO (Ptr SDL_Cursor)
 
 sdlGetCursor :: IO (Maybe SDLCursor)
 sdlGetCursor = do
-  cursor <- sdlGetCursorRaw
-  if cursor == nullPtr
-    then return Nothing
-    else return $ Just $ SDLCursor cursor
+  ptr <- c_sdlGetCursor
+  pure $ if ptr == nullPtr then Nothing else Just (SDLCursor ptr)
 
 -- | Get the default cursor.
-foreign import ccall "SDL_GetDefaultCursor" sdlGetDefaultCursorRaw :: IO (Ptr SDLCursor)
+foreign import ccall unsafe "SDL_GetDefaultCursor"
+  c_sdlGetDefaultCursor :: IO (Ptr SDL_Cursor)
 
 sdlGetDefaultCursor :: IO (Maybe SDLCursor)
 sdlGetDefaultCursor = do
-  cursor <- sdlGetDefaultCursorRaw
-  if cursor == nullPtr
-    then return Nothing
-    else return $ Just $ SDLCursor cursor
+  ptr <- c_sdlGetDefaultCursor
+  pure $ if ptr == nullPtr then Nothing else Just (SDLCursor ptr)
 
 -- | Free a previously-created cursor.
-foreign import ccall "SDL_DestroyCursor" sdlDestroyCursorRaw :: Ptr SDLCursor -> IO ()
+foreign import ccall unsafe "SDL_DestroyCursor"
+  c_sdlDestroyCursor :: Ptr SDL_Cursor -> IO ()
 
 sdlDestroyCursor :: SDLCursor -> IO ()
-sdlDestroyCursor (SDLCursor cursor) = sdlDestroyCursorRaw cursor
+sdlDestroyCursor (SDLCursor cursorPtr) = c_sdlDestroyCursor cursorPtr
 
--- | Show the cursor.
-foreign import ccall "SDL_ShowCursor" sdlShowCursor :: IO Bool
+-- | Show the cursor. Returns True on success.
+foreign import ccall unsafe "SDL_ShowCursor"
+  c_sdlShowCursor :: IO CBool
 
--- | Hide the cursor.
-foreign import ccall "SDL_HideCursor" sdlHideCursor :: IO Bool
+sdlShowCursor :: IO Bool
+sdlShowCursor = toBool <$> c_sdlShowCursor
+
+-- | Hide the cursor. Returns True on success.
+foreign import ccall unsafe "SDL_HideCursor"
+  c_sdlHideCursor :: IO CBool
+
+sdlHideCursor :: IO Bool
+sdlHideCursor = toBool <$> c_sdlHideCursor
 
 -- | Return whether the cursor is currently being shown.
-foreign import ccall "SDL_CursorVisible" sdlCursorVisible :: IO Bool
+foreign import ccall unsafe "SDL_CursorVisible"
+  c_sdlCursorVisible :: IO CBool
+
+sdlCursorVisible :: IO Bool
+sdlCursorVisible = toBool <$> c_sdlCursorVisible

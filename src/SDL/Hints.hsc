@@ -1,4 +1,7 @@
+{-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE DerivingStrategies #-}
 
 -- SDL/Hints.hsc
 {-|
@@ -14,6 +17,10 @@ module SDL.Hints
   ( 
     -- * Hint Priorities
     SDLHintPriority(..)
+  , pattern SDL_HINT_DEFAULT
+  , pattern SDL_HINT_NORMAL
+  , pattern SDL_HINT_OVERRIDE
+
     -- * Hint Functions
   , sdlSetHintWithPriority
   , sdlSetHint
@@ -177,18 +184,20 @@ module SDL.Hints
 import Foreign
 import Foreign.C
 
--- | Enumeration of hint priorities.
+-- | Enumeration of hint priorities, influencing hint setting behavior.
 newtype SDLHintPriority = SDLHintPriority CInt
-  deriving (Show, Eq)
+  deriving newtype (Show, Eq, Ord, Storable, Enum) -- Added Ord, Storable, Enum
 
-#{enum SDLHintPriority, SDLHintPriority
- , sdlHintDefault  = SDL_HINT_DEFAULT
- , sdlHintNormal   = SDL_HINT_NORMAL
- , sdlHintOverride = SDL_HINT_OVERRIDE
- }
+pattern SDL_HINT_DEFAULT :: SDLHintPriority
+pattern SDL_HINT_DEFAULT = SDLHintPriority #{const SDL_HINT_DEFAULT}
+
+pattern SDL_HINT_NORMAL :: SDLHintPriority
+pattern SDL_HINT_NORMAL = SDLHintPriority #{const SDL_HINT_NORMAL}
+
+pattern SDL_HINT_OVERRIDE :: SDLHintPriority
+pattern SDL_HINT_OVERRIDE = SDLHintPriority #{const SDL_HINT_OVERRIDE}
 
 -- FFI Imports
-
 foreign import ccall unsafe "SDL_SetHintWithPriority" sdlSetHintWithPriority_ :: CString -> CString -> SDLHintPriority -> IO Bool
 foreign import ccall unsafe "SDL_SetHint" sdlSetHint_ :: CString -> CString -> IO Bool
 foreign import ccall unsafe "SDL_ResetHint" sdlResetHint_ :: CString -> IO Bool
@@ -585,8 +594,8 @@ sdlHintVideoX11NetWmBypassCompositor = #{const_str SDL_HINT_VIDEO_X11_NET_WM_BYP
 sdlHintVideoX11NetWmPing :: String
 sdlHintVideoX11NetWmPing = #{const_str SDL_HINT_VIDEO_X11_NET_WM_PING}
 
--- sdlHintVideoX11Nodirectcolor :: String
--- sdlHintVideoX11Nodirectcolor = #{const_str SDL_VIDEO_X11_NODIRECTCOLOR}
+sdlHintVideoX11Nodirectcolor :: String
+sdlHintVideoX11Nodirectcolor = #{const_str SDL_HINT_VIDEO_X11_NODIRECTCOLOR}
 
 sdlHintVideoX11ScalingFactor :: String
 sdlHintVideoX11ScalingFactor = #{const_str SDL_HINT_VIDEO_X11_SCALING_FACTOR}

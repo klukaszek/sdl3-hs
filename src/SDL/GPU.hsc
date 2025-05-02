@@ -542,14 +542,12 @@ import Data.Bits (Bits, (.|.))
 import Data.Maybe (fromMaybe)
 import Control.Monad (when, unless, forM_, void)
 import Control.Exception (bracket)
-
--- SDL Imports (Assuming these exist from previous work)
 import SDL.Error (sdlGetError)
 import SDL.Pixels (SDLPixelFormat, SDLFColor(..))
 import SDL.Properties (SDLPropertiesID(..))
 import SDL.Rect (SDLRect(..))
 import SDL.Surface (SDLSurface, SDLFlipMode(..))
-import SDL.Video (SDLWindow(..)) -- Assuming SDLWindow is Ptr SDLWindow internally
+import SDL.Video (SDLWindow(..))
 
 -- Helper to convert CBool to Bool more explicitly than fromBool
 fromCBool :: CBool -> Bool

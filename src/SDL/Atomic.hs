@@ -63,18 +63,17 @@ import Foreign.Ptr
 import Foreign.Storable
 import Foreign.C.Types
 import SDL.Stdinc (SDLBool)
+import SDL.Raw
 import Data.Word
 
 -- | An atomic spinlock.
 type SDLSpinLock = CInt
 
--- | A type representing an atomic integer value.
-newtype SDLAtomicInt = SDLAtomicInt { int :: CInt }
-  deriving (Show)
-
--- | A type representing an atomic unsigned 32-bit value.
-newtype SDLAtomicU32 = SDLAtomicU32 { u32 :: Word32 }
-  deriving (Show)
+-- Pointer wrappers
+newtype SDLAtomicInt = SDLAtomicInt (Ptr SDLAtomicInt)
+  deriving (Show, Eq)
+newtype SDLAtomicU32 = SDLAtomicU32 (Ptr SDLAtomicU32) 
+  deriving (Show, Eq)
 
 -- Spinlock Functions
 
