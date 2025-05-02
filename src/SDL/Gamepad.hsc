@@ -1,3 +1,8 @@
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE DerivingStrategies #-}
+
 {-|
 Module      : SDL.Gamepad
 Description : SDL gamepad management
@@ -36,9 +41,49 @@ module SDL.Gamepad
   ( -- * Types
     SDLGamepad(..)
   , SDLGamepadType(..)
+  
   , SDLGamepadButton(..)
+  , pattern SDL_GAMEPAD_BUTTON_INVALID
+  , pattern SDL_GAMEPAD_BUTTON_SOUTH
+  , pattern SDL_GAMEPAD_BUTTON_EAST
+  , pattern SDL_GAMEPAD_BUTTON_WEST
+  , pattern SDL_GAMEPAD_BUTTON_NORTH
+  , pattern SDL_GAMEPAD_BUTTON_BACK
+  , pattern SDL_GAMEPAD_BUTTON_GUIDE
+  , pattern SDL_GAMEPAD_BUTTON_START
+  , pattern SDL_GAMEPAD_BUTTON_LEFT_STICK
+  , pattern SDL_GAMEPAD_BUTTON_RIGHT_STICK
+  , pattern SDL_GAMEPAD_BUTTON_LEFT_SHOULDER
+  , pattern SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER
+  , pattern SDL_GAMEPAD_BUTTON_DPAD_UP
+  , pattern SDL_GAMEPAD_BUTTON_DPAD_DOWN
+  , pattern SDL_GAMEPAD_BUTTON_DPAD_LEFT
+  , pattern SDL_GAMEPAD_BUTTON_DPAD_RIGHT
+  , pattern SDL_GAMEPAD_BUTTON_MISC1
+  , pattern SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1
+  , pattern SDL_GAMEPAD_BUTTON_LEFT_PADDLE1
+  , pattern SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2
+  , pattern SDL_GAMEPAD_BUTTON_LEFT_PADDLE2
+  , pattern SDL_GAMEPAD_BUTTON_TOUCHPAD
+  , pattern SDL_GAMEPAD_BUTTON_MISC2
+  , pattern SDL_GAMEPAD_BUTTON_MISC3
+  , pattern SDL_GAMEPAD_BUTTON_MISC4
+  , pattern SDL_GAMEPAD_BUTTON_MISC5
+  , pattern SDL_GAMEPAD_BUTTON_MISC6
+  , pattern SDL_GAMEPAD_BUTTON_COUNT
+  
   , SDLGamepadButtonLabel(..)
   , SDLGamepadAxis(..)
+  , pattern SDL_GAMEPAD_AXIS_INVALID
+  , pattern SDL_GAMEPAD_AXIS_LEFTX
+  , pattern SDL_GAMEPAD_AXIS_LEFTY
+  , pattern SDL_GAMEPAD_AXIS_RIGHTX
+  , pattern SDL_GAMEPAD_AXIS_RIGHTY
+  , pattern SDL_GAMEPAD_AXIS_LEFT_TRIGGER
+  , pattern SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
+  , pattern SDL_GAMEPAD_AXIS_COUNT
+
+  
   , SDLGamepadBindingType(..)
   , SDLGamepadBinding(..)
 
@@ -142,88 +187,130 @@ import SDL.Sensor (SDLSensorType(..))
 import SDL.IOStream (SDLIOStream)
 
 -- | Opaque type representing a gamepad
-newtype SDLGamepad = SDLGamepad { unSDLGamepad :: Ptr SDLGamepad }
+newtype SDLGamepad = SDLGamepad (Ptr SDLGamepad)
   deriving (Eq, Show)
 
 -- | Standard gamepad types
+-- | Starts at 0 in header
 data SDLGamepadType
-  = SDLGamepadTypeUnknown
-  | SDLGamepadTypeStandard
-  | SDLGamepadTypeXbox360
-  | SDLGamepadTypeXboxOne
-  | SDLGamepadTypePS3
-  | SDLGamepadTypePS4
-  | SDLGamepadTypePS5
-  | SDLGamepadTypeNintendoSwitchPro
-  | SDLGamepadTypeNintendoSwitchJoyconLeft
-  | SDLGamepadTypeNintendoSwitchJoyconRight
-  | SDLGamepadTypeNintendoSwitchJoyconPair
-  | SDLGamepadTypeCount
-  deriving (Eq, Show, Enum)
+  = SDL_GAMEPAD_TYPE_UNKNOWN
+  | SDL_GAMEPAD_TYPE_STANDARD
+  | SDL_GAMEPAD_TYPE_XBOX360
+  | SDL_GAMEPAD_TYPE_XBOXONE
+  | SDL_GAMEPAD_TYPE_PS3
+  | SDL_GAMEPAD_TYPE_PS4
+  | SDL_GAMEPAD_TYPE_PS5
+  | SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO
+  | SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_LEFT
+  | SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT
+  | SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR
+  | SDL_GAMEPAD_TYPE_GAMECUBE
+  | SDL_GAMEPAD_TYPE_COUNT
+  deriving (Eq, Show, Bounded, Enum)
 
 -- | Gamepad buttons
-data SDLGamepadButton
-  = SDLGamepadButtonInvalid
-  | SDLGamepadButtonSouth
-  | SDLGamepadButtonEast
-  | SDLGamepadButtonWest
-  | SDLGamepadButtonNorth
-  | SDLGamepadButtonBack
-  | SDLGamepadButtonGuide
-  | SDLGamepadButtonStart
-  | SDLGamepadButtonLeftStick
-  | SDLGamepadButtonRightStick
-  | SDLGamepadButtonLeftShoulder
-  | SDLGamepadButtonRightShoulder
-  | SDLGamepadButtonDPadUp
-  | SDLGamepadButtonDPadDown
-  | SDLGamepadButtonDPadLeft
-  | SDLGamepadButtonDPadRight
-  | SDLGamepadButtonMisc1
-  | SDLGamepadButtonRightPaddle1
-  | SDLGamepadButtonLeftPaddle1
-  | SDLGamepadButtonRightPaddle2
-  | SDLGamepadButtonLeftPaddle2
-  | SDLGamepadButtonTouchpad
-  | SDLGamepadButtonMisc2
-  | SDLGamepadButtonMisc3
-  | SDLGamepadButtonMisc4
-  | SDLGamepadButtonMisc5
-  | SDLGamepadButtonMisc6
-  | SDLGamepadButtonCount
-  deriving (Eq, Show, Enum)
+-- | The SDL gamepad buttons.
+newtype SDLGamepadButton = SDLGamepadButton CInt
+  deriving newtype (Show, Eq, Ord, Num, Storable) -- Cannot reliably derive Enum
+
+pattern SDL_GAMEPAD_BUTTON_INVALID :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_INVALID        = SDLGamepadButton (#{const SDL_GAMEPAD_BUTTON_INVALID})        -- (-1)
+pattern SDL_GAMEPAD_BUTTON_SOUTH :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_SOUTH          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_SOUTH}          -- (0)  Bottom face button (e.g. Xbox A button)
+pattern SDL_GAMEPAD_BUTTON_EAST :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_EAST           = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_EAST}           -- (1)  Right face button (e.g. Xbox B button)
+pattern SDL_GAMEPAD_BUTTON_WEST :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_WEST           = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_WEST}           -- (2)  Left face button (e.g. Xbox X button)
+pattern SDL_GAMEPAD_BUTTON_NORTH :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_NORTH          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_NORTH}          -- (3)  Top face button (e.g. Xbox Y button)
+pattern SDL_GAMEPAD_BUTTON_BACK :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_BACK           = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_BACK}           -- (4)
+pattern SDL_GAMEPAD_BUTTON_GUIDE :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_GUIDE          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_GUIDE}          -- (5)
+pattern SDL_GAMEPAD_BUTTON_START :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_START          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_START}          -- (6)
+pattern SDL_GAMEPAD_BUTTON_LEFT_STICK :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_LEFT_STICK     = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_LEFT_STICK}     -- (7)
+pattern SDL_GAMEPAD_BUTTON_RIGHT_STICK :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_RIGHT_STICK    = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_RIGHT_STICK}    -- (8)
+pattern SDL_GAMEPAD_BUTTON_LEFT_SHOULDER :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_LEFT_SHOULDER  = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_LEFT_SHOULDER}  -- (9)
+pattern SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER} -- (10)
+pattern SDL_GAMEPAD_BUTTON_DPAD_UP :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_DPAD_UP        = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_DPAD_UP}        -- (11)
+pattern SDL_GAMEPAD_BUTTON_DPAD_DOWN :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_DPAD_DOWN      = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_DPAD_DOWN}      -- (12)
+pattern SDL_GAMEPAD_BUTTON_DPAD_LEFT :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_DPAD_LEFT      = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_DPAD_LEFT}      -- (13)
+pattern SDL_GAMEPAD_BUTTON_DPAD_RIGHT :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_DPAD_RIGHT     = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_DPAD_RIGHT}     -- (14)
+pattern SDL_GAMEPAD_BUTTON_MISC1 :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_MISC1          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_MISC1}          -- (15) Xbox Series X share button, PS5 microphone button, etc.
+pattern SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1 :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1  = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1}  -- (16) Upper right paddle
+pattern SDL_GAMEPAD_BUTTON_LEFT_PADDLE1 :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_LEFT_PADDLE1   = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_LEFT_PADDLE1}   -- (17) Upper left paddle
+pattern SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2 :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2  = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2}  -- (18) Lower right paddle
+pattern SDL_GAMEPAD_BUTTON_LEFT_PADDLE2 :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_LEFT_PADDLE2   = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_LEFT_PADDLE2}   -- (19) Lower left paddle
+pattern SDL_GAMEPAD_BUTTON_TOUCHPAD :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_TOUCHPAD       = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_TOUCHPAD}       -- (20) PS4/PS5 touchpad button
+pattern SDL_GAMEPAD_BUTTON_MISC2 :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_MISC2          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_MISC2}          -- (21) Additional button
+pattern SDL_GAMEPAD_BUTTON_MISC3 :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_MISC3          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_MISC3}          -- (22) Additional button
+pattern SDL_GAMEPAD_BUTTON_MISC4 :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_MISC4          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_MISC4}          -- (23) Additional button
+pattern SDL_GAMEPAD_BUTTON_MISC5 :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_MISC5          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_MISC5}          -- (24) Additional button
+pattern SDL_GAMEPAD_BUTTON_MISC6 :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_MISC6          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_MISC6}          -- (25) Additional button
+pattern SDL_GAMEPAD_BUTTON_COUNT :: SDLGamepadButton
+pattern SDL_GAMEPAD_BUTTON_COUNT          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_COUNT}          -- (26)
 
 -- | Gamepad button labels
+-- | C header definition starts at 0, can derive Enum
 data SDLGamepadButtonLabel
-  = SDLGamepadButtonLabelUnknown
-  | SDLGamepadButtonLabelA
-  | SDLGamepadButtonLabelB
-  | SDLGamepadButtonLabelX
-  | SDLGamepadButtonLabelY
-  | SDLGamepadButtonLabelCross
-  | SDLGamepadButtonLabelCircle
-  | SDLGamepadButtonLabelSquare
-  | SDLGamepadButtonLabelTriangle
+  = SDL_GAMEPAD_BUTTON_LABEL_UNKNOWN
+  | SDL_GAMEPAD_BUTTON_LABEL_A
+  | SDL_GAMEPAD_BUTTON_LABEL_B
+  | SDL_GAMEPAD_BUTTON_LABEL_X
+  | SDL_GAMEPAD_BUTTON_LABEL_Y
+  | SDL_GAMEPAD_BUTTON_LABEL_CROSS
+  | SDL_GAMEPAD_BUTTON_LABEL_CIRCLE
+  | SDL_GAMEPAD_BUTTON_LABEL_SQUARE
+  | SDL_GAMEPAD_BUTTON_LABEL_TRIANGLE
   deriving (Eq, Show, Enum)
 
--- | Gamepad axes
-data SDLGamepadAxis
-  = SDLGamepadAxisInvalid
-  | SDLGamepadAxisLeftX
-  | SDLGamepadAxisLeftY
-  | SDLGamepadAxisRightX
-  | SDLGamepadAxisRightY
-  | SDLGamepadAxisLeftTrigger
-  | SDLGamepadAxisRightTrigger
-  | SDLGamepadAxisCount
-  deriving (Eq, Show, Enum)
+newtype SDLGamepadAxis = SDLGamepadAxis CInt
+  deriving newtype (Show, Eq, Num, Ord, Storable) -- Cannot reliably derive Enum
+
+pattern SDL_GAMEPAD_AXIS_INVALID :: SDLGamepadAxis
+pattern SDL_GAMEPAD_AXIS_INVALID        = SDLGamepadAxis (#{const SDL_GAMEPAD_AXIS_INVALID})        -- (-1)
+pattern SDL_GAMEPAD_AXIS_LEFTX :: SDLGamepadAxis
+pattern SDL_GAMEPAD_AXIS_LEFTX          = SDLGamepadAxis #{const SDL_GAMEPAD_AXIS_LEFTX}          -- (0)
+pattern SDL_GAMEPAD_AXIS_LEFTY :: SDLGamepadAxis
+pattern SDL_GAMEPAD_AXIS_LEFTY          = SDLGamepadAxis #{const SDL_GAMEPAD_AXIS_LEFTY}          -- (1)
+pattern SDL_GAMEPAD_AXIS_RIGHTX :: SDLGamepadAxis
+pattern SDL_GAMEPAD_AXIS_RIGHTX         = SDLGamepadAxis #{const SDL_GAMEPAD_AXIS_RIGHTX}         -- (2)
+pattern SDL_GAMEPAD_AXIS_RIGHTY :: SDLGamepadAxis
+pattern SDL_GAMEPAD_AXIS_RIGHTY         = SDLGamepadAxis #{const SDL_GAMEPAD_AXIS_RIGHTY}         -- (3)
+pattern SDL_GAMEPAD_AXIS_LEFT_TRIGGER :: SDLGamepadAxis
+pattern SDL_GAMEPAD_AXIS_LEFT_TRIGGER   = SDLGamepadAxis #{const SDL_GAMEPAD_AXIS_LEFT_TRIGGER}   -- (4)
+pattern SDL_GAMEPAD_AXIS_RIGHT_TRIGGER :: SDLGamepadAxis
+pattern SDL_GAMEPAD_AXIS_RIGHT_TRIGGER  = SDLGamepadAxis #{const SDL_GAMEPAD_AXIS_RIGHT_TRIGGER}  -- (5)
+pattern SDL_GAMEPAD_AXIS_COUNT :: SDLGamepadAxis
+pattern SDL_GAMEPAD_AXIS_COUNT          = SDLGamepadAxis #{const SDL_GAMEPAD_AXIS_COUNT}          -- (6)
 
 -- | Types of gamepad control bindings
+-- | C header definition starts at 0, can derive Enum
 data SDLGamepadBindingType
-  = SDLGamepadBindTypeNone
-  | SDLGamepadBindTypeButton
-  | SDLGamepadBindTypeAxis
-  | SDLGamepadBindTypeHat
+  = SDL_GAMEPAD_BINDTYPE_NONE
+  | SDL_GAMEPAD_BINDTYPE_BUTTON
+  | SDL_GAMEPAD_BINDTYPE_AXIS
+  | SDL_GAMEPAD_BINDTYPE_HAT
   deriving (Eq, Show, Enum)
 
 -- | A mapping between joystick input and gamepad control
@@ -254,23 +341,23 @@ instance Storable SDLGamepadBinding where
     inputType <- toEnum . fromIntegral <$> ((#peek SDL_GamepadBinding, input_type) ptr :: IO CInt)
     outputType <- toEnum . fromIntegral <$> ((#peek SDL_GamepadBinding, output_type) ptr :: IO CInt)
     input <- case inputType of
-      SDLGamepadBindTypeButton -> BindingInputButton <$> (#peek SDL_GamepadBinding, input.button) ptr
-      SDLGamepadBindTypeAxis -> do
+      SDL_GAMEPAD_BINDTYPE_BUTTON -> BindingInputButton <$> (#peek SDL_GamepadBinding, input.button) ptr
+      SDL_GAMEPAD_BINDTYPE_AXIS -> do
         axis <- (#peek SDL_GamepadBinding, input.axis.axis) ptr
         min' <- (#peek SDL_GamepadBinding, input.axis.axis_min) ptr
         max' <- (#peek SDL_GamepadBinding, input.axis.axis_max) ptr
         return $ BindingInputAxis axis min' max'
-      SDLGamepadBindTypeHat -> do
+      SDL_GAMEPAD_BINDTYPE_HAT -> do
         hat <- (#peek SDL_GamepadBinding, input.hat.hat) ptr
         mask <- (#peek SDL_GamepadBinding, input.hat.hat_mask) ptr
         return $ BindingInputHat hat mask
       _ -> pure BindingInputNone
     output <- case outputType of
-      SDLGamepadBindTypeButton -> do
+      SDL_GAMEPAD_BINDTYPE_BUTTON -> do
         btn <- ((#peek SDL_GamepadBinding, output.button) ptr :: IO CInt)
-        return $ BindingOutputButton (toEnum $ fromIntegral btn)
-      SDLGamepadBindTypeAxis -> do
-        axis <- toEnum . fromIntegral <$> ((#peek SDL_GamepadBinding, output.axis.axis) ptr :: IO CInt )
+        return $ BindingOutputButton (fromIntegral btn)
+      SDL_GAMEPAD_BINDTYPE_AXIS -> do
+        axis <- fromIntegral <$> ((#peek SDL_GamepadBinding, output.axis.axis) ptr :: IO CInt )
         min' <- (#peek SDL_GamepadBinding, output.axis.axis_min) ptr
         max' <- (#peek SDL_GamepadBinding, output.axis.axis_max) ptr
         return $ BindingOutputAxis axis min' max'
@@ -290,9 +377,9 @@ instance Storable SDLGamepadBinding where
         (#poke SDL_GamepadBinding, input.hat.hat_mask) ptr mask
       BindingInputNone -> return ()
     case o of
-      BindingOutputButton btn -> (#poke SDL_GamepadBinding, output.button) ptr ((fromIntegral $ fromEnum btn) :: CInt)
-      BindingOutputAxis ax min' max' -> do
-        (#poke SDL_GamepadBinding, output.axis.axis) ptr ((fromIntegral $ fromEnum ax) :: CInt)
+      BindingOutputButton (SDLGamepadButton btn) -> (#poke SDL_GamepadBinding, output.button) ptr ((fromIntegral btn) :: CInt)
+      BindingOutputAxis (SDLGamepadAxis ax) min' max' -> do
+        (#poke SDL_GamepadBinding, output.axis.axis) ptr ax
         (#poke SDL_GamepadBinding, output.axis.axis_min) ptr min'
         (#poke SDL_GamepadBinding, output.axis.axis_max) ptr max'
       BindingOutputNone -> return ()
@@ -664,15 +751,15 @@ foreign import ccall "SDL_GetGamepadAxisFromString"
 
 sdlGetGamepadAxisFromString :: String -> IO SDLGamepadAxis
 sdlGetGamepadAxisFromString str = withCString str $ \cstr ->
-  toEnum . fromIntegral <$> sdlGetGamepadAxisFromString_ cstr
+  fromIntegral <$> sdlGetGamepadAxisFromString_ cstr
 
 -- | Convert gamepad axis to string
 foreign import ccall "SDL_GetGamepadStringForAxis"
   sdlGetGamepadStringForAxisRaw :: CInt -> IO CString
 
 sdlGetGamepadStringForAxis :: SDLGamepadAxis -> IO (Maybe String)
-sdlGetGamepadStringForAxis axis = do
-  cstr <- sdlGetGamepadStringForAxisRaw (fromIntegral $ fromEnum axis)
+sdlGetGamepadStringForAxis (SDLGamepadAxis axis) = do
+  cstr <- sdlGetGamepadStringForAxisRaw axis
   if cstr == nullPtr then return Nothing else Just <$> peekCString cstr
 
 -- | Check if gamepad has axis
@@ -680,14 +767,14 @@ foreign import ccall "SDL_GamepadHasAxis"
   sdlGamepadHasAxis_ :: Ptr SDLGamepad -> CInt -> IO CBool
 
 sdlGamepadHasAxis :: SDLGamepad -> SDLGamepadAxis -> IO Bool
-sdlGamepadHasAxis (SDLGamepad ptr) axis = toBool <$> sdlGamepadHasAxis_ ptr (fromIntegral $ fromEnum axis)
+sdlGamepadHasAxis (SDLGamepad ptr) (SDLGamepadAxis axis) = toBool <$> sdlGamepadHasAxis_ ptr axis
 
 -- | Get axis state
 foreign import ccall "SDL_GetGamepadAxis"
   sdlGetGamepadAxis_ :: Ptr SDLGamepad -> CInt -> IO Int16
 
 sdlGetGamepadAxis :: SDLGamepad -> SDLGamepadAxis -> IO Int16
-sdlGetGamepadAxis (SDLGamepad ptr) axis = sdlGetGamepadAxis_ ptr (fromIntegral $ fromEnum axis)
+sdlGetGamepadAxis (SDLGamepad ptr) (SDLGamepadAxis axis) = sdlGetGamepadAxis_ ptr axis
 
 -- | Convert string to gamepad button
 foreign import ccall "SDL_GetGamepadButtonFromString"
@@ -695,15 +782,15 @@ foreign import ccall "SDL_GetGamepadButtonFromString"
 
 sdlGetGamepadButtonFromString :: String -> IO SDLGamepadButton
 sdlGetGamepadButtonFromString str = withCString str $ \cstr ->
-  toEnum . fromIntegral <$> sdlGetGamepadButtonFromString_ cstr
+  fromIntegral <$> sdlGetGamepadButtonFromString_ cstr
 
 -- | Convert gamepad button to string
 foreign import ccall "SDL_GetGamepadStringForButton"
   sdlGetGamepadStringForButtonRaw :: CInt -> IO CString
 
 sdlGetGamepadStringForButton :: SDLGamepadButton -> IO (Maybe String)
-sdlGetGamepadStringForButton btn = do
-  cstr <- sdlGetGamepadStringForButtonRaw (fromIntegral $ fromEnum btn)
+sdlGetGamepadStringForButton (SDLGamepadButton btn) = do
+  cstr <- sdlGetGamepadStringForButtonRaw btn
   if cstr == nullPtr then return Nothing else Just <$> peekCString cstr
 
 -- | Check if gamepad has button
@@ -711,30 +798,30 @@ foreign import ccall "SDL_GamepadHasButton"
   sdlGamepadHasButton_ :: Ptr SDLGamepad -> CInt -> IO CBool
 
 sdlGamepadHasButton :: SDLGamepad -> SDLGamepadButton -> IO Bool
-sdlGamepadHasButton (SDLGamepad ptr) btn = toBool <$> sdlGamepadHasButton_ ptr (fromIntegral $ fromEnum btn)
+sdlGamepadHasButton (SDLGamepad ptr) (SDLGamepadButton btn) = toBool <$> sdlGamepadHasButton_ ptr btn
 
 -- | Get button state
 foreign import ccall "SDL_GetGamepadButton"
   sdlGetGamepadButton_ :: Ptr SDLGamepad -> CInt -> IO CBool
 
 sdlGetGamepadButton :: SDLGamepad -> SDLGamepadButton -> IO Bool
-sdlGetGamepadButton (SDLGamepad ptr) btn = toBool <$> sdlGetGamepadButton_ ptr (fromIntegral $ fromEnum btn)
+sdlGetGamepadButton (SDLGamepad ptr) (SDLGamepadButton btn) = toBool <$> sdlGetGamepadButton_ ptr btn
 
 -- | Get button label for type
 foreign import ccall "SDL_GetGamepadButtonLabelForType"
   sdlGetGamepadButtonLabelForType_ :: CInt -> CInt -> IO CInt
 
 sdlGetGamepadButtonLabelForType :: SDLGamepadType -> SDLGamepadButton -> IO SDLGamepadButtonLabel
-sdlGetGamepadButtonLabelForType typ btn =
-  toEnum . fromIntegral <$> sdlGetGamepadButtonLabelForType_ (fromIntegral $ fromEnum typ) (fromIntegral $ fromEnum btn)
+sdlGetGamepadButtonLabelForType typ (SDLGamepadButton btn) =
+  toEnum . fromIntegral <$> sdlGetGamepadButtonLabelForType_ (fromIntegral $ fromEnum typ) btn
 
 -- | Get button label
 foreign import ccall "SDL_GetGamepadButtonLabel"
   sdlGetGamepadButtonLabel_ :: Ptr SDLGamepad -> CInt -> IO CInt
 
 sdlGetGamepadButtonLabel :: SDLGamepad -> SDLGamepadButton -> IO SDLGamepadButtonLabel
-sdlGetGamepadButtonLabel (SDLGamepad ptr) btn =
-  toEnum . fromIntegral <$> sdlGetGamepadButtonLabel_ ptr (fromIntegral $ fromEnum btn)
+sdlGetGamepadButtonLabel (SDLGamepad ptr) (SDLGamepadButton btn) =
+  toEnum . fromIntegral <$> sdlGetGamepadButtonLabel_ ptr btn
 
 -- | Get number of touchpads
 foreign import ccall "SDL_GetNumGamepadTouchpads"
@@ -842,8 +929,8 @@ foreign import ccall "SDL_GetGamepadAppleSFSymbolsNameForButton"
   sdlGetGamepadAppleSFSymbolsNameForButtonRaw :: Ptr SDLGamepad -> CInt -> IO CString
 
 sdlGetGamepadAppleSFSymbolsNameForButton :: SDLGamepad -> SDLGamepadButton -> IO (Maybe String)
-sdlGetGamepadAppleSFSymbolsNameForButton (SDLGamepad ptr) btn = do
-  cstr <- sdlGetGamepadAppleSFSymbolsNameForButtonRaw ptr (fromIntegral $ fromEnum btn)
+sdlGetGamepadAppleSFSymbolsNameForButton (SDLGamepad ptr) (SDLGamepadButton btn) = do
+  cstr <- sdlGetGamepadAppleSFSymbolsNameForButtonRaw ptr btn
   if cstr == nullPtr then return Nothing else Just <$> peekCString cstr
 
 -- | Get Apple SF Symbols name for axis
@@ -851,6 +938,6 @@ foreign import ccall "SDL_GetGamepadAppleSFSymbolsNameForAxis"
   sdlGetGamepadAppleSFSymbolsNameForAxisRaw :: Ptr SDLGamepad -> CInt -> IO CString
 
 sdlGetGamepadAppleSFSymbolsNameForAxis :: SDLGamepad -> SDLGamepadAxis -> IO (Maybe String)
-sdlGetGamepadAppleSFSymbolsNameForAxis (SDLGamepad ptr) axis = do
-  cstr <- sdlGetGamepadAppleSFSymbolsNameForAxisRaw ptr (fromIntegral $ fromEnum axis)
+sdlGetGamepadAppleSFSymbolsNameForAxis (SDLGamepad ptr) (SDLGamepadAxis axis) = do
+  cstr <- sdlGetGamepadAppleSFSymbolsNameForAxisRaw ptr axis
   if cstr == nullPtr then return Nothing else Just <$> peekCString cstr

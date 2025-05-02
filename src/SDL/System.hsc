@@ -109,6 +109,7 @@ foreign import ccall "SDL_IsTV"
   sdlIsTV :: IO Bool
 
 -- | Application sandbox environment (SDL_Sandbox).
+-- Starts at 0 in C Header so this is fine.
 data SDLSandbox
   = SDLSandboxNone             -- ^ SDL_SANDBOX_NONE
   | SDLSandboxUnknownContainer -- ^ SDL_SANDBOX_UNKNOWN_CONTAINER

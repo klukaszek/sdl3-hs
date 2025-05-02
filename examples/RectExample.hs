@@ -8,6 +8,7 @@ main = do
       rect2 = SDLRect 5 5 10 10
       point = SDLPoint 5 5
 
+  sdlLog $ "GamepadType" ++ show SDL_GAMEPAD_TYPE_UNKNOWN
   sdlLog $ "Point in rect1: " ++ show (sdlPointInRect point rect1)
   sdlLog $ "Rect1 empty: " ++ show (sdlRectEmpty rect1)
   sdlLog $ "Rects equal: " ++ show (sdlRectsEqual rect1 rect2)

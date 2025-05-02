@@ -1,4 +1,7 @@
+{-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE DerivingStrategies #-}
 
 -- SDL/Process.hsc
 {-|
@@ -26,27 +29,24 @@ module SDL.Process
 
     -- * Process I/O Options
   , SDLProcessIO(..)
-  , sdlProcessStdioINHERITED
-  , sdlProcessStdioNULL
-  , sdlProcessStdioAPP
-  , sdlProcessStdioREDIRECT
 
     -- * Property Constants
-  , sdlPropProcessCreateArgsPointer
-  , sdlPropProcessCreateEnvironmentPointer
-  , sdlPropProcessCreateStdinNumber
-  , sdlPropProcessCreateStdinPointer
-  , sdlPropProcessCreateStdoutNumber
-  , sdlPropProcessCreateStdoutPointer
-  , sdlPropProcessCreateStderrNumber
-  , sdlPropProcessCreateStderrPointer
-  , sdlPropProcessCreateStderrToStdoutBoolean
-  , sdlPropProcessCreateBackgroundBoolean
-  , sdlPropProcessPidNumber
-  , sdlPropProcessStdinPointer
-  , sdlPropProcessStdoutPointer
-  , sdlPropProcessStderrPointer
-  , sdlPropProcessBackgroundBoolean
+  , pattern SDL_PROP_PROCESS_CREATE_ARGS_POINTER 
+  , pattern SDL_PROP_PROCESS_CREATE_ENVIRONMENT_POINTER 
+  , pattern SDL_PROP_PROCESS_CREATE_STDIN_NUMBER 
+  , pattern SDL_PROP_PROCESS_CREATE_STDIN_POINTER 
+  , pattern SDL_PROP_PROCESS_CREATE_STDOUT_NUMBER 
+  , pattern SDL_PROP_PROCESS_CREATE_STDOUT_POINTER 
+  , pattern SDL_PROP_PROCESS_CREATE_STDERR_NUMBER 
+  , pattern SDL_PROP_PROCESS_CREATE_STDERR_POINTER 
+  , pattern SDL_PROP_PROCESS_CREATE_STDERR_TO_STDOUT_BOOLEAN 
+  , pattern SDL_PROP_PROCESS_CREATE_BACKGROUND_BOOLEAN 
+  , pattern SDL_PROP_PROCESS_PID_NUMBER
+  , pattern SDL_PROP_PROCESS_STDIN_POINTER 
+  , pattern SDL_PROP_PROCESS_STDOUT_POINTER 
+  , pattern SDL_PROP_PROCESS_STDERR_POINTER 
+  , pattern SDL_PROP_PROCESS_BACKGROUND_BOOLEAN 
+
   ) where
 
 #include <SDL3/SDL_process.h>
@@ -60,15 +60,13 @@ import SDL.Properties (SDLPropertiesID(..))
 data SDLProcess
 
 -- | Description of where standard I/O should be directed when creating a process.
-newtype SDLProcessIO = SDLProcessIO { unSDLProcessIO :: CInt }
-  deriving (Show, Eq, Bits)
-
-#{enum SDLProcessIO, SDLProcessIO
- , sdlProcessStdioINHERITED = SDL_PROCESS_STDIO_INHERITED
- , sdlProcessStdioNULL = SDL_PROCESS_STDIO_NULL
- , sdlProcessStdioAPP = SDL_PROCESS_STDIO_APP
- , sdlProcessStdioREDIRECT = SDL_PROCESS_STDIO_REDIRECT
- }
+-- C header decl starts at 0, can derive Enum
+data SDLProcessIO
+  = SDL_PROCESS_STDIO_INHERITED
+  | SDL_PROCESS_STDIO_NULL
+  | SDL_PROCESS_STDIO_APP
+  | SDL_PROCESS_STDIO_REDIRECT 
+  deriving (Show, Eq, Bounded, Enum)
 
 -- FFI Imports
 
@@ -142,47 +140,47 @@ sdlDestroyProcess = sdlDestroyProcess_
 
 -- Property Constants
 
-sdlPropProcessCreateArgsPointer :: String
-sdlPropProcessCreateArgsPointer = #{const_str SDL_PROP_PROCESS_CREATE_ARGS_POINTER}
+pattern SDL_PROP_PROCESS_CREATE_ARGS_POINTER :: String
+pattern SDL_PROP_PROCESS_CREATE_ARGS_POINTER = #{const_str SDL_PROP_PROCESS_CREATE_ARGS_POINTER}
 
-sdlPropProcessCreateEnvironmentPointer :: String
-sdlPropProcessCreateEnvironmentPointer = #{const_str SDL_PROP_PROCESS_CREATE_ENVIRONMENT_POINTER}
+pattern SDL_PROP_PROCESS_CREATE_ENVIRONMENT_POINTER :: String
+pattern SDL_PROP_PROCESS_CREATE_ENVIRONMENT_POINTER = #{const_str SDL_PROP_PROCESS_CREATE_ENVIRONMENT_POINTER}
 
-sdlPropProcessCreateStdinNumber :: String
-sdlPropProcessCreateStdinNumber = #{const_str SDL_PROP_PROCESS_CREATE_STDIN_NUMBER}
+pattern SDL_PROP_PROCESS_CREATE_STDIN_NUMBER :: String
+pattern SDL_PROP_PROCESS_CREATE_STDIN_NUMBER = #{const_str SDL_PROP_PROCESS_CREATE_STDIN_NUMBER}
 
-sdlPropProcessCreateStdinPointer :: String
-sdlPropProcessCreateStdinPointer = #{const_str SDL_PROP_PROCESS_CREATE_STDIN_POINTER}
+pattern SDL_PROP_PROCESS_CREATE_STDIN_POINTER :: String
+pattern SDL_PROP_PROCESS_CREATE_STDIN_POINTER = #{const_str SDL_PROP_PROCESS_CREATE_STDIN_POINTER}
 
-sdlPropProcessCreateStdoutNumber :: String
-sdlPropProcessCreateStdoutNumber = #{const_str SDL_PROP_PROCESS_CREATE_STDOUT_NUMBER}
+pattern SDL_PROP_PROCESS_CREATE_STDOUT_NUMBER :: String
+pattern SDL_PROP_PROCESS_CREATE_STDOUT_NUMBER = #{const_str SDL_PROP_PROCESS_CREATE_STDOUT_NUMBER}
 
-sdlPropProcessCreateStdoutPointer :: String
-sdlPropProcessCreateStdoutPointer = #{const_str SDL_PROP_PROCESS_CREATE_STDOUT_POINTER}
+pattern SDL_PROP_PROCESS_CREATE_STDOUT_POINTER :: String
+pattern SDL_PROP_PROCESS_CREATE_STDOUT_POINTER = #{const_str SDL_PROP_PROCESS_CREATE_STDOUT_POINTER}
 
-sdlPropProcessCreateStderrNumber :: String
-sdlPropProcessCreateStderrNumber = #{const_str SDL_PROP_PROCESS_CREATE_STDERR_NUMBER}
+pattern SDL_PROP_PROCESS_CREATE_STDERR_NUMBER :: String
+pattern SDL_PROP_PROCESS_CREATE_STDERR_NUMBER = #{const_str SDL_PROP_PROCESS_CREATE_STDERR_NUMBER}
 
-sdlPropProcessCreateStderrPointer :: String
-sdlPropProcessCreateStderrPointer = #{const_str SDL_PROP_PROCESS_CREATE_STDERR_POINTER}
+pattern SDL_PROP_PROCESS_CREATE_STDERR_POINTER :: String
+pattern SDL_PROP_PROCESS_CREATE_STDERR_POINTER = #{const_str SDL_PROP_PROCESS_CREATE_STDERR_POINTER}
 
-sdlPropProcessCreateStderrToStdoutBoolean :: String
-sdlPropProcessCreateStderrToStdoutBoolean = #{const_str SDL_PROP_PROCESS_CREATE_STDERR_TO_STDOUT_BOOLEAN}
+pattern SDL_PROP_PROCESS_CREATE_STDERR_TO_STDOUT_BOOLEAN :: String
+pattern SDL_PROP_PROCESS_CREATE_STDERR_TO_STDOUT_BOOLEAN = #{const_str SDL_PROP_PROCESS_CREATE_STDERR_TO_STDOUT_BOOLEAN}
 
-sdlPropProcessCreateBackgroundBoolean :: String
-sdlPropProcessCreateBackgroundBoolean = #{const_str SDL_PROP_PROCESS_CREATE_BACKGROUND_BOOLEAN}
+pattern SDL_PROP_PROCESS_CREATE_BACKGROUND_BOOLEAN :: String
+pattern SDL_PROP_PROCESS_CREATE_BACKGROUND_BOOLEAN = #{const_str SDL_PROP_PROCESS_CREATE_BACKGROUND_BOOLEAN}
 
-sdlPropProcessPidNumber :: String
-sdlPropProcessPidNumber = #{const_str SDL_PROP_PROCESS_PID_NUMBER}
+pattern SDL_PROP_PROCESS_PID_NUMBER:: String
+pattern SDL_PROP_PROCESS_PID_NUMBER = #{const_str SDL_PROP_PROCESS_PID_NUMBER}
 
-sdlPropProcessStdinPointer :: String
-sdlPropProcessStdinPointer = #{const_str SDL_PROP_PROCESS_STDIN_POINTER}
+pattern SDL_PROP_PROCESS_STDIN_POINTER :: String
+pattern SDL_PROP_PROCESS_STDIN_POINTER = #{const_str SDL_PROP_PROCESS_STDIN_POINTER}
 
-sdlPropProcessStdoutPointer :: String
-sdlPropProcessStdoutPointer = #{const_str SDL_PROP_PROCESS_STDOUT_POINTER}
+pattern SDL_PROP_PROCESS_STDOUT_POINTER :: String
+pattern SDL_PROP_PROCESS_STDOUT_POINTER = #{const_str SDL_PROP_PROCESS_STDOUT_POINTER}
 
-sdlPropProcessStderrPointer :: String
-sdlPropProcessStderrPointer = #{const_str SDL_PROP_PROCESS_STDERR_POINTER}
+pattern SDL_PROP_PROCESS_STDERR_POINTER :: String
+pattern SDL_PROP_PROCESS_STDERR_POINTER = #{const_str SDL_PROP_PROCESS_STDERR_POINTER}
 
-sdlPropProcessBackgroundBoolean :: String
-sdlPropProcessBackgroundBoolean = #{const_str SDL_PROP_PROCESS_BACKGROUND_BOOLEAN}
+pattern SDL_PROP_PROCESS_BACKGROUND_BOOLEAN :: String
+pattern SDL_PROP_PROCESS_BACKGROUND_BOOLEAN = #{const_str SDL_PROP_PROCESS_BACKGROUND_BOOLEAN}

@@ -72,7 +72,7 @@ sdlStandardGravity :: Float
 sdlStandardGravity = 9.80665
 
 newtype SDLSensorType = SDLSensorType CInt
-  deriving newtype (Show, Eq, Ord, Storable, Num) -- Add Ord, Storable.
+  deriving newtype (Show, Eq, Ord, Storable, Num)
 
 pattern SDL_SENSOR_INVALID :: SDLSensorType
 pattern SDL_SENSOR_INVALID  = SDLSensorType (#{const SDL_SENSOR_INVALID})  -- ^ Invalid sensor (-1)
