@@ -38,10 +38,13 @@ module SDL.Surface
   , SDLSurfaceFlags(..)
     -- ** Structs (Simple/Storable)
   , SDLSurface(..) -- Export the data constructor and fields
-    -- ** Structs (Haskell-only Representation)
-  , SDLSurfaceProperty(..) -- Represents properties set/get via SDL_Properties
-
     -- * Enum Patterns
+  , pattern SDL_PROP_SURFACE_SDR_WHITE_POINT_FLOAT 
+  , pattern SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT 
+  , pattern SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING 
+  , pattern SDL_PROP_SURFACE_HOTSPOT_X_NUMBER 
+  , pattern SDL_PROP_SURFACE_HOTSPOT_Y_NUMBER
+
   , pattern SDL_SCALEMODE_NEAREST
   , pattern SDL_SCALEMODE_LINEAR
   , pattern SDL_SCALEMODE_PIXELART
@@ -208,16 +211,22 @@ instance Storable SDLSurface where -- Use the original name
 
 -- Struct Types (Haskell Representation)
 
--- | Properties associated with a surface, accessed via SDL_Properties mechanism.
--- These are convenience types; use SDL.Properties functions to get/set.
-data SDLSurfaceProperty
-  = SDLSurfaceSDRWhitePoint Float  -- ^ Value of 100% diffuse white (SDL_PROP_SURFACE_SDR_WHITE_POINT_FLOAT)
-  | SDLSurfaceHDRHeadroom Float    -- ^ Maximum dynamic range (SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT)
-  | SDLSurfaceTonemapOperator String -- ^ Tone mapping operator (SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING)
-  | SDLSurfaceHotspotX CInt         -- ^ Hotspot x offset (SDL_PROP_SURFACE_HOTSPOT_X_NUMBER)
-  | SDLSurfaceHotspotY CInt         -- ^ Hotspot y offset (SDL_PROP_SURFACE_HOTSPOT_Y_NUMBER)
-  deriving (Eq, Show)
+-- Property Key Patterns
+-- Use pattern synonyms for the property name strings defined in C.
+pattern SDL_PROP_SURFACE_SDR_WHITE_POINT_FLOAT :: String
+pattern SDL_PROP_SURFACE_SDR_WHITE_POINT_FLOAT = #{const_str SDL_PROP_SURFACE_SDR_WHITE_POINT_FLOAT}
 
+pattern SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT :: String
+pattern SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT = #{const_str SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT}
+
+pattern SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING :: String
+pattern SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING = #{const_str SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING}
+
+pattern SDL_PROP_SURFACE_HOTSPOT_X_NUMBER :: String
+pattern SDL_PROP_SURFACE_HOTSPOT_X_NUMBER = #{const_str SDL_PROP_SURFACE_HOTSPOT_X_NUMBER}
+
+pattern SDL_PROP_SURFACE_HOTSPOT_Y_NUMBER :: String
+pattern SDL_PROP_SURFACE_HOTSPOT_Y_NUMBER = #{const_str SDL_PROP_SURFACE_HOTSPOT_Y_NUMBER}
 -- Functions
 
 -- | Check if a surface needs locking before pixel access.

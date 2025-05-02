@@ -62,7 +62,7 @@ data SDLFolder
   | SDL_FOLDER_SCREENSHOTS
   | SDL_FOLDER_TEMPLATES
   | SDL_FOLDER_VIDEOS
-  deriving (Show, Eq, Enum)
+  deriving (Show, Eq, Enum, Bounded)
 
 -- | Types of filesystem entries (enum).
 data SDLPathType
@@ -70,7 +70,7 @@ data SDLPathType
   | SDL_PATHTYPE_FILE
   | SDL_PATHTYPE_DIRECTORY
   | SDL_PATHTYPE_OTHER
-  deriving (Show, Eq, Enum)
+  deriving (Show, Eq, Enum, Bounded)
 
 -- | Information about a path on the filesystem
 data SDLPathInfo = SDLPathInfo
@@ -110,7 +110,7 @@ data SDLEnumerationResult
   = SDL_ENUM_CONTINUE
   | SDL_ENUM_SUCCESS
   | SDL_ENUM_FAILURE
-  deriving (Show, Eq, Enum)
+  deriving (Show, Eq, Enum, Bounded)
 
 -- | Callback for directory enumeration
 type SDLEnumerateDirectoryCallback = Ptr () -> CString -> CString -> IO CInt
