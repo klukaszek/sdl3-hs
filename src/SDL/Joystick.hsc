@@ -181,7 +181,7 @@ instance Storable SDLVirtualJoystickSensorDesc where
     <$> (#peek SDL_VirtualJoystickSensorDesc, type) ptr
     <*> (#peek SDL_VirtualJoystickSensorDesc, rate) ptr
   poke ptr (SDLVirtualJoystickSensorDesc typ rate) = do
-    (#poke SDL_VirtualJoystickSensorDesc, type) ptr (fromIntegral $ fromEnum typ :: CInt)
+    (#poke SDL_VirtualJoystickSensorDesc, type) ptr typ
     (#poke SDL_VirtualJoystickSensorDesc, rate) ptr rate
 
 -- | Virtual joystick description
@@ -388,10 +388,10 @@ foreign import ccall "SDL_SendJoystickVirtualSensorData"
   sdlSendJoystickVirtualSensorData_ :: Ptr SDLJoystick -> CInt -> Word64 -> Ptr CFloat -> CInt -> IO CBool
 
 sdlSendJoystickVirtualSensorData :: SDLJoystick -> SDLSensorType -> Word64 -> [Float] -> IO Bool
-sdlSendJoystickVirtualSensorData (SDLJoystick joy) sensorType timestamp values = do
+sdlSendJoystickVirtualSensorData (SDLJoystick joy) (SDLSensorType sensorType) timestamp values = do
   let numValues = length values
   valuePtr <- newArray $ map realToFrac values  -- Convert [Float] to [CFloat]
-  result <- sdlSendJoystickVirtualSensorData_ joy (fromIntegral $ fromEnum sensorType) timestamp valuePtr (fromIntegral numValues)
+  result <- sdlSendJoystickVirtualSensorData_ joy sensorType timestamp valuePtr (fromIntegral numValues)
   free valuePtr
   return $ toBool result
 

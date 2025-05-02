@@ -769,22 +769,23 @@ foreign import ccall "SDL_GamepadHasSensor"
   sdlGamepadHasSensor_ :: Ptr SDLGamepad -> CInt -> IO CBool
 
 sdlGamepadHasSensor :: SDLGamepad -> SDLSensorType -> IO Bool
-sdlGamepadHasSensor (SDLGamepad ptr) typ = toBool <$> sdlGamepadHasSensor_ ptr (fromIntegral $ fromEnum typ)
+sdlGamepadHasSensor (SDLGamepad ptr) (SDLSensorType typ) = toBool <$> sdlGamepadHasSensor_ ptr typ
 
 -- | Enable/disable sensor
 foreign import ccall "SDL_SetGamepadSensorEnabled"
   sdlSetGamepadSensorEnabled_ :: Ptr SDLGamepad -> CInt -> CBool -> IO CBool
 
 sdlSetGamepadSensorEnabled :: SDLGamepad -> SDLSensorType -> Bool -> IO Bool
-sdlSetGamepadSensorEnabled (SDLGamepad ptr) typ enabled =
-  toBool <$> sdlSetGamepadSensorEnabled_ ptr (fromIntegral $ fromEnum typ) (fromBool enabled)
+sdlSetGamepadSensorEnabled (SDLGamepad ptr) (SDLSensorType typ) enabled =
+  toBool <$> sdlSetGamepadSensorEnabled_ ptr typ (fromBool enabled)
 
 -- | Check if sensor is enabled
 foreign import ccall "SDL_GamepadSensorEnabled"
   sdlGamepadSensorEnabled_ :: Ptr SDLGamepad -> CInt -> IO CBool
 
 sdlGamepadSensorEnabled :: SDLGamepad -> SDLSensorType -> IO Bool
-sdlGamepadSensorEnabled (SDLGamepad ptr) typ = toBool <$> sdlGamepadSensorEnabled_ ptr (fromIntegral $ fromEnum typ)
+sdlGamepadSensorEnabled (SDLGamepad ptr) (SDLSensorType typ) =
+  toBool <$> sdlGamepadSensorEnabled_ ptr typ
 
 -- | Get sensor data rate
 foreign import ccall "SDL_GetGamepadSensorDataRate"
@@ -795,8 +796,8 @@ foreign import ccall "SDL_GetGamepadSensorData"
   sdlGetGamepadSensorData_ :: Ptr SDLGamepad -> CInt -> Ptr CFloat -> CInt -> IO CBool
 
 sdlGetGamepadSensorData :: SDLGamepad -> SDLSensorType -> Int -> IO (Maybe [Float])
-sdlGetGamepadSensorData (SDLGamepad ptr) typ numValues = withArray (replicate numValues 0) $ \dataPtr -> do
-  success <- sdlGetGamepadSensorData_ ptr (fromIntegral $ fromEnum typ) dataPtr (fromIntegral numValues)
+sdlGetGamepadSensorData (SDLGamepad ptr) (SDLSensorType typ) numValues = withArray (replicate numValues 0) $ \dataPtr -> do
+  success <- sdlGetGamepadSensorData_ ptr typ dataPtr (fromIntegral numValues)
   if toBool success
     then Just . map realToFrac <$> peekArray numValues dataPtr
     else return Nothing

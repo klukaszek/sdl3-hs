@@ -1,4 +1,7 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE DerivingStrategies #-}
 
 {-|
 Module      : SDL.Sensor
@@ -17,6 +20,15 @@ module SDL.Sensor
     SDLSensor(..)
   , SDLSensorID(..)
   , SDLSensorType(..)
+  , pattern SDL_SENSOR_INVALID
+  , pattern SDL_SENSOR_UNKNOWN
+  , pattern SDL_SENSOR_ACCEL
+  , pattern SDL_SENSOR_GYRO
+  , pattern SDL_SENSOR_ACCEL_L
+  , pattern SDL_SENSOR_GYRO_L
+  , pattern SDL_SENSOR_ACCEL_R
+  , pattern SDL_SENSOR_GYRO_R
+
   , sdlStandardGravity
   
     -- * Sensor Management
@@ -59,25 +71,25 @@ type SDLSensorID = Word32
 sdlStandardGravity :: Float
 sdlStandardGravity = 9.80665
 
--- | Different types of sensors supported by SDL
-data SDLSensorType
-  = SDL_SENSOR_INVALID    -- ^ Invalid sensor
-  | SDL_SENSOR_UNKNOWN    -- ^ Unknown sensor type
-  | SDL_SENSOR_ACCEL      -- ^ Accelerometer
-  | SDL_SENSOR_GYRO       -- ^ Gyroscope
-  | SDL_SENSOR_ACCEL_L    -- ^ Left Joy-Con/Nunchuk accelerometer
-  | SDL_SENSOR_GYRO_L     -- ^ Left Joy-Con gyroscope
-  | SDL_SENSOR_ACCEL_R    -- ^ Right Joy-Con accelerometer
-  | SDL_SENSOR_GYRO_R     -- ^ Right Joy-Con gyroscope
-  deriving (Show, Eq, Enum)
+newtype SDLSensorType = SDLSensorType CInt
+  deriving newtype (Show, Eq, Ord, Storable, Num) -- Add Ord, Storable.
 
-instance Storable SDLSensorType where
-  sizeOf _ = sizeOf (undefined :: CInt)  -- SDL_SensorType is an int in C
-  alignment _ = alignment (undefined :: CInt)
-  peek ptr = do
-    val <- peek (castPtr ptr :: Ptr CInt)
-    return $ toEnum $ fromIntegral val
-  poke ptr val = poke (castPtr ptr :: Ptr CInt) (fromIntegral $ fromEnum val)
+pattern SDL_SENSOR_INVALID :: SDLSensorType
+pattern SDL_SENSOR_INVALID  = SDLSensorType (#{const SDL_SENSOR_INVALID})  -- ^ Invalid sensor (-1)
+pattern SDL_SENSOR_UNKNOWN :: SDLSensorType
+pattern SDL_SENSOR_UNKNOWN  = SDLSensorType #{const SDL_SENSOR_UNKNOWN}  -- ^ Unknown sensor type (0)
+pattern SDL_SENSOR_ACCEL :: SDLSensorType
+pattern SDL_SENSOR_ACCEL    = SDLSensorType #{const SDL_SENSOR_ACCEL}    -- ^ Accelerometer (1)
+pattern SDL_SENSOR_GYRO :: SDLSensorType
+pattern SDL_SENSOR_GYRO     = SDLSensorType #{const SDL_SENSOR_GYRO}     -- ^ Gyroscope (2)
+pattern SDL_SENSOR_ACCEL_L :: SDLSensorType
+pattern SDL_SENSOR_ACCEL_L  = SDLSensorType #{const SDL_SENSOR_ACCEL_L}  -- ^ Left Joy-Con/Nunchuk accelerometer (3)
+pattern SDL_SENSOR_GYRO_L :: SDLSensorType
+pattern SDL_SENSOR_GYRO_L   = SDLSensorType #{const SDL_SENSOR_GYRO_L}   -- ^ Left Joy-Con gyroscope (4)
+pattern SDL_SENSOR_ACCEL_R :: SDLSensorType
+pattern SDL_SENSOR_ACCEL_R  = SDLSensorType #{const SDL_SENSOR_ACCEL_R}  -- ^ Right Joy-Con accelerometer (5)
+pattern SDL_SENSOR_GYRO_R :: SDLSensorType
+pattern SDL_SENSOR_GYRO_R   = SDLSensorType #{const SDL_SENSOR_GYRO_R}   -- ^ Right Joy-Con gyroscope (6)
 
 -- | Get a list of currently connected sensors
 foreign import ccall "SDL_GetSensors" sdlGetSensors_ :: Ptr CInt -> IO (Ptr Word32)
@@ -110,7 +122,7 @@ foreign import ccall "SDL_GetSensorTypeForID" sdlGetSensorTypeForID_ :: SDLSenso
 sdlGetSensorTypeForID :: SDLSensorID -> IO SDLSensorType
 sdlGetSensorTypeForID sensorId = do
   sensorType <- sdlGetSensorTypeForID_ sensorId
-  return $ toEnum (fromIntegral sensorType)
+  return (fromIntegral sensorType)
 
 -- | Get the platform-dependent type of a sensor by its ID
 foreign import ccall "SDL_GetSensorNonPortableTypeForID" sdlGetSensorNonPortableTypeForID :: SDLSensorID -> IO CInt
@@ -159,7 +171,7 @@ foreign import ccall "SDL_GetSensorType" sdlGetSensorType_ :: Ptr SDLSensor -> I
 sdlGetSensorType :: SDLSensor -> IO SDLSensorType
 sdlGetSensorType (SDLSensor sensor) = do
   sensorType <- sdlGetSensorType_ sensor
-  return $ toEnum (fromIntegral sensorType)
+  return (fromIntegral sensorType)
 
 -- | Get the platform-dependent type of an opened sensor
 foreign import ccall "SDL_GetSensorNonPortableType" sdlGetSensorNonPortableType :: Ptr SDLSensor -> IO CInt
