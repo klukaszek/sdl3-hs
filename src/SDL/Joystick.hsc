@@ -134,16 +134,17 @@ instance Storable SDLJoystickID where
 
 -- | Joystick type enumeration
 data SDLJoystickType
-  = SDLJoystickTypeUnknown
-  | SDLJoystickTypeGamepad
-  | SDLJoystickTypeWheel
-  | SDLJoystickTypeArcadeStick
-  | SDLJoystickTypeFlightStick
-  | SDLJoystickTypeDancePad
-  | SDLJoystickTypeGuitar
-  | SDLJoystickTypeDrumKit
-  | SDLJoystickTypeArcadePad
-  | SDLJoystickTypeThrottle
+  = SDL_JOYSTICK_TYPE_UNKNOWN
+  | SDL_JOYSTICK_TYPE_GAMEPAD
+  | SDL_JOYSTICK_TYPE_WHEEL
+  | SDL_JOYSTICK_TYPE_ARCADE_STICK
+  | SDL_JOYSTICK_TYPE_FLIGHT_STICK
+  | SDL_JOYSTICK_TYPE_DANCE_PAD
+  | SDL_JOYSTICK_TYPE_GUITAR
+  | SDL_JOYSTICK_TYPE_DRUM_KIT
+  | SDL_JOYSTICK_TYPE_ARCADE_PAD
+  | SDL_JOYSTICK_TYPE_THROTTLE
+  | SDL_JOYSTICK_TYPE_COUNT
   deriving (Eq, Ord, Show, Enum, Bounded)
 
 -- | Joystick connection state

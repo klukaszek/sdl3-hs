@@ -61,8 +61,6 @@ type SDLClipboardCleanupCallback =
 -- | Set clipboard text 
 --
 -- Returns True on success, False on failure
---
--- @since 3.2.0
 foreign import ccall "SDL_SetClipboardText"
   sdlSetClipboardTextRaw :: CString -> IO CBool
 
@@ -75,8 +73,6 @@ sdlSetClipboardText text = do
 -- | Get clipboard text
 --
 -- Returns the clipboard text or Nothing on failure
---
--- @since 3.2.0
 foreign import ccall "SDL_GetClipboardText"
   sdlGetClipboardTextRaw :: IO CString
 
@@ -88,16 +84,12 @@ sdlGetClipboardText = do
     else Just <$> peekCString cstr
 
 -- | Check if clipboard contains text
---
--- @since 3.2.0
 foreign import ccall "SDL_HasClipboardText"
   sdlHasClipboardText :: IO CBool
 
 -- | Set primary selection text
 --
 -- Returns True on success, False on failure
---
--- @since 3.2.0
 foreign import ccall "SDL_SetPrimarySelectionText"
   sdlSetPrimarySelectionTextRaw :: CString -> IO CBool
 
@@ -110,8 +102,6 @@ sdlSetPrimarySelectionText text = do
 -- | Get primary selection text
 --
 -- Returns the primary selection text or Nothing on failure
---
--- @since 3.2.0
 foreign import ccall "SDL_GetPrimarySelectionText"
   sdlGetPrimarySelectionTextRaw :: IO CString
 
@@ -123,14 +113,10 @@ sdlGetPrimarySelectionText = do
     else Just <$> peekCString cstr
 
 -- | Check if primary selection contains text
---
--- @since 3.2.0
 foreign import ccall "SDL_HasPrimarySelectionText"
   sdlHasPrimarySelectionText :: IO CBool
 
 -- | Set clipboard data with mime types and callbacks
---
--- @since 3.2.0
 foreign import ccall "SDL_SetClipboardData"
   sdlSetClipboardDataRaw :: 
     FunPtr SDLClipboardDataCallback ->    -- callback
@@ -164,14 +150,10 @@ sdlSetClipboardData callback cleanup userdata mimeTypes = do
     noNullPtr s  = s
 
 -- | Clear clipboard data
---
--- @since 3.2.0
 foreign import ccall "SDL_ClearClipboardData"
   sdlClearClipboardData :: IO CBool
 
 -- | Get clipboard data for a specific mime type
---
--- @since 3.2.0
 foreign import ccall "SDL_GetClipboardData"
   sdlGetClipboardDataRaw :: 
     CString ->     -- mime_type
@@ -191,8 +173,6 @@ sdlGetClipboardData mimeType = do
           return $ Just bs
 
 -- | Check if clipboard has data for a specific mime type
---
--- @since 3.2.0
 foreign import ccall "SDL_HasClipboardData"
   sdlHasClipboardDataRaw :: CString -> IO CBool
 
@@ -203,8 +183,6 @@ sdlHasClipboardData mimeType = do
     return $ cbool result
 
 -- | Get list of mime types in clipboard
---
--- @since 3.2.0
 foreign import ccall "SDL_GetClipboardMimeTypes"
   sdlGetClipboardMimeTypesRaw :: Ptr CSize -> IO (Ptr CString)
 
