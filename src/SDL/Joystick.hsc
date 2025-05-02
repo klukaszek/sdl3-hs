@@ -1,4 +1,7 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 {-|
 Module      : SDL.Joystick
 Description : SDL joystick management
@@ -23,7 +26,13 @@ module SDL.Joystick
     SDLJoystick(..)
   , SDLJoystickID(..)
   , SDLJoystickType(..)
+
   , SDLJoystickConnectionState(..)
+  , pattern SDL_JOYSTICK_CONNECTION_INVALID
+  , pattern SDL_JOYSTICK_CONNECTION_UNKNOWN
+  , pattern SDL_JOYSTICK_CONNECTION_WIRED
+  , pattern SDL_JOYSTICK_CONNECTION_WIRELESS
+
   , SDLVirtualJoystickTouchpadDesc(..)
   , SDLVirtualJoystickSensorDesc(..)
   , SDLVirtualJoystickDesc(..)
@@ -148,12 +157,17 @@ data SDLJoystickType
   deriving (Eq, Ord, Show, Enum, Bounded)
 
 -- | Joystick connection state
-data SDLJoystickConnectionState
-  = SDLJoystickConnectionInvalid
-  | SDLJoystickConnectionUnknown
-  | SDLJoystickConnectionWired
-  | SDLJoystickConnectionWireless
-  deriving (Eq, Ord, Show, Enum, Bounded)
+newtype SDLJoystickConnectionState = SDLJoystickConnectionState CInt
+  deriving (Eq, Ord, Show, Storable, Num)
+
+pattern SDL_JOYSTICK_CONNECTION_INVALID :: SDLJoystickConnectionState
+pattern SDL_JOYSTICK_CONNECTION_INVALID  = SDLJoystickConnectionState (#{const SDL_JOYSTICK_CONNECTION_INVALID})  -- ^ Invalid state (-1)
+pattern SDL_JOYSTICK_CONNECTION_UNKNOWN :: SDLJoystickConnectionState
+pattern SDL_JOYSTICK_CONNECTION_UNKNOWN  = SDLJoystickConnectionState #{const SDL_JOYSTICK_CONNECTION_UNKNOWN}  -- ^ Unknown connection state (0)
+pattern SDL_JOYSTICK_CONNECTION_WIRED :: SDLJoystickConnectionState
+pattern SDL_JOYSTICK_CONNECTION_WIRED    = SDLJoystickConnectionState #{const SDL_JOYSTICK_CONNECTION_WIRED}    -- ^ Wired connection (1)
+pattern SDL_JOYSTICK_CONNECTION_WIRELESS :: SDLJoystickConnectionState
+pattern SDL_JOYSTICK_CONNECTION_WIRELESS = SDLJoystickConnectionState #{const SDL_JOYSTICK_CONNECTION_WIRELESS} -- ^ Wireless connection (2)
 
 -- | Virtual joystick touchpad description
 data SDLVirtualJoystickTouchpadDesc = SDLVirtualJoystickTouchpadDesc

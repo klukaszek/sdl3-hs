@@ -1,5 +1,8 @@
-{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-|
 Module      : SDL.Keyboard
@@ -28,11 +31,11 @@ module SDL.Keyboard
   , SDLCapitalization(..)
 
     -- * Constants
-  , sdlPropTextinputTypeNumber
-  , sdlPropTextinputCapitalizationNumber
-  , sdlPropTextinputAutocorrectBoolean
-  , sdlPropTextinputMultilineBoolean
-  , sdlPropTextinputAndroidInputtypeNumber
+  , pattern SDL_PROP_TEXTINPUT_TYPE_NUMBER
+  , pattern SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER
+  , pattern SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN
+  , pattern SDL_PROP_TEXTINPUT_MULTILINE_BOOLEAN
+  , pattern SDL_PROP_TEXTINPUT_ANDROID_INPUTTYPE_NUMBER
 
     -- * Keyboard Functions
   , sdlHasKeyboard
@@ -102,20 +105,11 @@ data SDLCapitalization
   deriving (Eq, Show, Enum)
 
 -- Constants
-sdlPropTextinputTypeNumber :: String
-sdlPropTextinputTypeNumber = #const_str SDL_PROP_TEXTINPUT_TYPE_NUMBER
-
-sdlPropTextinputCapitalizationNumber :: String
-sdlPropTextinputCapitalizationNumber = #const_str SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER
-
-sdlPropTextinputAutocorrectBoolean :: String
-sdlPropTextinputAutocorrectBoolean = #const_str SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN
-
-sdlPropTextinputMultilineBoolean :: String
-sdlPropTextinputMultilineBoolean = #const_str SDL_PROP_TEXTINPUT_MULTILINE_BOOLEAN
-
-sdlPropTextinputAndroidInputtypeNumber :: String
-sdlPropTextinputAndroidInputtypeNumber = #const_str SDL_PROP_TEXTINPUT_ANDROID_INPUTTYPE_NUMBER
+pattern SDL_PROP_TEXTINPUT_TYPE_NUMBER = (#const_str SDL_PROP_TEXTINPUT_TYPE_NUMBER):: String
+pattern SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER = (#const_str SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER) :: String
+pattern SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN = (#const_str SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN) :: String
+pattern SDL_PROP_TEXTINPUT_MULTILINE_BOOLEAN = (#const_str SDL_PROP_TEXTINPUT_MULTILINE_BOOLEAN) :: String
+pattern SDL_PROP_TEXTINPUT_ANDROID_INPUTTYPE_NUMBER = (#const_str SDL_PROP_TEXTINPUT_ANDROID_INPUTTYPE_NUMBER) :: String
 
 -- | Check if a keyboard is currently connected.
 foreign import ccall "SDL_HasKeyboard"

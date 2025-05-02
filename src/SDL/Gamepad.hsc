@@ -675,7 +675,7 @@ foreign import ccall "SDL_GetGamepadConnectionState"
   sdlGetGamepadConnectionState_ :: Ptr SDLGamepad -> IO CInt
 
 sdlGetGamepadConnectionState :: SDLGamepad -> IO SDLJoystickConnectionState
-sdlGetGamepadConnectionState (SDLGamepad ptr) = toEnum . fromIntegral <$> sdlGetGamepadConnectionState_ ptr
+sdlGetGamepadConnectionState (SDLGamepad ptr) = fromIntegral <$> sdlGetGamepadConnectionState_ ptr
 
 -- | Get power info
 foreign import ccall "SDL_GetGamepadPowerInfo"
