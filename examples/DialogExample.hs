@@ -22,7 +22,7 @@ main = do
     "SDL Dialog Example"
     800 
     600 
-    [sdlWindowResizable]
+    [SDL_WINDOW_RESIZABLE]
 
   case maybeWindow of
     Nothing -> do

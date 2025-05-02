@@ -38,7 +38,7 @@ main = do
   mapM_ printSubsystem initializedSystems
 
   -- Create a window
-  window <- sdlCreateWindow "SDL3 Haskell Render Example" 800 600 [sdlWindowResizable]
+  window <- sdlCreateWindow "SDL3 Haskell Render Example" 800 600 [SDL_WINDOW_RESIZABLE]
   case window of
     Nothing -> do
       sdlLog "Failed to create window!"

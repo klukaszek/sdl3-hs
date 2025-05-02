@@ -63,7 +63,6 @@ import Foreign.Ptr
 import Foreign.Storable
 import Foreign.C.Types
 import SDL.Stdinc (SDLBool)
-import SDL.Raw
 import Data.Word
 
 -- | An atomic spinlock.

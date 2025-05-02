@@ -1,4 +1,10 @@
+-- SDL/Touch.hsc
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE RecordWildCards #-} -- Added for Storable SDLFinger
+
 {-|
 Module      : SDL.Touch
 Description : SDL touch input management
@@ -14,20 +20,26 @@ events are primarily handled through the SDL event system (SDL_EVENT_FINGER_DOWN
 this module complements that by offering direct access to touch hardware details.
 
 By default, SDL simulates mouse events from touch input, which can be identified by the
-'sdlTouchMouseID' constant. Applications needing to distinguish touch from mouse input should
+'SDL_TOUCH_MOUSEID' constant. Applications needing to distinguish touch from mouse input should
 filter out mouse events with this ID.
 -}
 
+#include <SDL3/SDL_touch.h>
+
 module SDL.Touch
   ( -- * Types
-    SDLTouchID(..)
+    SDLTouchID
   , SDLFingerID
   , SDLTouchDeviceType(..)
+  , pattern SDL_TOUCH_DEVICE_INVALID
+  , pattern SDL_TOUCH_DEVICE_DIRECT
+  , pattern SDL_TOUCH_DEVICE_INDIRECT_ABSOLUTE
+  , pattern SDL_TOUCH_DEVICE_INDIRECT_RELATIVE
   , SDLFinger(..)
 
-    -- * Constants
-  , sdlTouchMouseID
-  , sdlMouseTouchID
+    -- * Patterns / Constants
+  , pattern SDL_TOUCH_MOUSEID
+  , pattern SDL_MOUSE_TOUCHID
 
     -- * Touch Device Functions
   , sdlGetTouchDevices
@@ -36,17 +48,15 @@ module SDL.Touch
   , sdlGetTouchFingers
   ) where
 
-#include <SDL3/SDL_touch.h>
-
 import Foreign.C.Types
 import Foreign.Ptr (Ptr, nullPtr, castPtr)
 import Foreign.C.String (CString, peekCString)
-import Foreign.Storable (Storable(..))
-import Foreign.Marshal.Alloc (free, alloca)  -- Added alloca
+import Foreign.Storable (Storable(..), peek, poke) -- Added poke
+import Foreign.Marshal.Alloc (free, alloca)
 import Foreign.Marshal.Array (peekArray)
 import Data.Word (Word32, Word64)
-import Control.Monad (when)
-import SDL.Mouse
+import Control.Monad (when, mapM) -- Added mapM
+import SDL.Mouse (SDLMouseID) -- Assuming defined as Word32
 
 -- | A unique ID for a touch device (SDL_TouchID).
 type SDLTouchID = Word64
@@ -55,102 +65,108 @@ type SDLTouchID = Word64
 type SDLFingerID = Word64
 
 -- | An enum describing the type of a touch device (SDL_TouchDeviceType).
-data SDLTouchDeviceType
-  = SDLTouchDeviceInvalid           -- ^ SDL_TOUCH_DEVICE_INVALID
-  | SDLTouchDeviceDirect            -- ^ SDL_TOUCH_DEVICE_DIRECT
-  | SDLTouchDeviceIndirectAbsolute  -- ^ SDL_TOUCH_DEVICE_INDIRECT_ABSOLUTE
-  | SDLTouchDeviceIndirectRelative  -- ^ SDL_TOUCH_DEVICE_INDIRECT_RELATIVE
-  deriving (Eq, Ord, Show, Read, Enum, Bounded)
+newtype SDLTouchDeviceType = SDLTouchDeviceType CInt
+  deriving newtype (Show, Eq, Ord, Storable, Enum, Bounded)
 
--- | Convert C enum values to Haskell SDLTouchDeviceType.
-fromCSDLTouchDeviceType :: CInt -> SDLTouchDeviceType
-fromCSDLTouchDeviceType (-1) = SDLTouchDeviceInvalid
-fromCSDLTouchDeviceType 0    = SDLTouchDeviceDirect
-fromCSDLTouchDeviceType 1    = SDLTouchDeviceIndirectAbsolute
-fromCSDLTouchDeviceType 2    = SDLTouchDeviceIndirectRelative
-fromCSDLTouchDeviceType _    = SDLTouchDeviceInvalid  -- Fallback for unknown values
+pattern SDL_TOUCH_DEVICE_INVALID :: SDLTouchDeviceType
+pattern SDL_TOUCH_DEVICE_INVALID           = SDLTouchDeviceType (#{const SDL_TOUCH_DEVICE_INVALID})
+pattern SDL_TOUCH_DEVICE_DIRECT :: SDLTouchDeviceType
+pattern SDL_TOUCH_DEVICE_DIRECT            = SDLTouchDeviceType #{const SDL_TOUCH_DEVICE_DIRECT}
+pattern SDL_TOUCH_DEVICE_INDIRECT_ABSOLUTE :: SDLTouchDeviceType
+pattern SDL_TOUCH_DEVICE_INDIRECT_ABSOLUTE  = SDLTouchDeviceType #{const SDL_TOUCH_DEVICE_INDIRECT_ABSOLUTE}
+pattern SDL_TOUCH_DEVICE_INDIRECT_RELATIVE :: SDLTouchDeviceType
+pattern SDL_TOUCH_DEVICE_INDIRECT_RELATIVE  = SDLTouchDeviceType #{const SDL_TOUCH_DEVICE_INDIRECT_RELATIVE}
 
 -- | Data about a single finger in a multitouch event (SDL_Finger).
 data SDLFinger = SDLFinger
   { fingerID       :: SDLFingerID  -- ^ The finger ID
-  , fingerX        :: Float        -- ^ X-axis location, normalized (0...1)
-  , fingerY        :: Float        -- ^ Y-axis location, normalized (0...1)
-  , fingerPressure :: Float        -- ^ Pressure applied, normalized (0...1)
+  , fingerX        :: CFloat       -- ^ X-axis location, normalized (0...1)
+  , fingerY        :: CFloat       -- ^ Y-axis location, normalized (0...1)
+  , fingerPressure :: CFloat       -- ^ Pressure applied, normalized (0...1)
   } deriving (Eq, Show)
 
 instance Storable SDLFinger where
-  sizeOf _ = #size SDL_Finger
-  alignment _ = #alignment SDL_Finger
-  peek ptr = SDLFinger
-    <$> (#peek SDL_Finger, id) ptr
-    <*> (#peek SDL_Finger, x) ptr
-    <*> (#peek SDL_Finger, y) ptr
-    <*> (#peek SDL_Finger, pressure) ptr
-  poke ptr (SDLFinger fid fx fy fp) = do
-    (#poke SDL_Finger, id) ptr fid
-    (#poke SDL_Finger, x) ptr fx
-    (#poke SDL_Finger, y) ptr fy
-    (#poke SDL_Finger, pressure) ptr fp
+  sizeOf _ = #{size SDL_Finger}
+  alignment _ = #{alignment SDL_Finger}
+  peek ptr = do -- Use RecordWildCards if preferred
+    fingerID       <- #{peek SDL_Finger, id} ptr
+    fingerX        <- #{peek SDL_Finger, x} ptr
+    fingerY        <- #{peek SDL_Finger, y} ptr
+    fingerPressure <- #{peek SDL_Finger, pressure} ptr
+    return SDLFinger{..}
+  poke ptr SDLFinger{..} = do -- Use RecordWildCards
+    #{poke SDL_Finger, id} ptr fingerID
+    #{poke SDL_Finger, x} ptr fingerX
+    #{poke SDL_Finger, y} ptr fingerY
+    #{poke SDL_Finger, pressure} ptr fingerPressure
 
 -- | The SDL_MouseID for mouse events simulated with touch input (SDL_TOUCH_MOUSEID).
-sdlTouchMouseID :: SDLMouseID
-sdlTouchMouseID = #const SDL_TOUCH_MOUSEID
+pattern SDL_TOUCH_MOUSEID :: SDLMouseID
+pattern SDL_TOUCH_MOUSEID = #{const SDL_TOUCH_MOUSEID}
 
 -- | The SDL_TouchID for touch events simulated with mouse input (SDL_MOUSE_TOUCHID).
-sdlMouseTouchID :: SDLTouchID
-sdlMouseTouchID = #const SDL_MOUSE_TOUCHID
+pattern SDL_MOUSE_TOUCHID :: SDLTouchID
+pattern SDL_MOUSE_TOUCHID = #{const SDL_MOUSE_TOUCHID}
 
 -- | Get a list of registered touch devices (SDL_GetTouchDevices).
-foreign import ccall "SDL_GetTouchDevices"
-  sdlGetTouchDevicesRaw :: Ptr CInt -> IO (Ptr Word64)
+-- Memory allocated by SDL must be freed by the caller.
+foreign import ccall unsafe "SDL_GetTouchDevices"
+  c_sdlGetTouchDevices :: Ptr CInt -> IO (Ptr SDLTouchID) -- SDL_TouchID is Uint64
 
 -- | Haskell wrapper for SDL_GetTouchDevices.
 sdlGetTouchDevices :: IO [SDLTouchID]
 sdlGetTouchDevices = alloca $ \countPtr -> do
-  pArr <- sdlGetTouchDevicesRaw countPtr
-  if pArr == nullPtr
+  idPtr <- c_sdlGetTouchDevices countPtr
+  if idPtr == nullPtr
     then return []
     else do
       count <- peek countPtr
-      arr <- peekArray (fromIntegral count) pArr
-      free (castPtr pArr)
-      return $ arr
+      ids <- peekArray (fromIntegral count) idPtr
+      -- Free the memory allocated by SDL for the ID list
+      free (castPtr idPtr)
+      return ids
 
 -- | Get the touch device name as reported from the driver (SDL_GetTouchDeviceName).
-foreign import ccall "SDL_GetTouchDeviceName"
-  sdlGetTouchDeviceNameRaw :: SDLTouchID -> IO CString
+-- The returned string is owned by SDL and should not be freed.
+foreign import ccall unsafe "SDL_GetTouchDeviceName"
+  c_sdlGetTouchDeviceName :: SDLTouchID -> IO CString
 
 -- | Haskell wrapper for SDL_GetTouchDeviceName.
 sdlGetTouchDeviceName :: SDLTouchID -> IO (Maybe String)
 sdlGetTouchDeviceName touchID = do
-  cstr <- sdlGetTouchDeviceNameRaw touchID
-  if cstr == nullPtr
+  cStr <- c_sdlGetTouchDeviceName touchID
+  if cStr == nullPtr
     then return Nothing
-    else Just <$> peekCString cstr
+    else Just <$> peekCString cStr
 
 -- | Get the type of the given touch device (SDL_GetTouchDeviceType).
-foreign import ccall "SDL_GetTouchDeviceType"
-  sdlGetTouchDeviceTypeRaw :: SDLTouchID -> IO CInt
+foreign import ccall unsafe "SDL_GetTouchDeviceType"
+  c_sdlGetTouchDeviceType :: SDLTouchID -> IO CInt
 
 -- | Haskell wrapper for SDL_GetTouchDeviceType.
 sdlGetTouchDeviceType :: SDLTouchID -> IO SDLTouchDeviceType
-sdlGetTouchDeviceType touchID = fromCSDLTouchDeviceType <$> sdlGetTouchDeviceTypeRaw touchID
+sdlGetTouchDeviceType touchID =
+  toEnum . fromIntegral <$> c_sdlGetTouchDeviceType touchID -- Use derived Enum
 
 -- | Get a list of active fingers for a given touch device (SDL_GetTouchFingers).
-foreign import ccall "SDL_GetTouchFingers"
-  sdlGetTouchFingersRaw :: SDLTouchID -> Ptr CInt -> IO (Ptr (Ptr SDLFinger))
+-- Returns pointers into SDL's internal state - DO NOT FREE the returned pointers.
+foreign import ccall unsafe "SDL_GetTouchFingers"
+  c_sdlGetTouchFingers :: SDLTouchID -> Ptr CInt -> IO (Ptr (Ptr SDLFinger)) -- Returns SDL_Finger**
 
 -- | Haskell wrapper for SDL_GetTouchFingers.
+-- Reads the finger data from SDL's internal state.
 sdlGetTouchFingers :: SDLTouchID -> IO [SDLFinger]
 sdlGetTouchFingers touchID = alloca $ \countPtr -> do
-  poke countPtr 0  -- Initialize count to 0
-  fingersPtrPtr <- sdlGetTouchFingersRaw touchID countPtr
-  if fingersPtrPtr == nullPtr
+  -- SDL returns a pointer to an array of SDL_Finger pointers (SDL_Finger**)
+  fingersPtrArrayPtr <- c_sdlGetTouchFingers touchID countPtr
+  if fingersPtrArrayPtr == nullPtr
     then return []
     else do
       count <- peek countPtr
-      fingersPtr <- peek fingersPtrPtr
-      fingers <- peekArray (fromIntegral count) fingersPtr
-      free fingersPtrPtr  -- Free the array of pointers
-      free fingersPtr     -- Free the finger data
-      return fingers
+      if count <= 0
+        then return []
+        else do
+          -- Peek the array of Ptr SDL_Finger
+          fingerPtrs <- peekArray (fromIntegral count) fingersPtrArrayPtr
+          -- Peek each SDLFinger struct from the pointers
+          mapM peek fingerPtrs

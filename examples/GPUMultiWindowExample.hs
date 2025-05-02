@@ -38,7 +38,7 @@ main = do
   sdlLog $ "Linked SDL Version: " ++ show linkedVersion
 
   -- Use withContext for initialization and cleanup of the *first* window and device
-  maybeResult <- withContext "SDL3 Haskell GPU Multi-Window Clear (1)" [sdlWindowResizable] runAppGPU
+  maybeResult <- withContext "SDL3 Haskell GPU Multi-Window Clear (1)" [SDL_WINDOW_RESIZABLE] runAppGPU
   case maybeResult of
       -- Note: maybeResult being Nothing means commonInit failed.
       -- Errors *within* runAppGPU (like failing to create the 2nd window)

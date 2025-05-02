@@ -78,7 +78,7 @@ main = do
                   sdlQuit
                   exitFailure
                 else do
-                    window <- sdlCreateWindow "SDL3 Haskell Audio Queue Loop" 640 480 [sdlWindowResizable]
+                    window <- sdlCreateWindow "SDL3 Haskell Audio Queue Loop" 640 480 [SDL_WINDOW_RESIZABLE]
                     case window of
                       Nothing -> do
                         sdlLog "Failed to create window!"

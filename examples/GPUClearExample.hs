@@ -31,7 +31,7 @@ main = do
   sdlLog $ "Linked SDL Version: " ++ show linkedVersion
 
   -- Use withContext for initialization and cleanup
-  maybeResult <- withContext "SDL3 Haskell GPU Example" [sdlWindowResizable] runAppGPU
+  maybeResult <- withContext "SDL3 Haskell GPU Example" [SDL_WINDOW_RESIZABLE] runAppGPU
   case maybeResult of
       Nothing -> do
           sdlLog "Application initialization failed."

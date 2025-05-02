@@ -87,7 +87,7 @@ main = do
   sdlLog $ "Linked SDL Version: " ++ show linkedVersion
 
   -- Use withContext for base SDL/GPU/Window setup
-  maybeResult <- withContext "SDL3 Haskell GPU Cull Mode" [sdlWindowResizable] runAppGPU
+  maybeResult <- withContext "SDL3 Haskell GPU Cull Mode" [SDL_WINDOW_RESIZABLE] runAppGPU
   case maybeResult of
     Nothing -> do
       sdlLog "Application initialization failed (commonInit)."

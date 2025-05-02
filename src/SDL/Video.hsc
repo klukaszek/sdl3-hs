@@ -1,5 +1,8 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE RecordWildCards #-} 
 
 -- |
 -- Module      : SDL.Video
@@ -18,22 +21,34 @@ module SDL.Video
     SDLWindow(..),
     SDLDisplayMode(..),
     SDLDisplayOrientation(..),
+    pattern SDL_ORIENTATION_UNKNOWN,
+    pattern SDL_ORIENTATION_LANDSCAPE,
+    pattern SDL_ORIENTATION_LANDSCAPE_FLIPPED,
+    pattern SDL_ORIENTATION_PORTRAIT,
+    pattern SDL_ORIENTATION_PORTRAIT_FLIPPED,
     
     SDLWindowFlags(..),
-    sdlWindowFullscreen,
-    sdlWindowOpenGL,
-    sdlWindowHidden,
-    sdlWindowBorderless,
-    sdlWindowResizable,
-    sdlWindowMinimized,
-    sdlWindowMaximized,
-    sdlWindowMouseGrabbed,
-    sdlWindowHighPixelDensity,
-    sdlWindowAlwaysOnTop,
+    pattern SDL_WINDOW_FULLSCREEN,
+    pattern SDL_WINDOW_OPENGL,
+    pattern SDL_WINDOW_HIDDEN,
+    pattern SDL_WINDOW_BORDERLESS,
+    pattern SDL_WINDOW_RESIZABLE,
+    pattern SDL_WINDOW_MINIMIZED,
+    pattern SDL_WINDOW_MAXIMIZED,
+    pattern SDL_WINDOW_MOUSE_GRABBED,
+    pattern SDL_WINDOW_HIGH_PIXEL_DENSITY,
+    pattern SDL_WINDOW_ALWAYS_ON_TOP,
 
     SDLFlashOperation(..),
+    pattern SDL_FLASH_CANCEL,
+    pattern SDL_FLASH_BRIEFLY,
+    pattern SDL_FLASH_UNTIL_FOCUSED,
+  
     SDLGLContext,
     SDLSystemTheme(..),
+    pattern SDL_SYSTEM_THEME_UNKNOWN,
+    pattern SDL_SYSTEM_THEME_LIGHT,
+    pattern SDL_SYSTEM_THEME_DARK,
 
     -- * Window Management
     sdlCreateWindow,
@@ -74,7 +89,6 @@ import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Array (peekArray0, withArrayLen)
 import Foreign.Storable (Storable(..))
 import Control.Monad (liftM)
-import SDL.Raw
 import SDL.Rect (SDLRect(..))
 import SDL.Pixels (SDLPixelFormat(..), cUIntToPixelFormat, pixelFormatToCUInt)
 import SDL.Properties (SDLPropertiesID(..))
@@ -92,20 +106,30 @@ newtype SDLWindow = SDLWindow (Ptr SDLWindow)
   deriving (Show, Eq)
 
 -- | System theme enumeration.
-data SDLSystemTheme
-  = SDLSystemThemeUnknown
-  | SDLSystemThemeLight
-  | SDLSystemThemeDark
-  deriving (Show, Eq, Enum)
+newtype SDLSystemTheme = SDLSystemTheme CInt
+  deriving newtype (Show, Eq, Ord, Storable, Enum)
+
+pattern SDL_SYSTEM_THEME_UNKNOWN :: SDLSystemTheme
+pattern SDL_SYSTEM_THEME_UNKNOWN = SDLSystemTheme #{const SDL_SYSTEM_THEME_UNKNOWN}
+pattern SDL_SYSTEM_THEME_LIGHT :: SDLSystemTheme
+pattern SDL_SYSTEM_THEME_LIGHT   = SDLSystemTheme #{const SDL_SYSTEM_THEME_LIGHT}
+pattern SDL_SYSTEM_THEME_DARK :: SDLSystemTheme
+pattern SDL_SYSTEM_THEME_DARK    = SDLSystemTheme #{const SDL_SYSTEM_THEME_DARK}
 
 -- | Display orientation enumeration.
-data SDLDisplayOrientation
-  = SDLOrientationUnknown
-  | SDLOrientationLandscape
-  | SDLOrientationLandscapeFlipped
-  | SDLOrientationPortrait
-  | SDLOrientationPortraitFlipped
-  deriving (Show, Eq, Enum)
+newtype SDLDisplayOrientation = SDLDisplayOrientation CInt
+  deriving newtype (Show, Eq, Ord, Storable, Enum)
+
+pattern SDL_ORIENTATION_UNKNOWN :: SDLDisplayOrientation
+pattern SDL_ORIENTATION_UNKNOWN           = SDLDisplayOrientation #{const SDL_ORIENTATION_UNKNOWN}
+pattern SDL_ORIENTATION_LANDSCAPE :: SDLDisplayOrientation
+pattern SDL_ORIENTATION_LANDSCAPE         = SDLDisplayOrientation #{const SDL_ORIENTATION_LANDSCAPE}
+pattern SDL_ORIENTATION_LANDSCAPE_FLIPPED :: SDLDisplayOrientation
+pattern SDL_ORIENTATION_LANDSCAPE_FLIPPED = SDLDisplayOrientation #{const SDL_ORIENTATION_LANDSCAPE_FLIPPED}
+pattern SDL_ORIENTATION_PORTRAIT :: SDLDisplayOrientation
+pattern SDL_ORIENTATION_PORTRAIT          = SDLDisplayOrientation #{const SDL_ORIENTATION_PORTRAIT}
+pattern SDL_ORIENTATION_PORTRAIT_FLIPPED :: SDLDisplayOrientation
+pattern SDL_ORIENTATION_PORTRAIT_FLIPPED  = SDLDisplayOrientation #{const SDL_ORIENTATION_PORTRAIT_FLIPPED}
 
 -- | Display mode structure.
 data SDLDisplayMode = SDLDisplayMode
@@ -140,28 +164,40 @@ instance Storable SDLDisplayMode where
     (# poke SDL_DisplayMode, refresh_rate ) ptr (realToFrac rr :: CFloat)
 
 -- | Window flags (bitfield).
-newtype SDLWindowFlags = SDLWindowFlags { unSDLWindowFlags :: CUInt }
-  deriving (Show, Eq, Bits)
+newtype SDLWindowFlags = SDLWindowFlags CUInt
+  deriving newtype (Show, Eq, Bits, Num, Storable)
 
-#{enum SDLWindowFlags, SDLWindowFlags
- , sdlWindowFullscreen         = SDL_WINDOW_FULLSCREEN
- , sdlWindowOpenGL             = SDL_WINDOW_OPENGL
- , sdlWindowHidden             = SDL_WINDOW_HIDDEN
- , sdlWindowBorderless         = SDL_WINDOW_BORDERLESS
- , sdlWindowResizable          = SDL_WINDOW_RESIZABLE
- , sdlWindowMinimized          = SDL_WINDOW_MINIMIZED
- , sdlWindowMaximized          = SDL_WINDOW_MAXIMIZED
- , sdlWindowMouseGrabbed       = SDL_WINDOW_MOUSE_GRABBED
- , sdlWindowHighPixelDensity   = SDL_WINDOW_HIGH_PIXEL_DENSITY
- , sdlWindowAlwaysOnTop        = SDL_WINDOW_ALWAYS_ON_TOP
- }
+pattern SDL_WINDOW_FULLSCREEN :: SDLWindowFlags
+pattern SDL_WINDOW_FULLSCREEN         = SDLWindowFlags #{const SDL_WINDOW_FULLSCREEN}
+pattern SDL_WINDOW_OPENGL :: SDLWindowFlags
+pattern SDL_WINDOW_OPENGL             = SDLWindowFlags #{const SDL_WINDOW_OPENGL}
+pattern SDL_WINDOW_HIDDEN :: SDLWindowFlags
+pattern SDL_WINDOW_HIDDEN             = SDLWindowFlags #{const SDL_WINDOW_HIDDEN}
+pattern SDL_WINDOW_BORDERLESS :: SDLWindowFlags
+pattern SDL_WINDOW_BORDERLESS         = SDLWindowFlags #{const SDL_WINDOW_BORDERLESS}
+pattern SDL_WINDOW_RESIZABLE :: SDLWindowFlags
+pattern SDL_WINDOW_RESIZABLE          = SDLWindowFlags #{const SDL_WINDOW_RESIZABLE}
+pattern SDL_WINDOW_MINIMIZED :: SDLWindowFlags
+pattern SDL_WINDOW_MINIMIZED          = SDLWindowFlags #{const SDL_WINDOW_MINIMIZED}
+pattern SDL_WINDOW_MAXIMIZED :: SDLWindowFlags
+pattern SDL_WINDOW_MAXIMIZED          = SDLWindowFlags #{const SDL_WINDOW_MAXIMIZED}
+pattern SDL_WINDOW_MOUSE_GRABBED :: SDLWindowFlags
+pattern SDL_WINDOW_MOUSE_GRABBED       = SDLWindowFlags #{const SDL_WINDOW_MOUSE_GRABBED}
+pattern SDL_WINDOW_HIGH_PIXEL_DENSITY :: SDLWindowFlags -- Renamed pattern
+pattern SDL_WINDOW_HIGH_PIXEL_DENSITY   = SDLWindowFlags #{const SDL_WINDOW_HIGH_PIXEL_DENSITY}
+pattern SDL_WINDOW_ALWAYS_ON_TOP :: SDLWindowFlags
+pattern SDL_WINDOW_ALWAYS_ON_TOP        = SDLWindowFlags #{const SDL_WINDOW_ALWAYS_ON_TOP}
 
 -- | Flash operation enumeration.
-data SDLFlashOperation
-  = SDLFlashCancel
-  | SDLFlashBriefly
-  | SDLFlashUntilFocused
-  deriving (Show, Eq, Enum)
+newtype SDLFlashOperation = SDLFlashOperation CInt
+  deriving newtype (Show, Eq, Ord, Storable, Enum) -- Added Ord, Storable, Enum
+
+pattern SDL_FLASH_CANCEL :: SDLFlashOperation
+pattern SDL_FLASH_CANCEL         = SDLFlashOperation #{const SDL_FLASH_CANCEL}
+pattern SDL_FLASH_BRIEFLY :: SDLFlashOperation
+pattern SDL_FLASH_BRIEFLY        = SDLFlashOperation #{const SDL_FLASH_BRIEFLY}
+pattern SDL_FLASH_UNTIL_FOCUSED :: SDLFlashOperation
+pattern SDL_FLASH_UNTIL_FOCUSED  = SDLFlashOperation #{const SDL_FLASH_UNTIL_FOCUSED}
 
 -- | Opaque OpenGL context handle.
 newtype SDLGLContext = SDLGLContext (Ptr ())
@@ -251,7 +287,10 @@ foreign import ccall "SDL_CreateWindow"
 
 sdlCreateWindow :: String -> Int -> Int -> [SDLWindowFlags] -> IO (Maybe SDLWindow)
 sdlCreateWindow title w h flags = withCString title $ \cTitle -> do
-  let combinedFlags = foldr (.|.) 0 (map unSDLWindowFlags flags) -- combine CUInt flags using bitwise AND.
+  let extractFlag (SDLWindowFlags flagVal) = flagVal
+  -- Fold using bitwise OR (|.) on the extracted CUInts
+  -- Start folding with zeroBits from Data.Bits for the correct CUInt zero
+  let combinedFlags = foldr (.|.) zeroBits (map extractFlag flags)
   ptr <- sdlCreateWindow_c cTitle (fromIntegral w) (fromIntegral h) combinedFlags
   return $ if ptr == nullPtr then Nothing else Just (SDLWindow ptr)
 
