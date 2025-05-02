@@ -3,6 +3,7 @@ module Main where
 import SDL
 import Foreign.C.Types (CInt)
 import Control.Monad (unless)
+import Data.Bits (zeroBits)
 import System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()
@@ -23,15 +24,15 @@ main = do
   sdlLog "SDL Initialized. Testing message boxes..."
 
   -- Simple information message box
-  res1 <- showMessageBox "Info" "This is an information message box." maybeWindow [SDLMessageBoxInformation]
+  res1 <- showMessageBox "Info" "This is an information message box." maybeWindow [SDL_MESSAGEBOX_INFORMATION]
   sdlLog $ "User clicked: " ++ show res1
 
   -- Warning message box
-  res2 <- showMessageBox "Warning" "This is a warning message box." maybeWindow [SDLMessageBoxWarning]
+  res2 <- showMessageBox "Warning" "This is a warning message box." maybeWindow [SDL_MESSAGEBOX_WARNING]
   sdlLog $ "User clicked: " ++ show res2
 
   -- Error message box
-  res3 <- showMessageBox "Error" "This is an error message box." maybeWindow [SDLMessageBoxError]
+  res3 <- showMessageBox "Error" "This is an error message box." maybeWindow [SDL_MESSAGEBOX_ERROR]
   sdlLog $ "User clicked: " ++ show res3
 
   -- Message box with custom buttons
@@ -60,9 +61,9 @@ showMessageBox title msg window msgType = do
 -- Function to show a custom message box with buttons
 showCustomMessageBox :: String -> String -> Maybe SDLWindow -> [(String, CInt)] -> IO (Maybe Int)
 showCustomMessageBox title msg window buttons = do
-  let buttonData = [ SDLMessageBoxButtonData [] bid txt | (txt, bid) <- buttons ]
+  let buttonData = [ SDLMessageBoxButtonData zeroBits bid txt | (txt, bid) <- buttons ]
       msgBoxData = SDLMessageBoxData
-        { messageBoxFlags = [SDLMessageBoxInformation]
+        { messageBoxFlags = [SDL_MESSAGEBOX_INFORMATION]
         , messageBoxWindow = window
         , messageBoxTitle = title
         , messageBoxMessage = msg

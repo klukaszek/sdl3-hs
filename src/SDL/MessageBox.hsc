@@ -1,4 +1,9 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
 {-|
 Module      : SDL.Messagebox
 Description : SDL message box management
@@ -17,21 +22,21 @@ customizable message boxes ('sdlShowMessageBox') with various options and button
 module SDL.MessageBox
   ( -- * Types
     SDLMessageBoxFlags(..)
+  , pattern SDL_MESSAGEBOX_ERROR
+  , pattern SDL_MESSAGEBOX_WARNING           
+  , pattern SDL_MESSAGEBOX_INFORMATION       
+  , pattern SDL_MESSAGEBOX_LEFT_TO_RIGHT
+  , pattern SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT
+    
   , SDLMessageBoxButtonFlags(..)
+  , pattern SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT
+  , pattern SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT
+
   , SDLMessageBoxButtonData(..)
   , SDLMessageBoxColor(..)
   , SDLMessageBoxColorType(..)
   , SDLMessageBoxColorScheme(..)
   , SDLMessageBoxData(..)
-
-    -- * Constants
-  , sdlMessageBoxError
-  , sdlMessageBoxWarning
-  , sdlMessageBoxInformation
-  , sdlMessageBoxButtonsLeftToRight
-  , sdlMessageBoxButtonsRightToLeft
-  , sdlMessageBoxButtonReturnKeyDefault
-  , sdlMessageBoxButtonEscapeKeyDefault
 
     -- * Message Box Functions
   , sdlShowMessageBox
@@ -56,75 +61,53 @@ unSDLWindow :: SDLWindow -> Ptr SDLWindow
 unSDLWindow (SDLWindow ptr) = ptr
 
 -- | Flags for message box display properties
-data SDLMessageBoxFlags
-  = SDLMessageBoxError                    -- ^ error dialog
-  | SDLMessageBoxWarning                  -- ^ warning dialog
-  | SDLMessageBoxInformation             -- ^ informational dialog
-  | SDLMessageBoxButtonsLeftToRight      -- ^ buttons placed left to right
-  | SDLMessageBoxButtonsRightToLeft      -- ^ buttons placed right to left
-  deriving (Eq, Ord, Show, Read)
+newtype SDLMessageBoxFlags = SDLMessageBoxFlags Word32
+  deriving (Show, Num, Bits, Storable, Eq)
 
--- | Convert flags to Word32 bitmask
-toSDLMessageBoxFlags :: [SDLMessageBoxFlags] -> Word32
-toSDLMessageBoxFlags flags = foldr (.|.) 0 $ map toFlag flags
-  where
-    toFlag SDLMessageBoxError              = #const SDL_MESSAGEBOX_ERROR
-    toFlag SDLMessageBoxWarning            = #const SDL_MESSAGEBOX_WARNING
-    toFlag SDLMessageBoxInformation        = #const SDL_MESSAGEBOX_INFORMATION
-    toFlag SDLMessageBoxButtonsLeftToRight = #const SDL_MESSAGEBOX_BUTTONS_LEFT_TO_RIGHT
-    toFlag SDLMessageBoxButtonsRightToLeft = #const SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT
+pattern SDL_MESSAGEBOX_ERROR = (#const SDL_MESSAGEBOX_ERROR) :: SDLMessageBoxFlags
+pattern SDL_MESSAGEBOX_WARNING            = (#const SDL_MESSAGEBOX_WARNING) :: SDLMessageBoxFlags
+pattern SDL_MESSAGEBOX_INFORMATION        = (#const SDL_MESSAGEBOX_INFORMATION) :: SDLMessageBoxFlags
+pattern SDL_MESSAGEBOX_LEFT_TO_RIGHT = (#const SDL_MESSAGEBOX_BUTTONS_LEFT_TO_RIGHT) :: SDLMessageBoxFlags
+pattern SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT = (#const SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT) :: SDLMessageBoxFlags
 
 -- | Flags for message box button properties
-data SDLMessageBoxButtonFlags
-  = SDLMessageBoxButtonReturnKeyDefault  -- ^ default button when return is hit
-  | SDLMessageBoxButtonEscapeKeyDefault  -- ^ default button when escape is hit
-  deriving (Eq, Ord, Show, Read)
+newtype SDLMessageBoxButtonFlags = SDLMessageBoxButtonFlags Word32
+  deriving (Eq, Bits, Enum, Num, Show, Storable, Bounded)
 
--- | Convert button flags to Word32 bitmask
-toSDLMessageBoxButtonFlags :: [SDLMessageBoxButtonFlags] -> Word32
-toSDLMessageBoxButtonFlags flags = foldr (.|.) 0 $ map toFlag flags
-  where
-    toFlag SDLMessageBoxButtonReturnKeyDefault = #const SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT
-    toFlag SDLMessageBoxButtonEscapeKeyDefault = #const SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT
+pattern SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT = (#const SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT) :: SDLMessageBoxButtonFlags
+pattern SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT = (#const SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT) :: SDLMessageBoxButtonFlags
 
 -- | Individual button data
 data SDLMessageBoxButtonData = SDLMessageBoxButtonData
-  { buttonFlags :: [SDLMessageBoxButtonFlags]
+  { buttonFlags :: SDLMessageBoxButtonFlags
   , buttonID    :: CInt
   , buttonText  :: String
   } deriving (Eq, Show)
 
 instance Storable SDLMessageBoxButtonData where
-  sizeOf _ = #size SDL_MessageBoxButtonData
-  alignment _ = #alignment SDL_MessageBoxButtonData
-  peek ptr = SDLMessageBoxButtonData
-    <$> (toFlags <$> (#peek SDL_MessageBoxButtonData, flags) ptr)
-    <*> (fromIntegral <$> ((#peek SDL_MessageBoxButtonData, buttonID) ptr :: IO CInt))
-    <*> ((#peek SDL_MessageBoxButtonData, text) ptr >>= peekCString)
-    where
-      toFlags flags =
-        filter (`elem` [SDLMessageBoxButtonReturnKeyDefault, SDLMessageBoxButtonEscapeKeyDefault])
-          [f | f <- [minBound..maxBound], flags .&. toSDLMessageBoxButtonFlags [f] /= 0]
+  sizeOf _ = #{size SDL_MessageBoxButtonData}
+  alignment _ = #{alignment SDL_MessageBoxButtonData}
+  peek ptr = do
+    -- Peek the flags directly; Storable instance handles the newtype
+    flags    <- #{peek SDL_MessageBoxButtonData, flags} ptr
+    buttonID <- #{peek SDL_MessageBoxButtonData, buttonID} ptr
+    textPtr  <- #{peek SDL_MessageBoxButtonData, text} ptr
+    -- Convert the text CString
+    text     <- peekCString textPtr
+    -- Construct the Haskell record
+    pure $ SDLMessageBoxButtonData flags buttonID text
 
-  poke ptr (SDLMessageBoxButtonData flags bid text) = do
-    (#poke SDL_MessageBoxButtonData, flags) ptr (toSDLMessageBoxButtonFlags flags)
-    (#poke SDL_MessageBoxButtonData, buttonID) ptr (fromIntegral bid :: CInt)
-    (#poke SDL_MessageBoxButtonData, text) ptr =<< newCString text
-
-instance Enum SDLMessageBoxButtonFlags where
-  toEnum 0 = SDLMessageBoxButtonReturnKeyDefault
-  toEnum 1 = SDLMessageBoxButtonEscapeKeyDefault
-  toEnum _ = error "Invalid SDLMessageBoxButtonFlags value"
-
-  fromEnum SDLMessageBoxButtonReturnKeyDefault = 0
-  fromEnum SDLMessageBoxButtonEscapeKeyDefault = 1
-
-instance Bounded SDLMessageBoxButtonFlags where
-  minBound = SDLMessageBoxButtonReturnKeyDefault
-  maxBound = SDLMessageBoxButtonEscapeKeyDefault
+  poke ptr (SDLMessageBoxButtonData (SDLMessageBoxButtonFlags flags) bid text) = do
+    -- Use pattern matching to get the Word32 out of the flags newtype
+    #{poke SDL_MessageBoxButtonData, flags} ptr flags
+    #{poke SDL_MessageBoxButtonData, buttonID} ptr bid
+    -- Allocate a CString for the text (caller must ensure it lives long enough or use 'with')
+    -- WARNING: This poke is still potentially unsafe if 'ptr' isn't temporary
+    cText <- newCString text
+    #{poke SDL_MessageBoxButtonData, text} ptr cText
 
 -- | RGB color value for message box scheme
-newtype SDLMessageBoxColor = SDLMessageBoxColor { unMessageBoxColor :: SDLColor }
+newtype SDLMessageBoxColor = SDLMessageBoxColor SDLColor
   deriving (Eq, Show)
 
 instance Storable SDLMessageBoxColor where
@@ -136,6 +119,7 @@ instance Storable SDLMessageBoxColor where
   poke ptr (SDLMessageBoxColor color) = poke (castPtr ptr) color
 
 -- | Color type enumeration for message box scheme
+-- | C Header declaration treats these as standard enums, can derive Enum
 data SDLMessageBoxColorType
   = SDLMessageBoxColorBackground
   | SDLMessageBoxColorText
@@ -168,39 +152,32 @@ data SDLMessageBoxData = SDLMessageBoxData
   } deriving (Eq, Show)
 
 instance Storable SDLMessageBoxData where
-  sizeOf _ = #size SDL_MessageBoxData
+  sizeOf _ = #{size SDL_MessageBoxData}
   alignment _ = #alignment SDL_MessageBoxData
-  peek ptr = error "SDLMessageBoxData peek not implemented"  -- Full implementation would require complex pointer handling
-  poke ptr (SDLMessageBoxData flags win title msg buttons cs) = do
-    (#poke SDL_MessageBoxData, flags) ptr (toSDLMessageBoxFlags flags)
-    (#poke SDL_MessageBoxData, window) ptr (maybe nullPtr unSDLWindow win)
-    (#poke SDL_MessageBoxData, title) ptr =<< newCString title
-    (#poke SDL_MessageBoxData, message) ptr =<< newCString msg
-    (#poke SDL_MessageBoxData, numbuttons) ptr (fromIntegral $ length buttons :: CInt)
-    (#poke SDL_MessageBoxData, buttons) ptr =<< newArray buttons
-    (#poke SDL_MessageBoxData, colorScheme) ptr =<< maybe (return nullPtr) new cs
+  peek ptr = error "SDLMessageBoxData peek not fully implemented due to pointer complexity"
+  poke ptr (SDLMessageBoxData flagsList win title msg buttons cs) = do
+    -- Combine the list of flags into a single CUInt bitmask
+    let combinedFlags = foldr ((.|.) . extractFlag) zeroBits flagsList
+          where extractFlag (SDLMessageBoxFlags f) = f -- Helper to get CUInt
 
--- | Constants
-sdlMessageBoxError :: SDLMessageBoxFlags
-sdlMessageBoxError = SDLMessageBoxError
-
-sdlMessageBoxWarning :: SDLMessageBoxFlags
-sdlMessageBoxWarning = SDLMessageBoxWarning
-
-sdlMessageBoxInformation :: SDLMessageBoxFlags
-sdlMessageBoxInformation = SDLMessageBoxInformation
-
-sdlMessageBoxButtonsLeftToRight :: SDLMessageBoxFlags
-sdlMessageBoxButtonsLeftToRight = SDLMessageBoxButtonsLeftToRight
-
-sdlMessageBoxButtonsRightToLeft :: SDLMessageBoxFlags
-sdlMessageBoxButtonsRightToLeft = SDLMessageBoxButtonsRightToLeft
-
-sdlMessageBoxButtonReturnKeyDefault :: SDLMessageBoxButtonFlags
-sdlMessageBoxButtonReturnKeyDefault = SDLMessageBoxButtonReturnKeyDefault
-
-sdlMessageBoxButtonEscapeKeyDefault :: SDLMessageBoxButtonFlags
-sdlMessageBoxButtonEscapeKeyDefault = SDLMessageBoxButtonEscapeKeyDefault
+    #{poke SDL_MessageBoxData, flags} ptr combinedFlags -- Poke the combined CUInt
+    -- Use pattern matching for window pointer
+    #{poke SDL_MessageBoxData, window} ptr (maybe nullPtr (\(SDLWindow p) -> p) win)
+    -- Use temporary CStrings (assuming 'ptr' is temporary via 'new'/'with')
+    -- WARNING: Still potentially unsafe if 'ptr' isn't temporary
+    cTitle <- newCString title
+    cMsg   <- newCString msg
+    #{poke SDL_MessageBoxData, title} ptr cTitle
+    #{poke SDL_MessageBoxData, message} ptr cMsg
+    #{poke SDL_MessageBoxData, numbuttons} ptr (fromIntegral $ length buttons :: CInt)
+    -- Use newArray (pointer needs freeing later if not temporary)
+    -- WARNING: Still potentially unsafe if 'ptr' isn't temporary
+    buttonsPtr <- newArray buttons
+    #{poke SDL_MessageBoxData, buttons} ptr buttonsPtr
+    -- Use maybe (return nullPtr) new for color scheme
+    -- WARNING: Still potentially unsafe if 'ptr' isn't temporary
+    csPtr <- maybe (return nullPtr) new cs
+    #{poke SDL_MessageBoxData, colorScheme} ptr csPtr
 
 -- | Create a modal message box
 foreign import ccall "SDL_ShowMessageBox"
@@ -220,8 +197,8 @@ foreign import ccall "SDL_ShowSimpleMessageBox"
   sdlShowSimpleMessageBoxRaw :: Word32 -> CString -> CString -> Ptr SDLWindow -> IO Bool
 
 -- | Haskell wrapper for SDL_ShowSimpleMessageBox
-sdlShowSimpleMessageBox :: [SDLMessageBoxFlags] -> String -> String -> Maybe SDLWindow -> IO Bool
-sdlShowSimpleMessageBox flags title msg win = do
+sdlShowSimpleMessageBox :: SDLMessageBoxFlags -> String -> String -> Maybe SDLWindow -> IO Bool
+sdlShowSimpleMessageBox (SDLMessageBoxFlags flags) title msg win = do
   titleC <- newCString title
   msgC <- newCString msg
-  sdlShowSimpleMessageBoxRaw (toSDLMessageBoxFlags flags) titleC msgC (maybe nullPtr unSDLWindow win)
+  sdlShowSimpleMessageBoxRaw flags titleC msgC (maybe nullPtr unSDLWindow win)

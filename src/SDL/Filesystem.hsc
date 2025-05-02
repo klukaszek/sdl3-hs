@@ -1,5 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- SDL/Filesystem.hsc
 {-|
@@ -100,10 +101,9 @@ instance Storable SDLPathInfo where
 
 -- | Flags for path matching (bitfield).
 newtype SDLGlobFlags = SDLGlobFlags Word32
-  deriving (Show, Eq, Bits)
+  deriving (Show, Eq, Bits, Num)
 
-pattern SDL_GLOB_CASEINSENSITIVE :: SDLGlobFlags
-pattern SDL_GLOB_CASEINSENSITIVE = SDLGlobFlags #{const SDL_GLOB_CASEINSENSITIVE}
+pattern SDL_GLOB_CASEINSENSITIVE = #{const SDL_GLOB_CASEINSENSITIVE} :: SDLGlobFlags
 
 -- | Results from enumeration callback (enum).
 data SDLEnumerationResult
