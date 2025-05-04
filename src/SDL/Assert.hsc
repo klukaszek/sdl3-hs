@@ -3,7 +3,6 @@ Module      : SDL.Assert
 Description : Bindings to SDL assertion functionality
 Copyright   : (c) Kyle Lukaszek, 2025
 License     : BSD3
-Maintainer  : your.email@example.com
 
 This module provides Haskell bindings to the SDL assertion functionality.
 SDL assertions operate like your usual assert macro, but with additional features.

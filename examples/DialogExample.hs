@@ -12,7 +12,7 @@ import System.Exit (exitFailure, exitSuccess)
 main :: IO ()
 main = do
   -- Initialize SDL
-  initSuccess <- sdlInit [InitVideo]
+  initSuccess <- sdlInit [SDL_INIT_VIDEO]
   unless initSuccess $ do
     sdlLog "Failed to initialize SDL!"
     exitFailure

@@ -1,5 +1,6 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- SDL/Init.hs
 {-|
@@ -7,24 +8,25 @@ Module      : SDL.Init
 Description : Initialization and shutdown functions for SDL3.
 Copyright   : (c) Kyle Lukaszek, 2025
 License     : BSD3
-Maintainer  : kylelukaszek@gmail.com
 
 This module provides Haskell bindings to the SDL stdinc functionality.
 -}
+
+#include <SDL3/SDL_init.h>
 
 module SDL.Init
   ( 
   -- * Initialization
   -- ** Initialization Flags
-    InitFlag
-  , pattern InitAudio
-  , pattern InitVideo
-  , pattern InitJoystick
-  , pattern InitHaptic
-  , pattern InitGamepad
-  , pattern InitEvents
-  , pattern InitSensor
-  , pattern InitCamera
+    SDLInitFlags
+  , pattern SDL_INIT_AUDIO
+  , pattern SDL_INIT_VIDEO
+  , pattern SDL_INIT_JOYSTICK
+  , pattern SDL_INIT_HAPTIC
+  , pattern SDL_INIT_GAMEPAD
+  , pattern SDL_INIT_EVENTS
+  , pattern SDL_INIT_SENSOR
+  , pattern SDL_INIT_CAMERA
   
   -- ** Basic Initialization Functions
   , sdlInit
@@ -39,11 +41,11 @@ module SDL.Init
   , sdlRunOnMainThread
   
   -- ** App Result Types
-  , AppResult(..)
-  , AppInitFunc
-  , AppIterateFunc
-  , AppEventFunc
-  , AppQuitFunc
+  , SDLAppResult(..)
+  , SDLAppInitFunc
+  , SDLAppIterateFunc
+  , SDLAppEventFunc
+  , SDLAppQuitFunc
   
   -- ** App Metadata
   , sdlSetAppMetadata
@@ -65,141 +67,120 @@ import Foreign
 import Foreign.C
 
 -- | Flags for SDL initialization
-type InitFlag = Word32
+type SDLInitFlags = Word32
 
 -- | Use the audio subsystem
-pattern InitAudio :: InitFlag
-pattern InitAudio = 0x00000010
+pattern SDL_INIT_AUDIO = (#const SDL_INIT_AUDIO) :: SDLInitFlags
 
 -- | Use the video subsystem
-pattern InitVideo :: InitFlag
-pattern InitVideo = 0x00000020
+pattern SDL_INIT_VIDEO = (#const SDL_INIT_VIDEO) :: SDLInitFlags
 
 -- | Use the joystick subsystem
-pattern InitJoystick :: InitFlag
-pattern InitJoystick = 0x00000200
+pattern SDL_INIT_JOYSTICK = (#const SDL_INIT_JOYSTICK) :: SDLInitFlags
 
 -- | Use the haptic (force feedback) subsystem
-pattern InitHaptic :: InitFlag
-pattern InitHaptic = 0x00001000
+pattern SDL_INIT_HAPTIC = (#const SDL_INIT_HAPTIC) :: SDLInitFlags
 
 -- | Use the gamepad subsystem
-pattern InitGamepad :: InitFlag
-pattern InitGamepad = 0x00002000
+pattern SDL_INIT_GAMEPAD = (#const SDL_INIT_GAMEPAD) :: SDLInitFlags
 
 -- | Use the events subsystem
-pattern InitEvents :: InitFlag
-pattern InitEvents = 0x00004000
+pattern SDL_INIT_EVENTS = (#const SDL_INIT_EVENTS) :: SDLInitFlags
 
 -- | Use the sensor subsystem
-pattern InitSensor :: InitFlag
-pattern InitSensor = 0x00008000
+pattern SDL_INIT_SENSOR = (#const SDL_INIT_SENSOR) :: SDLInitFlags
 
 -- | Use the camera subsystem
-pattern InitCamera :: InitFlag
-pattern InitCamera = 0x00010000
+pattern SDL_INIT_CAMERA = (#const SDL_INIT_CAMERA) :: SDLInitFlags
 
 -- | Result for app callbacks
-data AppResult = 
-    AppContinue    -- ^ Continue app execution
-  | AppSuccess     -- ^ Terminate with success
-  | AppFailure     -- ^ Terminate with error
-  deriving (Eq, Show)
-
--- | Convert Haskell AppResult to C value
-appResultToC :: AppResult -> CInt
-appResultToC AppContinue = 0
-appResultToC AppSuccess = 1
-appResultToC AppFailure = 2
-
--- | Convert C AppResult to Haskell value
-appResultFromC :: CInt -> AppResult
-appResultFromC 0 = AppContinue
-appResultFromC 1 = AppSuccess
-appResultFromC 2 = AppFailure
-appResultFromC _ = AppFailure -- Default for unknown values
+data SDLAppResult = 
+    SDL_APP_CONTINUE    -- ^ Continue app execution
+  | SDL_APP_SUCCESS     -- ^ Terminate with success
+  | SDL_APP_FAILURE     -- ^ Terminate with error
+  deriving (Eq, Show, Enum)
 
 -- | Type for app initialization callback
-type AppInitFunc = Ptr (Ptr ()) -> CInt -> Ptr (Ptr CChar) -> IO AppResult
+type SDLAppInitFunc = Ptr (Ptr ()) -> CInt -> Ptr (Ptr CChar) -> IO SDLAppResult
 
 -- | Create a C function pointer from a Haskell AppInitFunc
 foreign import ccall "wrapper"
   makeAppInitCallback :: (Ptr (Ptr ()) -> CInt -> Ptr (Ptr CChar) -> IO CInt) -> IO (FunPtr (Ptr (Ptr ()) -> CInt -> Ptr (Ptr CChar) -> IO CInt))
 
 -- | Wrap a Haskell AppInitFunc to convert the result
-wrapAppInitFunc :: AppInitFunc -> (Ptr (Ptr ()) -> CInt -> Ptr (Ptr CChar) -> IO CInt)
+wrapAppInitFunc :: SDLAppInitFunc -> (Ptr (Ptr ()) -> CInt -> Ptr (Ptr CChar) -> IO CInt)
 wrapAppInitFunc f appstate argc argv = do
   result <- f appstate argc argv
-  return (appResultToC result)
+  return (fromIntegral (fromEnum result))
 
 -- | Type for app iteration callback
-type AppIterateFunc = Ptr () -> IO AppResult
+type SDLAppIterateFunc = Ptr () -> IO SDLAppResult
 
 -- | Create a C function pointer from a Haskell AppIterateFunc
 foreign import ccall "wrapper"
   makeAppIterateCallback :: (Ptr () -> IO CInt) -> IO (FunPtr (Ptr () -> IO CInt))
 
 -- | Wrap a Haskell AppIterateFunc to convert the result
-wrapAppIterateFunc :: AppIterateFunc -> (Ptr () -> IO CInt)
+wrapAppIterateFunc :: SDLAppIterateFunc -> (Ptr () -> IO CInt)
 wrapAppIterateFunc f appstate = do
   result <- f appstate
-  return (appResultToC result)
+  return (fromIntegral (fromEnum result))
 
 -- | Type for app event callback
-type AppEventFunc = Ptr () -> Ptr () -> IO AppResult  -- Second Ptr () should be Ptr SDL_Event
+type SDLAppEventFunc = Ptr () -> Ptr () -> IO SDLAppResult  -- Second Ptr () should be Ptr SDL_Event
 
 -- | Create a C function pointer from a Haskell AppEventFunc
 foreign import ccall "wrapper"
   makeAppEventCallback :: (Ptr () -> Ptr () -> IO CInt) -> IO (FunPtr (Ptr () -> Ptr () -> IO CInt))
 
 -- | Wrap a Haskell AppEventFunc to convert the result
-wrapAppEventFunc :: AppEventFunc -> (Ptr () -> Ptr () -> IO CInt)
+wrapAppEventFunc :: SDLAppEventFunc -> (Ptr () -> Ptr () -> IO CInt)
 wrapAppEventFunc f appstate event = do
   result <- f appstate event
-  return (appResultToC result)
+  return (fromIntegral (fromEnum result))
 
 -- | Type for app quit callback
-type AppQuitFunc = Ptr () -> AppResult -> IO ()
+type SDLAppQuitFunc = Ptr () -> SDLAppResult -> IO ()
 
 -- | Create a C function pointer from a Haskell AppQuitFunc
 foreign import ccall "wrapper"
   makeAppQuitCallback :: (Ptr () -> CInt -> IO ()) -> IO (FunPtr (Ptr () -> CInt -> IO ()))
 
 -- | Wrap a Haskell AppQuitFunc to convert the input argument
-wrapAppQuitFunc :: AppQuitFunc -> (Ptr () -> CInt -> IO ())
-wrapAppQuitFunc f appstate result = f appstate (appResultFromC result)
+wrapAppQuitFunc :: SDLAppQuitFunc -> (Ptr () -> CInt -> IO ())
+wrapAppQuitFunc f appstate result = f appstate (toEnum (fromIntegral result))
 
 -- | Initialize the SDL library.
 foreign import ccall unsafe "SDL_Init" sdlInit_ :: Word32 -> IO Bool
 
 -- | Initialize the SDL library.
-sdlInit :: [InitFlag] -> IO Bool
+sdlInit :: [SDLInitFlags] -> IO Bool
 sdlInit flags = sdlInit_ (foldr (.|.) 0 flags)
 
 -- | Initialize specific SDL subsystems.
 foreign import ccall unsafe "SDL_InitSubSystem" sdlInitSubSystem_ :: Word32 -> IO Bool
 
 -- | Initialize specific SDL subsystems.
-sdlInitSubSystem :: [InitFlag] -> IO Bool
+sdlInitSubSystem :: [SDLInitFlags] -> IO Bool
 sdlInitSubSystem flags = sdlInitSubSystem_ (foldr (.|.) 0 flags)
 
 -- | Shut down specific SDL subsystems.
 foreign import ccall unsafe "SDL_QuitSubSystem" sdlQuitSubSystem_ :: Word32 -> IO ()
 
 -- | Shut down specific SDL subsystems.
-sdlQuitSubSystem :: [InitFlag] -> IO ()
+sdlQuitSubSystem :: [SDLInitFlags] -> IO ()
 sdlQuitSubSystem flags = sdlQuitSubSystem_ (foldr (.|.) 0 flags)
 
 -- | Get a mask of the specified subsystems which are currently initialized.
 foreign import ccall unsafe "SDL_WasInit" sdlWasInit_ :: Word32 -> IO Word32
 
 -- | Get a mask of the specified subsystems which are currently initialized.
-sdlWasInit :: [InitFlag] -> IO [InitFlag]
+sdlWasInit :: [SDLInitFlags] -> IO [SDLInitFlags]
 sdlWasInit flags = do
   result <- sdlWasInit_ (foldr (.|.) 0 flags)
   -- Create list of initialized flags
   return $ filter (\flag -> (result .&. flag) /= 0) 
-    [InitAudio, InitVideo, InitJoystick, InitHaptic, InitGamepad, InitEvents, InitSensor, InitCamera]
+    [SDL_INIT_AUDIO, SDL_INIT_VIDEO, SDL_INIT_JOYSTICK, SDL_INIT_HAPTIC, SDL_INIT_GAMEPAD, SDL_INIT_EVENTS, SDL_INIT_SENSOR, SDL_INIT_CAMERA]
 
 -- | Clean up all initialized subsystems.
 foreign import ccall unsafe "SDL_Quit" sdlQuit_ :: IO ()

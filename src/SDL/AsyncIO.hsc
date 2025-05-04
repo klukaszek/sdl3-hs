@@ -3,7 +3,6 @@ Module      : SDL.AsyncIO
 Description : Bindings to SDL asynchronous I/O functionality
 Copyright   : (c) Kyle Lukaszek, 2025
 License     : BS3
-Maintainer  : kylelukaszek@example.com
 
 This module provides Haskell bindings to SDL's asynchronous I/O functionality.
 SDL offers a way to perform I/O asynchronously, allowing an app to read

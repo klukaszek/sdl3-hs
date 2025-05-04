@@ -105,7 +105,7 @@ defaultVertexInputState = SDLGPUVertexInputState { inputVertexBuffers = [], inpu
 -- | commonInit
 commonInit :: String -> [SDLWindowFlags] -> IO (Maybe Context)
 commonInit exampleName windowFlags = do
-    initSuccess <- sdlInit [InitVideo, InitEvents]
+    initSuccess <- sdlInit [SDL_INIT_VIDEO, SDL_INIT_EVENTS]
     unless initSuccess $ do
         sdlLog "Failed to initialize SDL!"
         sdlGetError >>= sdlLog . ("SDL Error: " ++)
@@ -255,3 +255,16 @@ findM _ [] = return Nothing
 findM p (x:xs) = do
   b <- p x
   if b then return (Just x) else findM p xs
+
+-- Helper function to print subsystem names
+printSubsystem :: SDLInitFlags -> IO ()
+printSubsystem flag = sdlLog $ "  - " ++ case flag of
+  SDL_INIT_AUDIO    -> "Audio"
+  SDL_INIT_VIDEO    -> "Video"
+  SDL_INIT_JOYSTICK -> "Joystick"
+  SDL_INIT_HAPTIC   -> "Haptic"
+  SDL_INIT_GAMEPAD  -> "Gamepad"
+  SDL_INIT_EVENTS   -> "Events"
+  SDL_INIT_SENSOR   -> "Sensor"
+  SDL_INIT_CAMERA   -> "Camera"
+  _            -> "Unknown subsystem"

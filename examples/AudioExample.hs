@@ -26,7 +26,7 @@ import Foreign.Storable (sizeOf)
 main :: IO ()
 main = do
   -- Initialize SDL with audio support
-  sdlInit [InitAudio]
+  sdlInit [SDL_INIT_AUDIO]
 
   -- Define the audio specification: 32-bit float, 1 channel (mono), 8000 Hz
   let spec = SDLAudioSpec SDL_AUDIO_F32 1 8000

@@ -7,7 +7,7 @@ import System.Exit (exitFailure, exitSuccess)
 main :: IO ()
 main = do
   -- Initialize SDL with video and events subsystems
-  initSuccess <- sdlInit [InitVideo]
+  initSuccess <- sdlInit [SDL_INIT_VIDEO]
   unless initSuccess $ do
     sdlLog "Failed to initialize SDL!"
     exitFailure
@@ -47,14 +47,14 @@ main = do
   exitSuccess
 
 -- Helper function to print subsystem names
-printSubsystem :: InitFlag -> IO ()
+printSubsystem :: SDLInitFlags -> IO ()
 printSubsystem flag = sdlLog $ "  - " ++ case flag of
-  InitAudio    -> "Audio"
-  InitVideo    -> "Video"
-  InitJoystick -> "Joystick"
-  InitHaptic   -> "Haptic"
-  InitGamepad  -> "Gamepad"
-  InitEvents   -> "Events"
-  InitSensor   -> "Sensor"
-  InitCamera   -> "Camera"
+  SDL_INIT_AUDIO    -> "Audio"
+  SDL_INIT_VIDEO    -> "Video"
+  SDL_INIT_JOYSTICK -> "Joystick"
+  SDL_INIT_HAPTIC   -> "Haptic"
+  SDL_INIT_GAMEPAD  -> "Gamepad"
+  SDL_INIT_EVENTS   -> "Events"
+  SDL_INIT_SENSOR   -> "Sensor"
+  SDL_INIT_CAMERA   -> "Camera"
   _            -> "Unknown subsystem"

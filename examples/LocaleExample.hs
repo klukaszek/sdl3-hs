@@ -7,7 +7,7 @@ import Control.Monad (unless)
 main :: IO ()
 main = do
     -- Initialize SDL
-    initSuccess <- sdlInit [InitVideo]
+    initSuccess <- sdlInit [SDL_INIT_VIDEO]
     unless initSuccess $ do
         sdlLog "Failed to initialize SDL"
         return ()

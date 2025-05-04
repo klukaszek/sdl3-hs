@@ -6,7 +6,6 @@ Module      : SDL.Stdinc
 Description : Bindings to SDL stdinc functionality
 Copyright   : (c) Kyle Lukaszek, 2025
 License     : BSD3
-Maintainer  : kylelukaszek@gmail.com
 
 This module provides Haskell bindings to the SDL stdinc functionality.
 -}

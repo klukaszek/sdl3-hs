@@ -3,7 +3,6 @@ Module      : SDL.Atomic
 Description : Bindings to SDL atomic operations
 Copyright   : (c) Kyle Lukaszek, 2025
 License     : BSD3
-Maintainer  : kylelukaszek@example.com
 
 This module provides Haskell bindings to SDL's atomic operations.
 

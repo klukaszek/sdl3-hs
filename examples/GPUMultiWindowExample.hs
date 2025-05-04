@@ -204,16 +204,3 @@ renderSingleWindow cmdbuf window clearColor windowName = do
                 Just renderPass -> do
                     -- Clear happens via LoadOp
                     sdlEndGPURenderPass renderPass -- End pass for this window
-
--- | Helper function to print subsystem names (copied from original example, not strictly needed here)
-printSubsystem :: InitFlag -> IO ()
-printSubsystem flag = sdlLog $ "  - " ++ case flag of
-  InitAudio    -> "Audio"
-  InitVideo    -> "Video"
-  InitJoystick -> "Joystick"
-  InitHaptic   -> "Haptic"
-  InitGamepad  -> "Gamepad"
-  InitEvents   -> "Events"
-  InitSensor   -> "Sensor"
-  InitCamera   -> "Camera"
-  _            -> "Unknown subsystem"

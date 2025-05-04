@@ -138,16 +138,3 @@ renderFrameGPU Context{..} = do -- Deconstruct context
             unless submitted $ do
                  err <- sdlGetError
                  sdlLog $ "Error: Failed to submit command buffer: " ++ err
-
--- | Helper function to print subsystem names (same as before)
-printSubsystem :: InitFlag -> IO ()
-printSubsystem flag = sdlLog $ "  - " ++ case flag of
-  InitAudio    -> "Audio"
-  InitVideo    -> "Video"
-  InitJoystick -> "Joystick"
-  InitHaptic   -> "Haptic"
-  InitGamepad  -> "Gamepad"
-  InitEvents   -> "Events"
-  InitSensor   -> "Sensor"
-  InitCamera   -> "Camera"
-  _            -> "Unknown subsystem"

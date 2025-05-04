@@ -8,7 +8,7 @@ import Foreign.Ptr (nullPtr)
 main :: IO ()
 main = do
   -- Initialize SDL with sensor subsystem
-  initSuccess <- sdlInit [InitSensor]
+  initSuccess <- sdlInit [SDL_INIT_SENSOR]
   
   unless initSuccess $ do
     sdlLog "Failed to initialize SDL with sensor support!"
