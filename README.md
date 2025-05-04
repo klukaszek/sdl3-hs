@@ -33,12 +33,12 @@ package *
 - [x] SDL3/SDL_events.h
 - [x] SDL3/SDL_filesystem.h
 - [x] SDL3/SDL_gamepad.h
-- [x] SDL3/SDL_gpu.h
+- [x] SDL3/SDL_gpu.h (Refactor pattern declarations with ScopedTypeVariables)
 - [x] SDL3/SDL_guid.h
 - [x] SDL3/SDL_haptic.h
 - [x] SDL3/SDL_hidapi.h
 - [x] SDL3/SDL_hints.h
-- [x] SDL3/SDL_init.h
+- [x] SDL3/SDL_init.h (Refactor this file)
 - [x] SDL3/SDL_iostream.h
 - [x] SDL3/SDL_joystick.h
 - [x] SDL3/SDL_keyboard.h

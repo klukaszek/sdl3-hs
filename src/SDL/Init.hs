@@ -229,10 +229,9 @@ foreign import ccall safe "SDL_RunOnMainThread" sdlRunOnMainThread_ :: FunPtr Ma
 sdlRunOnMainThread :: MainThreadCallback -> Ptr () -> Bool -> IO Bool
 sdlRunOnMainThread callback userdata waitComplete = do
   callbackPtr <- makeMainThreadCallback callback
-  result <- sdlRunOnMainThread_ callbackPtr userdata waitComplete
+  sdlRunOnMainThread_ callbackPtr userdata waitComplete
   -- Note: In a real implementation, we would need to free the callback pointer
   -- This is a simplification
-  return result
 
 -- | Specify basic metadata about your app.
 foreign import ccall unsafe "SDL_SetAppMetadata" sdlSetAppMetadata_ :: CString -> CString -> CString -> IO Bool
