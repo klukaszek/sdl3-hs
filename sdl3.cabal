@@ -297,6 +297,7 @@ executable gpu-animatedquad
         base,
         bytestring,
         linear,
+        geomancy,
         sdl3,
         filepath,
         directory

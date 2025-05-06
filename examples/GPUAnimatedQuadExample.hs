@@ -1,7 +1,26 @@
--- Main.hs for AnimatedQuads Example
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE LambdaCase           #-}
+
+{-|
+Example     : GPUAnimatedQuads
+Description : Drawing multiple animated and textured quads using SDL GPU API.
+Copyright   : (c) Kyle Lukaszek, 2025
+License     : BSD3
+
+Based on the SDL_gpu_examples/AnimatedQuads C example.
+Demonstrates:
+- Defining a vertex structure with texture coordinates (PositionTextureVertex).
+- Loading a texture from a BMP file using SDL_Surface.
+- Creating a GPU sampler for texture lookup.
+- Creating vertex and index buffers for a quad.
+- Uploading texture and buffer data.
+- Defining and using uniform data structures (FragMultiplyUniform, Matrix4x4) for transformations and color effects.
+- Pushing uniform data to shaders (SDL_PushGPUVertexUniformData, SDL_PushGPUFragmentUniformData).
+- Creating a graphics pipeline with alpha blending enabled.
+- Animating quads by updating transformation matrices and color multipliers over time.
+- Drawing multiple instances of the quad with different uniforms in a single render pass.
+|-}
 
 module Main where
 
@@ -30,6 +49,13 @@ import System.FilePath ((</>))
 
 -- linear algebra library
 import Linear
+
+-- | We can also use Geomancy for linalg
+-- import Geomancy.Mat4               (Mat4, transpose, matrixProduct)
+-- import Geomancy.Vulkan.Projection  (orthoOffCenter)
+-- import Geomancy.Transform          (Transform(..), translate, rotateQ)
+-- import Geomancy.Vec3               (vec3)
+-- import Geomancy.Quaternion         (axisAngle)
 
 -- Vertex data (Updated coordinates for -0.5 to 0.5 range)
 vertexData :: [PositionTextureVertex]
@@ -73,7 +99,7 @@ main = do
 runAppGPU :: Context -> IO ()
 runAppGPU context@Context{..} = do
     sdlLog "Base context initialized."
-    timeRef <- newIORef (0.0 :: CFloat) -- For animation time
+    timeRef <- newIORef (0.0 :: Float) -- For animation time
 
     bracket (createResources context)
             (releaseResources context) -- Bracket release
@@ -355,7 +381,7 @@ releaseResources Context{..} (Just AppResources{..}) = do
     sdlLog "<-- AppResources Released."
 
 -- eventLoopGPU (Added time update)
-eventLoopGPU :: Context -> AppResources -> Word64 -> Word64 -> IORef Double -> IORef CFloat -> IO ()
+eventLoopGPU :: Context -> AppResources -> Word64 -> Word64 -> IORef Double -> IORef Float -> IO ()
 eventLoopGPU context resources lastTime freq deltaTimeRef timeRef = do
   -- Calculate deltaTime
   currentTime <- sdlGetPerformanceCounter
@@ -400,7 +426,7 @@ handleEventGPU event = case event of
   _ -> return False
 
 -- renderFrameGPU
-renderFrameGPU :: Context -> AppResources -> IORef CFloat -> IO ()
+renderFrameGPU :: Context -> AppResources -> IORef Float -> IO ()
 renderFrameGPU Context{..} AppResources{..} timeRef = do
     maybeCmdbuf <- sdlAcquireGPUCommandBuffer contextDevice
     case maybeCmdbuf of
@@ -436,11 +462,9 @@ renderFrameGPU Context{..} AppResources{..} timeRef = do
                                 -- Get current time
                                 t <- readIORef timeRef
 
-                                -- Helper for sin/cos with CFloat
-                                let sin' = realToFrac . sin . realToFrac
-                                    cos' = realToFrac . cos . realToFrac
 
-                                let proj :: M44 CFloat
+                                -- | This uncommented block uses Linear
+                                let proj :: M44 Float
                                     proj = ortho (-1) 1
                                                  (-1) 1
                                                  (-1) 1
@@ -459,18 +483,44 @@ renderFrameGPU Context{..} AppResources{..} timeRef = do
                                           sdlPushGPUFragmentUniformData cmdbuf 0 fragUniform
                                           sdlDrawGPUIndexedPrimitives renderPass 6 1 0 0 0
 
+                                -- -- | This commented out block of code does the exact same thing but using Geomancy for lin alg ops.
+                                -- -- build an orthographic proj from -1..1 in XY, with near=-1, far=1, width=2, height=2
+                                -- let proj :: Mat4
+                                --     proj = unTransform $ orthoOffCenter (-1)    1  2  2
+                                --     --                                    ^     ^  ^  ^
+                                --     --                                   near  far w  h
+
+                                -- let drawQuad tx ty rot colorFunc = do
+                                --       let
+                                --           -- build your model→view transforms in Float
+                                --           axis    = vec3 0 0 1
+                                --           quat    = axisAngle axis rot
+                                --           rotT    = rotateQ quat
+                                --           transT  = translate tx ty 0
+                                --           modelT  = rotT <> transT
+                                --           modelM  = unTransform modelT       -- Mat4 Float
+
+                                --           proj    = unTransform $ orthoOffCenter (-1) 1 2 2
+
+                                --           -- sample your color func
+                                --           fragU   = colorFunc t             -- FragMultiplyUniform (all Floats)
+
+                                --       sdlPushGPUVertexUniformData   cmdbuf 0 modelM
+                                --       sdlPushGPUFragmentUniformData cmdbuf 0 fragU
+                                --       sdlDrawGPUIndexedPrimitives   renderPass 6 1 0 0 0
+
                                 -- Top-left
                                 drawQuad (-0.5) 0.5 t $ \tm ->
-                                    FragMultiplyUniform 1.0 (0.5 + sin' tm * 0.5) 1.0 1.0
+                                    FragMultiplyUniform 1.0 (0.5 + sin tm * 0.5) 1.0 1.0
                                 -- Top-right
                                 drawQuad 0.5 0.5 (2.0 * pi - t) $ \tm ->
-                                    FragMultiplyUniform 1.0 (0.5 + cos' tm * 0.5) 1.0 1.0
+                                    FragMultiplyUniform 1.0 (0.5 + cos tm * 0.5) 1.0 1.0
                                 -- Bottom-left
                                 drawQuad (-0.5) (-0.5) t $ \tm ->
-                                    FragMultiplyUniform 1.0 (0.5 + sin' tm * 0.2) 1.0 1.0
+                                    FragMultiplyUniform 1.0 (0.5 + sin tm * 0.2) 1.0 1.0
                                 -- Bottom-right
                                 drawQuad 0.5 (-0.5) t $ \tm ->
-                                    FragMultiplyUniform 1.0 (0.5 + cos' tm * 1.0) 1.0 1.0
+                                    FragMultiplyUniform 1.0 (0.5 + cos tm * 1.0) 1.0 1.0
 
                     -- Submit after bracket ensures render pass is ended
                     submitted <- sdlSubmitGPUCommandBuffer cmdbuf

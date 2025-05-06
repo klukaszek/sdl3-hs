@@ -93,10 +93,10 @@ instance Storable PositionTextureVertex where
 
 -- FragMultiplyUniform (for AnimatedQuads example fragment shader)
 data FragMultiplyUniform = FragMultiplyUniform
-  { multR :: {-# UNPACK #-} !CFloat
-  , multG :: {-# UNPACK #-} !CFloat
-  , multB :: {-# UNPACK #-} !CFloat
-  , multA :: {-# UNPACK #-} !CFloat
+  { multR :: {-# UNPACK #-} !Float
+  , multG :: {-# UNPACK #-} !Float
+  , multB :: {-# UNPACK #-} !Float
+  , multA :: {-# UNPACK #-} !Float
   } deriving (Show, Eq)
 
 instance Storable FragMultiplyUniform where
@@ -336,6 +336,7 @@ loadImage relativeImagePath = do
 
                     -- IMPORTANT: Destroy the original surface *after* the conversion attempt,
                     -- regardless of whether it succeeded or failed. We no longer need it.
+                    -- Once this is wrapped properly we could just let GC handle it.
                     sdlLog $ "Destroying original intermediate surface: " ++ show originalSurfPtr
                     sdlDestroySurface originalSurfPtr
 
