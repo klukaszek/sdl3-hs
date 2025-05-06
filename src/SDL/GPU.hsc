@@ -451,11 +451,8 @@ module SDL.GPU
   , sdlAcquireGPUCommandBuffer
     -- ** Uniform Data
   , sdlPushGPUVertexUniformData
-  , sdlPushGPUVertexUniformDataRaw
   , sdlPushGPUFragmentUniformData
-  , sdlPushGPUFragmentUniformDataRaw
   , sdlPushGPUComputeUniformData
-  , sdlPushGPUComputeUniformDataRaw
     -- ** Graphics Pass
   , sdlBeginGPURenderPass
   , sdlBindGPUGraphicsPipeline

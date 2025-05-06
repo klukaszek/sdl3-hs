@@ -20,9 +20,11 @@ module GPUCommon where
 import SDL
 
 import Foreign.C.Types
-import Foreign.Ptr (Ptr, nullPtr, castPtr)
+import Foreign.Ptr (Ptr, nullPtr, castPtr, plusPtr)
 import Foreign.C.String (peekCString)
 import Foreign.Storable (peek, Storable(..))
+import Foreign.Marshal.Array (pokeArray, withArray)
+import Foreign.Marshal.Utils (copyBytes)
 
 import Control.Monad (unless, when, void)
 import Control.Monad.IO.Class (liftIO)
@@ -36,7 +38,7 @@ import System.Directory (doesFileExist, getCurrentDirectory)
 import Data.Maybe (fromMaybe, isNothing, isJust, fromJust)
 import Data.Bits ((.|.), (.&.))
 import Data.List (find)
-import Data.Word (Word8)
+import Data.Word (Word8, Word16, Word32)
 import qualified Data.ByteString as BS
 
 -- | Context structure
@@ -45,6 +47,7 @@ data Context = Context
     , contextWindow :: SDLWindow
     } deriving (Show)
 
+-- Storables
 data PositionColorVertex = PositionColorVertex
     { pcVertexX :: {-# UNPACK #-} !CFloat
     , pcVertexY :: {-# UNPACK #-} !CFloat
@@ -63,6 +66,7 @@ instance Storable PositionColorVertex where
         pokeByteOff ptr 0 x; pokeByteOff ptr 4 y; pokeByteOff ptr 8 z;
         pokeByteOff ptr 12 r; pokeByteOff ptr 13 g; pokeByteOff ptr 14 b; pokeByteOff ptr 15 a
 
+-- PositionTextureVertex
 data PositionTextureVertex = PositionTextureVertex
     { ptVertexX :: {-# UNPACK #-} !CFloat -- pos.x
     , ptVertexY :: {-# UNPACK #-} !CFloat -- pos.y
@@ -86,6 +90,28 @@ instance Storable PositionTextureVertex where
         pokeByteOff ptr 8 z
         pokeByteOff ptr 12 u
         pokeByteOff ptr 16 v
+
+-- FragMultiplyUniform (for AnimatedQuads example fragment shader)
+data FragMultiplyUniform = FragMultiplyUniform
+  { multR :: {-# UNPACK #-} !CFloat
+  , multG :: {-# UNPACK #-} !CFloat
+  , multB :: {-# UNPACK #-} !CFloat
+  , multA :: {-# UNPACK #-} !CFloat
+  } deriving (Show, Eq)
+
+instance Storable FragMultiplyUniform where
+    sizeOf _ = 4 * sizeOf (undefined :: CFloat) -- 16 bytes
+    alignment _ = alignment (undefined :: CFloat)
+    peek ptr = FragMultiplyUniform
+               <$> peekByteOff ptr 0
+               <*> peekByteOff ptr 4
+               <*> peekByteOff ptr 8
+               <*> peekByteOff ptr 12
+    poke ptr (FragMultiplyUniform r g b a) = do
+        pokeByteOff ptr 0 r
+        pokeByteOff ptr 4 g
+        pokeByteOff ptr 8 b
+        pokeByteOff ptr 12 a
 
 -- Default Structs
 defaultShaderCreateInfo :: SDLGPUShaderCreateInfo
@@ -326,6 +352,119 @@ loadImage relativeImagePath = do
                             sdlLog $ "Successfully converted to new surface: " ++ show convertedSurfPtr
                             -- Conversion succeeded, return the new pointer. Caller now owns it.
                             return $ Just convertedSurfPtr
+
+-- | Generic Helpers
+
+-- createGPUBuffer
+createGPUBuffer :: SDLGPUDevice -> SDLGPUBufferUsageFlags -> CSize -> String -> IO (Maybe SDLGPUBuffer)
+createGPUBuffer dev usage size name = do
+    sdlLog $ "Creating " ++ name ++ " (Size: " ++ show size ++ " bytes)..."
+    let ci = SDLGPUBufferCreateInfo { bufferUsage = usage, bufferSize = fromIntegral size, bufferProps = 0 }
+    maybeBuf <- sdlCreateGPUBuffer dev ci
+    when (isNothing maybeBuf) $ do
+        err <- sdlGetError
+        sdlLog $ "!!! Failed to create " ++ name ++ ": " ++ err
+    return maybeBuf
+
+--cleanupCopyPass
+cleanupCopyPass :: Maybe SDLGPUCopyPass -> IO ()
+cleanupCopyPass = maybe (return ()) sdlEndGPUCopyPass
+
+-- cleanupCommandBuffer
+cleanupCommandBuffer :: Maybe SDLGPUCommandBuffer -> IO ()
+cleanupCommandBuffer Nothing = return ()
+cleanupCommandBuffer (Just cmdbuf) =
+    sdlLog $ "Upload Command Buffer bracket cleanup for: " ++ show cmdbuf
+
+-- createTransferBuffer
+createTransferBuffer :: SDLGPUDevice -> CSize -> String -> IO (Maybe SDLGPUTransferBuffer)
+createTransferBuffer dev size name = do
+    sdlLog $ "Creating Transfer Buffer '" ++ name ++ "' (Size: " ++ show size ++ " bytes)..."
+    let tbCreateInfo = SDLGPUTransferBufferCreateInfo SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD (fromIntegral size) 0
+    maybeTb <- sdlCreateGPUTransferBuffer dev tbCreateInfo
+    when (isNothing maybeTb) $ sdlGetError >>= sdlLog . ((("!!! Failed to create transfer buffer '" ++ name ++ "': ") ++) )
+    return maybeTb
+
+-- cleanupTransferBuffer
+cleanupTransferBuffer :: SDLGPUDevice -> Maybe SDLGPUTransferBuffer -> IO ()
+cleanupTransferBuffer _ Nothing = return ()
+cleanupTransferBuffer dev (Just tb) = do
+     sdlLog $ "Releasing Transfer Buffer: " ++ show tb
+     sdlReleaseGPUTransferBuffer dev tb
+
+--createGPUTeture
+createGPUTexture :: SDLGPUDevice -> Int -> Int -> IO (Maybe SDLGPUTexture)
+createGPUTexture dev w h = do
+     sdlLog $ "Creating Texture (Size: " ++ show w ++ "x" ++ show h ++ ")..."
+     let ci = SDLGPUTextureCreateInfo
+                { texInfoType = SDL_GPU_TEXTURETYPE_2D
+                , texInfoFormat = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM
+                , texInfoUsage = SDL_GPU_TEXTUREUSAGE_SAMPLER
+                , texInfoWidth = fromIntegral w
+                , texInfoHeight = fromIntegral h
+                , texInfoLayerCountOrDepth = 1
+                , texInfoNumLevels = 1
+                , texInfoSampleCount = SDL_GPU_SAMPLECOUNT_1
+                , texInfoProps = 0
+                }
+     maybeTex <- sdlCreateGPUTexture dev ci
+     when (isNothing maybeTex) $ do
+         err <- sdlGetError
+         sdlLog $ "!!! Failed to create texture: " ++ err
+     return maybeTex
+
+
+-- Helper for mapping and copying raw data to a GPU buffer using a transferbuffer.
+-- mapAndCopyBufferData
+mapAndCopyBufferData :: SDLGPUDevice -> SDLGPUTransferBuffer -> [PositionTextureVertex] ->  [Word16] -> CSize -> CSize -> IO Bool
+mapAndCopyBufferData dev tb vertexData indexData vOffset iOffset = do
+    sdlLog $ "Mapping Buffer Transfer Buffer: " ++ show tb
+    bracket (sdlMapGPUTransferBuffer dev tb False)
+            (\mptr -> when (isJust mptr) $ sdlUnmapGPUTransferBuffer dev tb) $
+            \case
+            Nothing -> sdlLog "!!! Failed to map buffer transfer buffer." >> return False
+            Just mappedPtr -> do
+                sdlLog $ "Buffer Transfer Buffer mapped. Copying vertex data to offset " ++ show vOffset
+                pokeArray (castPtr mappedPtr `plusPtr` fromIntegral vOffset) vertexData
+
+                sdlLog $ "Copying index data to offset " ++ show iOffset
+                pokeArray (castPtr mappedPtr `plusPtr` fromIntegral iOffset) indexData
+                sdlLog "Buffer data copied."
+                return True
+
+-- Helper for mapping and copying texture data to GPU
+mapAndCopyTextureData :: SDLGPUDevice -> SDLGPUTransferBuffer -> Ptr SDLSurface -> Int -> Int -> Int -> IO Bool
+mapAndCopyTextureData dev tb surfacePtr w h bytesPerPixel = do
+    sdlLog $ "Mapping Texture Transfer Buffer: " ++ show tb
+    bracket (sdlMapGPUTransferBuffer dev tb False)
+            (\mptr -> when (isJust mptr) $ sdlUnmapGPUTransferBuffer dev tb) $
+            \case
+            Nothing -> sdlLog "!!! Failed to map texture transfer buffer." >> return False
+            Just mappedPtr -> do
+                surfaceData <- peek surfacePtr :: IO SDLSurface
+                let pixelsPtr = surfacePixels surfaceData
+
+                if pixelsPtr == nullPtr then do
+                    sdlLog "!!! Surface pixels pointer is NULL!"
+                    return False
+                else do
+                    let dataSize = w * h * bytesPerPixel
+                    sdlLog $ "Texture Transfer Buffer mapped. Copying " ++ show dataSize ++ " bytes of pixel data."
+                    copyBytes (castPtr mappedPtr) pixelsPtr dataSize
+                    sdlLog "Texture data copied."
+                    return True
+
+-- Calculates the total size of a buffer object.
+calculateBufferDataSize :: forall a. Storable a => [a] -> String -> IO (Int, CSize, Word32)
+calculateBufferDataSize dataList name = do
+    let elementSize = sizeOf (undefined :: a)
+    let numElements = length dataList
+    let totalBytes = numElements * elementSize
+    let totalCSize = fromIntegral totalBytes :: CSize
+    let totalSizeWord32 = fromIntegral totalBytes :: Word32
+    when (totalBytes == 0) $
+        sdlLog $ "!!! WARNING: " ++ name ++ " data is empty!"
+    return (elementSize, totalCSize, totalSizeWord32)
 
 -- | findM
 findM :: Monad m => (a -> m Bool) -> [a] -> m (Maybe a)

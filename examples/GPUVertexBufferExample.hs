@@ -289,7 +289,7 @@ createAndUploadVertexBuffer dev vertexData = do
     -- Inner helper grouping transfer buffer logic
     uploadViaTransferBuffer :: SDLGPUDevice -> SDLGPUBuffer -> CSize -> Word32 -> IO Bool
     uploadViaTransferBuffer dev vb transferSizeCSize uploadSizeWord32 = do
-        bracket (createTransferBuffer dev (fromIntegral transferSizeCSize))
+        bracket (createTransferBuffer dev (fromIntegral transferSizeCSize) "buffer")
                 (cleanupTransferBuffer dev) $ \maybeTransferBuffer -> do
             case maybeTransferBuffer of
                Nothing -> return False -- Transfer buffer creation failed
@@ -303,27 +303,6 @@ createAndUploadVertexBuffer dev vertexData = do
                    if mapCopySuccess
                    then uploadDataCommandBuffer dev vb transferBuffer uploadSizeWord32
                    else return False
-
-    -- Helper to create Transfer Buffer
-    createTransferBuffer dev size = do
-        sdlLog $ "Creating Transfer Buffer (Size: " ++ show size ++ " bytes)..."
-        let tbCreateInfo = SDLGPUTransferBufferCreateInfo
-                             { transferUsage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD
-                             , transferSize = size
-                             , transferProps = 0
-                             }
-        maybeTb <- sdlCreateGPUTransferBuffer dev tbCreateInfo
-        when (isNothing maybeTb) $ do
-            err <- sdlGetError
-            sdlLog $ "!!! Failed to create transfer buffer: " ++ err
-        return maybeTb
-
-    -- Helper to clean up Transfer Buffer (for bracket)
-    cleanupTransferBuffer dev maybeTb =
-        when (isJust maybeTb) $ do
-             let tb = fromJust maybeTb
-             sdlLog $ "Releasing Transfer Buffer: " ++ show tb
-             sdlReleaseGPUTransferBuffer dev tb
 
     -- Helper for Map, Copy, Unmap
     mapAndCopyData dev tb vData tSize = do

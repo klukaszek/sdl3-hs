@@ -35,7 +35,7 @@ import Foreign.Storable (Storable(..), peek, peekByteOff, pokeByteOff, sizeOf, p
 import Foreign.C.Types (CFloat, CInt, CSize, CUChar)
 import Foreign.Marshal.Alloc (alloca, free, mallocBytes)
 import Foreign.Marshal.Array (pokeArray, withArray)
-import Foreign.Marshal.Utils (copyBytes, with)
+import Foreign.Marshal.Utils (with)
 import Data.IORef
 import Data.Word (Word64, Word32, Word16, Word8)
 import Text.Printf (printf)
@@ -44,7 +44,7 @@ import Data.Bits ((.|.))
 import Data.List (genericLength)
 import System.IO (hFlush, stdout)
 
--- Constants (remain the same)
+-- Constants
 samplerCount :: Int
 samplerCount = 6
 
@@ -58,7 +58,7 @@ samplerNames =
     , "AnisotropicWrap"
     ]
 
--- Vertex data (remains the same)
+-- Vertex data
 vertexData :: [PositionTextureVertex]
 vertexData =
     [ PositionTextureVertex (-1)   1  0   0 0 -- Top-left
@@ -67,11 +67,11 @@ vertexData =
     , PositionTextureVertex (-1) (-1) 0   0 4 -- Bottom-left
     ]
 
--- Index data (remains the same)
+-- Index data
 indexData :: [Word16]
 indexData = [0, 1, 2, 0, 2, 3]
 
--- AppResources (remains the same)
+-- AppResources
 data AppResources = AppResources
     { resPipeline    :: SDLGPUGraphicsPipeline
     , resVertexBuffer :: SDLGPUBuffer
@@ -80,7 +80,7 @@ data AppResources = AppResources
     , resSamplers    :: [SDLGPUSampler]
     } deriving Show
 
--- main (remains the same)
+-- main
 main :: IO ()
 main = do
   sdlLog $ "Compiled SDL Version: " ++ show sdlVersion
@@ -96,7 +96,7 @@ main = do
           sdlLog "Application finished successfully."
           exitSuccess
 
--- runAppGPU (remains the same)
+-- runAppGPU
 runAppGPU :: Context -> IO ()
 runAppGPU context@Context{..} = do
     sdlLog "Base context initialized."
@@ -115,37 +115,19 @@ runAppGPU context@Context{..} = do
                 deltaTimeRef <- newIORef 0.0
                 eventLoopGPU context resources startTime freq deltaTimeRef currentSamplerIndexRef
 
--- calculateBufferDataSize (remains the same)
-calculateBufferDataSize :: forall a. Storable a => [a] -> String -> IO (Int, CSize, Word32)
-calculateBufferDataSize dataList name = do
-    let elementSize = sizeOf (undefined :: a)
-    let numElements = length dataList
-    let totalBytes = numElements * elementSize
-    let totalCSize = fromIntegral totalBytes :: CSize
-    let totalSizeWord32 = fromIntegral totalBytes :: Word32
-    -- sdlLog $ printf "%s Info - SizeOf: %d, Count: %d, Total Bytes (CSize): %d, Total Bytes (Word32): %d"
-                    -- name elementSize numElements totalCSize totalSizeWord32
-    when (totalBytes == 0) $
-        sdlLog $ "!!! WARNING: " ++ name ++ " data is empty!"
-    return (elementSize, totalCSize, totalSizeWord32)
-
-
 -- createResources -- CORRECTED VERSION WITH SEPARATE hFlush CALLS
 createResources :: Context -> IO (Maybe AppResources)
 createResources Context{ contextDevice = dev, contextWindow = win } = do
     sdlLog "--- Beginning Resource Creation ---"
-    hFlush stdout
 
     -- 1. Load Shaders
     sdlLog "Loading shaders..."
-    hFlush stdout
     maybeVertShader <- loadShader dev "TexturedQuad.vert" SDL_GPU_SHADERSTAGE_VERTEX defaultShaderCreateInfo { shaderNumSamplers = 0 }
     maybeFragShader <- loadShader dev "TexturedQuad.frag" SDL_GPU_SHADERSTAGE_FRAGMENT defaultShaderCreateInfo { shaderNumSamplers = 1 }
 
     case (maybeVertShader, maybeFragShader) of
         (Just vertShader, Just fragShader) -> do
             sdlLog "Shaders loaded successfully."
-            hFlush stdout
 
             -- 2. Load Image using the helper
             let imagePath = "Content" </> "Images" </> "ravioli.bmp" -- Path relative to data dir
@@ -171,13 +153,11 @@ createResources Context{ contextDevice = dev, contextWindow = win } = do
                             return Nothing
                         Just surfacePtr -> do
                             sdlLog $ "Image loaded and converted successfully: " ++ show surfacePtr
-                            hFlush stdout
                             -- This bracket now manages the FINAL surface pointer's lifetime
                             -- AFTER successful loading/conversion and DURING GPU object creation.
                             bracket (return surfacePtr)
                                     (\surfManagedPtr -> do
                                         sdlLog $ "Destroying final surface after GPU object creation/upload: " ++ show surfManagedPtr
-                                        hFlush stdout
                                         sdlDestroySurface surfManagedPtr
                                     )
                                     $ \surfManagedPtr -> do
@@ -185,16 +165,13 @@ createResources Context{ contextDevice = dev, contextWindow = win } = do
                                         maybeResources <- createGpuObjects dev win vertShader fragShader surfManagedPtr
                                         -- Release shaders *after* GPU objects are potentially created
                                         sdlLog "Releasing shaders..."
-                                        hFlush stdout
                                         sdlReleaseGPUShader dev vertShader
                                         sdlReleaseGPUShader dev fragShader
                                         sdlLog "Shaders released."
-                                        hFlush stdout
                                         return maybeResources
                 )
         _ -> do
             sdlLog "!!! Failed to load one or both shaders. Resource creation aborted."
-            hFlush stdout
             -- Clean up any shaders that might have loaded
             maybe (return ()) (sdlReleaseGPUShader dev) maybeVertShader
             maybe (return ()) (sdlReleaseGPUShader dev) maybeFragShader
@@ -249,7 +226,7 @@ createGpuObjects dev win vertShader fragShader surfacePtr = do
         let textureDataSizeC = fromIntegral (texWidth * texHeight * bytesPerPixel) :: CSize
         sdlLog $ printf "Texture Info - Width: %d, Height: %d, Assumed BPP: %d, Total Bytes: %d" texWidth texHeight bytesPerPixel (fromIntegral textureDataSizeC :: Int)
 
-        -- Sampler Create Infos (remain the same)
+        -- Sampler Create Infos
         let samplerCIs =
               [ SDLGPUSamplerCreateInfo SDL_GPU_FILTER_NEAREST SDL_GPU_FILTER_NEAREST SDL_GPU_SAMPLERMIPMAPMODE_NEAREST SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE 0.0 1.0 SDL_GPU_COMPAREOP_NEVER 0.0 0.0 False False 0
               , SDLGPUSamplerCreateInfo SDL_GPU_FILTER_NEAREST SDL_GPU_FILTER_NEAREST SDL_GPU_SAMPLERMIPMAPMODE_NEAREST SDL_GPU_SAMPLERADDRESSMODE_REPEAT SDL_GPU_SAMPLERADDRESSMODE_REPEAT SDL_GPU_SAMPLERADDRESSMODE_REPEAT 0.0 1.0 SDL_GPU_COMPAREOP_NEVER 0.0 0.0 False False 0
@@ -303,39 +280,7 @@ createGpuObjects dev win vertShader fragShader surfacePtr = do
       cleanupMaybe name release = mapM_ (\res -> sdlLog ("Error occurred, releasing partially created " ++ name ++ ": " ++ show res) >> release res)
       cleanupList name release = mapM_ (\ress -> sdlLog ("Error occurred, releasing partially created " ++ name ++ " list (" ++ show (length ress) ++ " items)") >> mapM_ release ress)
 
--- createGPUBuffer (remains the same)
-createGPUBuffer :: SDLGPUDevice -> SDLGPUBufferUsageFlags -> CSize -> String -> IO (Maybe SDLGPUBuffer)
-createGPUBuffer dev usage size name = do
-    sdlLog $ "Creating " ++ name ++ " (Size: " ++ show size ++ " bytes)..."
-    let ci = SDLGPUBufferCreateInfo { bufferUsage = usage, bufferSize = fromIntegral size, bufferProps = 0 }
-    maybeBuf <- sdlCreateGPUBuffer dev ci
-    when (isNothing maybeBuf) $ do
-        err <- sdlGetError
-        sdlLog $ "!!! Failed to create " ++ name ++ ": " ++ err
-    return maybeBuf
-
--- createGPUTexture (remains the same)
-createGPUTexture :: SDLGPUDevice -> Int -> Int -> IO (Maybe SDLGPUTexture)
-createGPUTexture dev w h = do
-     sdlLog $ "Creating Texture (Size: " ++ show w ++ "x" ++ show h ++ ")..."
-     let ci = SDLGPUTextureCreateInfo
-                { texInfoType = SDL_GPU_TEXTURETYPE_2D
-                , texInfoFormat = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM
-                , texInfoUsage = SDL_GPU_TEXTUREUSAGE_SAMPLER
-                , texInfoWidth = fromIntegral w
-                , texInfoHeight = fromIntegral h
-                , texInfoLayerCountOrDepth = 1
-                , texInfoNumLevels = 1
-                , texInfoSampleCount = SDL_GPU_SAMPLECOUNT_1
-                , texInfoProps = 0
-                }
-     maybeTex <- sdlCreateGPUTexture dev ci
-     when (isNothing maybeTex) $ do
-         err <- sdlGetError
-         sdlLog $ "!!! Failed to create texture: " ++ err
-     return maybeTex
-
--- createSamplers (remains the same)
+-- createSamplers
 createSamplers :: SDLGPUDevice -> [SDLGPUSamplerCreateInfo] -> IO (Maybe [SDLGPUSampler])
 createSamplers dev cis = do
     sdlLog $ "Creating " ++ show (length cis) ++ " samplers..."
@@ -356,7 +301,7 @@ createSamplers dev cis = do
     cleanupMaybeSampler dev (Right (Just s)) = sdlReleaseGPUSampler dev s
     cleanupMaybeSampler _ _ = return ()
 
--- createPipeline (remains the same)
+-- createPipeline
 createPipeline :: SDLGPUDevice -> SDLWindow -> SDLGPUShader -> SDLGPUShader -> IO (Maybe SDLGPUGraphicsPipeline)
 createPipeline dev win vertShader fragShader = do
     sdlLog "Creating Graphics Pipeline..."
@@ -365,7 +310,8 @@ createPipeline dev win vertShader fragShader = do
     let texCoordOffset = sizeOf (undefined :: CFloat) * 3
     sdlLog $ "Pipeline Vertex Input - Stride: " ++ show vertexSize ++ ", TexCoord Offset: " ++ show texCoordOffset
     let vertexAttributes =
-          [ SDLGPUVertexAttribute 0 0 SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3 0
+          [
+            SDLGPUVertexAttribute 0 0 SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3 0
           , SDLGPUVertexAttribute 1 0 SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2 (fromIntegral texCoordOffset)
           ]
         vertexBufferDesc = [ SDLGPUVertexBufferDescription 0 (fromIntegral vertexSize) SDL_GPU_VERTEXINPUTRATE_VERTEX 0 ]
@@ -407,7 +353,7 @@ uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf
           (Just bufTransfer, Just texTransfer, Just cmdBuf) -> do
               sdlLog "All necessary transfer buffers and command buffer acquired." >> hFlush stdout
 
-              bufMapOk <- mapAndCopyBufferData dev bufTransfer vertexOffsetC indexOffsetC
+              bufMapOk <- mapAndCopyBufferData dev bufTransfer vertexData indexData vertexOffsetC indexOffsetC
               unless bufMapOk $ sdlLog "!!! Buffer data map/copy failed." >> hFlush stdout
 
               texMapOk <- if bufMapOk
@@ -424,7 +370,6 @@ uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf
                       sdlLog "Submitting upload commands..." >> hFlush stdout
                       submitted <- sdlSubmitGPUCommandBuffer cmdBuf
 
-                      -- *** More Robust Logging and Wait ***
                       if submitted then do
                           sdlLog "Upload command buffer submitted successfully." >> hFlush stdout
                           sdlLog "Waiting for GPU device idle after upload submission..." >> hFlush stdout
@@ -444,68 +389,6 @@ uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf
           _ -> do
               sdlLog "!!! Failed to acquire transfer buffers or command buffer for upload." >> hFlush stdout
               return False
-
--- createTransferBuffer
-createTransferBuffer :: SDLGPUDevice -> CSize -> String -> IO (Maybe SDLGPUTransferBuffer)
-createTransferBuffer dev size name = do
-    sdlLog $ "Creating Transfer Buffer '" ++ name ++ "' (Size: " ++ show size ++ " bytes)..."
-    let tbCreateInfo = SDLGPUTransferBufferCreateInfo SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD (fromIntegral size) 0
-    maybeTb <- sdlCreateGPUTransferBuffer dev tbCreateInfo
-    when (isNothing maybeTb) $ sdlGetError >>= sdlLog . ((("!!! Failed to create transfer buffer '" ++ name ++ "': ") ++) )
-    return maybeTb
-
--- cleanupTransferBuffer
-cleanupTransferBuffer :: SDLGPUDevice -> Maybe SDLGPUTransferBuffer -> IO ()
-cleanupTransferBuffer _ Nothing = return ()
-cleanupTransferBuffer dev (Just tb) = do
-     sdlLog $ "Releasing Transfer Buffer: " ++ show tb
-     sdlReleaseGPUTransferBuffer dev tb
-
--- cleanupCommandBuffer
-cleanupCommandBuffer :: Maybe SDLGPUCommandBuffer -> IO ()
-cleanupCommandBuffer Nothing = return ()
-cleanupCommandBuffer (Just cmdbuf) =
-    sdlLog $ "Upload Command Buffer bracket cleanup for: " ++ show cmdbuf
-
--- mapAndCopyBufferData
-mapAndCopyBufferData :: SDLGPUDevice -> SDLGPUTransferBuffer -> CSize -> CSize -> IO Bool
-mapAndCopyBufferData dev tb vOffset iOffset = do
-    sdlLog $ "Mapping Buffer Transfer Buffer: " ++ show tb
-    bracket (sdlMapGPUTransferBuffer dev tb False)
-            (\mptr -> when (isJust mptr) $ sdlUnmapGPUTransferBuffer dev tb) $
-            \case
-            Nothing -> sdlLog "!!! Failed to map buffer transfer buffer." >> return False
-            Just mappedPtr -> do
-                sdlLog $ "Buffer Transfer Buffer mapped. Copying vertex data to offset " ++ show vOffset
-                pokeArray (castPtr mappedPtr `plusPtr` fromIntegral vOffset) vertexData
-
-                sdlLog $ "Copying index data to offset " ++ show iOffset
-                pokeArray (castPtr mappedPtr `plusPtr` fromIntegral iOffset) indexData
-                sdlLog "Buffer data copied."
-                return True
-
--- Helper for Mapping and Copying Texture Data
--- Accepts Ptr SDLSurface
-mapAndCopyTextureData :: SDLGPUDevice -> SDLGPUTransferBuffer -> Ptr SDLSurface -> Int -> Int -> Int -> IO Bool
-mapAndCopyTextureData dev tb surfacePtr w h bytesPerPixel = do
-    sdlLog $ "Mapping Texture Transfer Buffer: " ++ show tb
-    bracket (sdlMapGPUTransferBuffer dev tb False)
-            (\mptr -> when (isJust mptr) $ sdlUnmapGPUTransferBuffer dev tb) $
-            \case
-            Nothing -> sdlLog "!!! Failed to map texture transfer buffer." >> return False
-            Just mappedPtr -> do
-                surfaceData <- peek surfacePtr :: IO SDLSurface
-                let pixelsPtr = surfacePixels surfaceData
-
-                if pixelsPtr == nullPtr then do
-                    sdlLog "!!! Surface pixels pointer is NULL!"
-                    return False
-                else do
-                    let dataSize = w * h * bytesPerPixel
-                    sdlLog $ "Texture Transfer Buffer mapped. Copying " ++ show dataSize ++ " bytes of pixel data."
-                    copyBytes (castPtr mappedPtr) pixelsPtr dataSize
-                    sdlLog "Texture data copied."
-                    return True
 
 recordUploadCommands :: SDLGPUDevice -> SDLGPUCommandBuffer -> SDLGPUTransferBuffer -> SDLGPUTransferBuffer -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> CSize -> CSize -> Int -> Int -> IO Bool
 recordUploadCommands dev cmdBuf bufTransfer texTransfer vertexBuf indexBuf texture vOffsetC iOffsetC texWidth texHeight = do
@@ -650,7 +533,7 @@ renderFrameGPU Context{..} AppResources{..} samplerIndexRef = do
                     submitted <- sdlSubmitGPUCommandBuffer cmdbuf
                     unless submitted $ sdlLog "Error: Failed to submit render command buffer."
 
--- cleanupMaybeRenderPass (remains the same)
+-- cleanupMaybeRenderPass
 cleanupMaybeRenderPass :: Maybe SDLGPURenderPass -> IO ()
 cleanupMaybeRenderPass Nothing = return ()
 cleanupMaybeRenderPass (Just rp) = sdlEndGPURenderPass rp

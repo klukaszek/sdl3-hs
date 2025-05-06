@@ -342,7 +342,7 @@ calculateVertexDataSize dataList = do
 -- | Reusable upload helper (copied from previous)
 uploadViaTransferBuffer :: SDLGPUDevice -> SDLGPUBuffer -> [PositionColorVertex] -> CSize -> Word32 -> IO Bool
 uploadViaTransferBuffer dev vertexBuffer dataList transferSize totalSizeW32 = do
-    bracket (createTransferBuffer dev transferSize) (cleanupTransferBuffer dev) $ \case
+    bracket (createTransferBuffer dev transferSize "buffer") (cleanupTransferBuffer dev) $ \case
         Nothing -> return False
         Just transferBuffer -> do
             mapCopySuccess <- mapAndCopyData dev transferBuffer dataList
@@ -389,24 +389,6 @@ uploadDataCommandBuffer dev vertexBuffer tb totalSizeW32 = do
             else do
                 sdlLog "Copy pass failed, skipping submission."
                 return False -- Return overall failure
-
--- Reusable transfer buffer helpers (copied from previous)
-createTransferBuffer :: SDLGPUDevice -> CSize -> IO (Maybe SDLGPUTransferBuffer)
-createTransferBuffer dev size = do
-    sdlLog $ "Creating Transfer Buffer (Size: " ++ show size ++ " bytes)..."
-    let tbCI = SDLGPUTransferBufferCreateInfo SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD (fromIntegral size) 0
-    mTb <- sdlCreateGPUTransferBuffer dev tbCI
-    when (isNothing mTb) $ sdlGetError >>= \e -> sdlLog $ "!!! Failed create transfer buffer: " ++ e
-    return mTb
-
-cleanupTransferBuffer :: SDLGPUDevice -> Maybe SDLGPUTransferBuffer -> IO ()
-cleanupTransferBuffer dev = maybe (return ()) (sdlReleaseGPUTransferBuffer dev)
-
-cleanupCommandBuffer :: Maybe SDLGPUCommandBuffer -> IO ()
-cleanupCommandBuffer _ = return () -- No specific cleanup needed in bracket
-
-cleanupCopyPass :: Maybe SDLGPUCopyPass -> IO ()
-cleanupCopyPass = maybe (return ()) sdlEndGPUCopyPass
 
 -- | Main event loop (Simple version for non-interactive example)
 eventLoopGPU :: Context -> AppResources -> AppState -> Word64 -> Word64 -> IORef Double -> IO ()

@@ -167,7 +167,7 @@ library
 
 -- ** Examples:
 
-executable audio-example
+executable audio
     main-is: AudioExample.hs
     build-depends:
         base,
@@ -176,7 +176,7 @@ executable audio-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable camera-example
+executable camera
     main-is: CameraExample.hs
     build-depends:
         base,
@@ -184,7 +184,7 @@ executable camera-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable clipboard-example
+executable clipboard
     main-is: ClipboardExample.hs
     build-depends:
         base,
@@ -192,7 +192,7 @@ executable clipboard-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable cpu-info-example
+executable cpu-info
     main-is: CPUInfoExample.hs
     build-depends:
         base,
@@ -200,7 +200,7 @@ executable cpu-info-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable dialog-example
+executable dialog
     main-is: DialogExample.hs
     build-depends:
         base,
@@ -208,7 +208,7 @@ executable dialog-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable events-example
+executable events
     main-is: EventsExample.hs
     build-depends:
         base,
@@ -216,7 +216,7 @@ executable events-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable filesystem-example
+executable filesystem
     main-is: FilesystemExample.hs
     build-depends:
         base,
@@ -224,7 +224,7 @@ executable filesystem-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable gamepad-example
+executable gamepad
     main-is: GamepadExample.hs
     build-depends:
         base,
@@ -232,7 +232,7 @@ executable gamepad-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable gpu-clear-example
+executable gpu-clear
     main-is: GPUClearExample.hs
     build-depends:
         base,
@@ -244,7 +244,7 @@ executable gpu-clear-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable gpu-cull-example
+executable gpu-cull
     main-is: GPUCullExample.hs
     build-depends:
         base,
@@ -256,7 +256,7 @@ executable gpu-cull-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable gpu-instanced-example
+executable gpu-instanced
     main-is: GPUInstancedExample.hs
     build-depends:
         base,
@@ -267,20 +267,8 @@ executable gpu-instanced-example
 
     hs-source-dirs:   examples
     default-language: Haskell2010
-
-executable gpu-texturedquad-example
-    main-is: GPUTexturedQuadExample.hs
-    build-depends:
-        base,
-        bytestring,
-        sdl3,
-        filepath,
-        directory
-
-    hs-source-dirs:   examples
-    default-language: Haskell2010
     
-executable gpu-multiwindow-example
+executable gpu-multiwindow
     main-is: GPUMultiWindowExample.hs
     build-depends:
         base,
@@ -291,7 +279,7 @@ executable gpu-multiwindow-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable gpu-stencil-example
+executable gpu-stencil
     main-is: GPUStencilExample.hs
     build-depends:
         base,
@@ -303,7 +291,32 @@ executable gpu-stencil-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable gpu-triangle-example
+executable gpu-animatedquad
+    main-is: GPUAnimatedQuadExample.hs
+    build-depends:
+        base,
+        bytestring,
+        linear,
+        sdl3,
+        filepath,
+        directory
+
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
+executable gpu-texturedquad
+    main-is: GPUTexturedQuadExample.hs
+    build-depends:
+        base,
+        bytestring,
+        sdl3,
+        filepath,
+        directory
+
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+        
+executable gpu-triangle
     main-is: GPURawTriangleExample.hs
     build-depends:
         base,
@@ -314,7 +327,7 @@ executable gpu-triangle-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable gpu-vbuf-example
+executable gpu-vbuf
     main-is: GPUVertexBufferExample.hs
     build-depends:
         base,
@@ -325,7 +338,7 @@ executable gpu-vbuf-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable guid-example
+executable guid
     main-is: GUIDExample.hs
     build-depends:
         base,
@@ -333,7 +346,7 @@ executable guid-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable haptic-example
+executable haptic
     main-is: HapticExample.hs
     build-depends:
         base,
@@ -341,7 +354,7 @@ executable haptic-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable hints-example
+executable hints
     main-is: HintsExample.hs
     build-depends:
         base,
@@ -349,7 +362,7 @@ executable hints-example
     hs-source-dirs:   examples
     default-language: Haskell2010
     
-executable init-example
+executable init
     main-is: InitExample.hs
     build-depends:
         base,
@@ -357,7 +370,7 @@ executable init-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable locale-example
+executable locale
     main-is: LocaleExample.hs
     build-depends:
         base,
@@ -365,7 +378,7 @@ executable locale-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable messagebox-example
+executable messagebox
     main-is: MessageBoxExample.hs
     build-depends:
         base,
@@ -373,7 +386,7 @@ executable messagebox-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable platform-example
+executable platform
     main-is: PlatformExample.hs
     build-depends:
         base,
@@ -381,7 +394,7 @@ executable platform-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable power-example
+executable power
     main-is: PowerExample.hs
     build-depends:
         base,
@@ -389,7 +402,7 @@ executable power-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable process-example
+executable process
     main-is: ProcessExample.hs
     build-depends:
         base,
@@ -397,7 +410,7 @@ executable process-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable rect-example
+executable rect
     main-is: RectExample.hs
     build-depends:
         base,
@@ -405,7 +418,7 @@ executable rect-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable render-example
+executable render
     main-is: RenderExample.hs
     build-depends:
         base,
@@ -413,7 +426,7 @@ executable render-example
     hs-source-dirs:   examples
     default-language: Haskell2010
 
-executable sensor-example
+executable sensor
     main-is: SensorExample.hs
     build-depends:
         base,
@@ -422,7 +435,7 @@ executable sensor-example
     hs-source-dirs:    examples
     default-language: Haskell2010
 
-executable storage-example
+executable storage
     main-is: StorageExample.hs
     build-depends:
         base,
@@ -431,7 +444,7 @@ executable storage-example
     hs-source-dirs:    examples
     default-language: Haskell2010
     
-executable system-example
+executable system
     main-is: SystemExample.hs
     build-depends:
         base,
@@ -440,7 +453,7 @@ executable system-example
     hs-source-dirs:    examples
     default-language: Haskell2010
     
-executable time-example
+executable time
     main-is: TimeExample.hs
     build-depends:
         base,
@@ -449,7 +462,7 @@ executable time-example
     hs-source-dirs:    examples
     default-language: Haskell2010
 
-executable timer-example
+executable timer
     main-is: TimerExample.hs
     build-depends:
         base,
@@ -458,7 +471,7 @@ executable timer-example
     hs-source-dirs:    examples
     default-language: Haskell2010
 
-executable touch-device-example
+executable touch-device
     main-is: TouchDeviceExample.hs
     build-depends:
         base,
@@ -467,7 +480,7 @@ executable touch-device-example
     hs-source-dirs:    examples
     default-language: Haskell2010
 
-executable tray-example
+executable tray
     main-is: TrayExample.hs
     build-depends:
         base,
@@ -476,7 +489,7 @@ executable tray-example
     hs-source-dirs:    examples
     default-language: Haskell2010
 
-executable wav-example
+executable wav
     main-is: WAVExample.hs
     build-depends:
         base,
@@ -485,7 +498,7 @@ executable wav-example
     hs-source-dirs:    examples
     default-language: Haskell2010
 
--- executable video-example
+-- executable video
 --     main-is: VideoExample.hs
 --     build-depends:
 --         base,

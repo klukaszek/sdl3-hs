@@ -286,7 +286,7 @@ runAppGPU context@Context {..} = do
         -- Reuses helpers from previous example's meticulous version, adapted slightly
         uploadBothViaTransferBuffer dev vbCW vbCCW dataCW dataCCW transferSize totalSizeCW_CSize totalSizeCW_W32 totalSizeCCW_W32 = do
           bracket
-            (createTransferBuffer dev transferSize)
+            (createTransferBuffer dev transferSize "buffer")
             (cleanupTransferBuffer dev)
             $ \case
               Nothing -> return False
@@ -394,29 +394,6 @@ calculateVertexDataSize dataList = do
   when (vertexSize /= 16) $ sdlLog "!!! WARNING: Calculated vertex size is not 16 bytes!"
   when (totalBytes == 0) $ sdlLog "!!! WARNING: Vertex data is empty!"
   return (vertexSize, totalCSize, totalSizeWord32)
-
--- Reusable helpers from previous meticulous version (no changes needed)
-createTransferBuffer :: SDLGPUDevice -> CSize -> IO (Maybe SDLGPUTransferBuffer)
-createTransferBuffer dev size = do
-  sdlLog $ "Creating Transfer Buffer (Size: " ++ show size ++ " bytes)..."
-  let tbCreateInfo =
-        SDLGPUTransferBufferCreateInfo
-          { transferUsage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-            transferSize = fromIntegral size,
-            transferProps = 0
-          }
-  maybeTb <- sdlCreateGPUTransferBuffer dev tbCreateInfo
-  when (isNothing maybeTb) $ sdlGetError >>= \err -> sdlLog $ "!!! Failed to create transfer buffer: " ++ err
-  return maybeTb
-
-cleanupTransferBuffer :: SDLGPUDevice -> Maybe SDLGPUTransferBuffer -> IO ()
-cleanupTransferBuffer dev maybeTb = when (isJust maybeTb) $ sdlReleaseGPUTransferBuffer dev (fromJust maybeTb)
-
-cleanupCommandBuffer :: Maybe SDLGPUCommandBuffer -> IO ()
-cleanupCommandBuffer maybeCmdBuf = when (isJust maybeCmdBuf) $ sdlLog $ "Command Buffer bracket cleanup for: " ++ show (fromJust maybeCmdBuf)
-
-cleanupCopyPass :: Maybe SDLGPUCopyPass -> IO ()
-cleanupCopyPass maybeCopyPass = when (isJust maybeCopyPass) $ sdlEndGPUCopyPass (fromJust maybeCopyPass)
 
 -- | Main event loop
 eventLoopGPU :: Context -> AppResources -> AppState -> Word64 -> Word64 -> IORef Double -> IO ()

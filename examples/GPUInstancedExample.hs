@@ -267,7 +267,7 @@ runAppGPU context = do
         sdlLog $ printf "Index Data: %d bytes (%d indices * %d bytes/index)" indexDataBytes numIndices indexSize
         sdlLog $ printf "Total Transfer Size: %d bytes" (fromIntegral totalTransferSize :: Int)
 
-        bracket (createTransferBuffer dev totalTransferSize) (cleanupTransferBuffer dev) $ \case
+        bracket (createTransferBuffer dev totalTransferSize "transfer") (cleanupTransferBuffer dev) $ \case
             Nothing -> return False -- Transfer buffer creation failed
             Just transferBuffer -> do
                 -- Map, Poke, Unmap
@@ -335,24 +335,6 @@ runAppGPU context = do
         sdlLog $ "Releasing Index Buffer: " ++ show resIndexBuffer
         sdlReleaseGPUBuffer contextDevice resIndexBuffer
         sdlLog "--- App Resources Released ---"
-
--- | Reusable transfer buffer helpers (copied from previous)
-createTransferBuffer :: SDLGPUDevice -> CSize -> IO (Maybe SDLGPUTransferBuffer)
-createTransferBuffer dev size = do
-    sdlLog $ "Creating Transfer Buffer (Size: " ++ show size ++ " bytes)..."
-    let tbCI = SDLGPUTransferBufferCreateInfo SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD (fromIntegral size) 0
-    mTb <- sdlCreateGPUTransferBuffer dev tbCI
-    when (isNothing mTb) $ sdlGetError >>= \e -> sdlLog $ "!!! Failed create transfer buffer: " ++ e
-    return mTb
-
-cleanupTransferBuffer :: SDLGPUDevice -> Maybe SDLGPUTransferBuffer -> IO ()
-cleanupTransferBuffer dev = maybe (return ()) (sdlReleaseGPUTransferBuffer dev)
-
-cleanupCommandBuffer :: Maybe SDLGPUCommandBuffer -> IO ()
-cleanupCommandBuffer _ = return () -- No specific cleanup needed in bracket
-
-cleanupCopyPass :: Maybe SDLGPUCopyPass -> IO ()
-cleanupCopyPass = maybe (return ()) sdlEndGPUCopyPass
 
 -- | Main event loop
 eventLoopGPU :: Context -> AppResources -> AppState -> Word64 -> Word64 -> IORef Double -> IO ()
