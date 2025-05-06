@@ -9,8 +9,8 @@ main :: IO ()
 main = do
   -- Check compiled version
   sdlLog $ "Compiled SDL Version: " ++ show sdlVersion
-  when (sdlVersionAtLeast 3 2 0) $
-    sdlLog "Compiled with at least SDL 3.2.0"
+  when (sdlVersionAtLeast 3 3 0) $
+    sdlLog "Compiled with at least SDL 3.3.0"
 
   -- Get linked version
   linkedVersion <- sdlGetVersion
@@ -53,7 +53,7 @@ main = do
   sdlLog "Would create window here..."
   sdlLog "Application running..."
   
-  -- For the main thread callback, let's use a simpler callback
+  -- For the main thread callback, use a simpler callback
   -- that doesn't try to print to avoid potential issues
   isMain <- sdlIsMainThread
   sdlLog $ "Are we on the main thread? " ++ show isMain
@@ -68,7 +68,6 @@ main = do
   _ <- sdlRunOnMainThread (\_ -> pure ()) nullPtr True
   sdlLog "Callback completed"
   
-  -- When done, clean up and quit
   sdlLog "Shutting down SDL..."
   sdlQuit
  

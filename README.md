@@ -1,14 +1,74 @@
 # SDL3 Haskell Bindings
 
-NOT STABLE! NOT EVERY FUNCTION IS TESTED IN THE EXAMPLES! MAYBE UNIT TESTS SOME DAY.
+> **WARNING:** NOT STABLE! NOT EVERY FUNCTION IS TESTED IN THE EXAMPLES THOUGH THEY COMPILE!
+I USED GEMINI 2.5 TO REDUCE WORKLOAD. I AM WORKING TO TEST MOST IMPORTANT FUNCTIONALITY NOW. SEE EXAMPLES BELOW.
 
-## Windows:
+I put these bindings together to provide Haskell access to the SDL3 library.
 
-Make sure SDL3 compiles a .DLL file, and `pkgconfig` knows that SDL3 exists.
+## Setup Instructions
 
-You can do this by setting `PKG_CONFIG_PATH="path\to\SDL3\lib\pkgconfig"`
+> **NOTE:** These bindings are for SDL version 3.3 as of right now.
 
-You'll also wanna add a `cabal.project.local` file to the root directory with
+Install SDL3: [SDL GitHub](https://github.com/libsdl-org/SDL/)
+
+### Linux
+To build SDL3 from source on Linux:
+
+```bash
+# Navigate to SDL3 source directory
+cd path/to/SDL3/source
+
+# Create and enter build directory
+mkdir build
+cd build
+
+# Configure with cmake.
+# CMAKE_BUILD_TYPE can be whatever you need it to be.
+cmake -DCMAKE_BUILD_TYPE=Release -GNinja ..
+
+# Build
+cmake --build . --config Release --parallel
+
+# Install (requires sudo)
+sudo cmake --install . --config Release
+```
+This will install SDL3 to your system so that cabal can find and build the sdl3 package.
+
+Find your way back to this project's directory and run `cabal build` to build the package with examples, or `cabal build sdl3` to build just the package.  
+
+### Windows
+
+> **Recommendation:** Use the Developer PowerShell or Developer Command Prompt that comes with Visual Studio for best results.
+
+```bash
+# Navigate to SDL3 source directory
+cd path/to/SDL3/source
+
+# Create and enter build directory
+mkdir build
+cd build
+
+# Configure with cmake.
+# CMAKE_BUILD_TYPE can be whatever you need it to be.
+cmake -DCMAKE_BUILD_TYPE=Release -GNinja ..
+
+# Build
+cmake --build . --config Release --parallel
+
+# Install (requires sudo)
+cmake --install . --config Release
+```
+
+Make sure SDL3 compiles a .DLL file, and `pkgconfig` knows that SDL3 exists. (You might have to install `pkgconfig` using your pacman of choice.)
+
+You can do this by setting:
+```bash
+set PKG_CONFIG_PATH="path\to\SDL3\lib\pkgconfig"
+# or
+$env:PKG_CONFIG_PATH="path\to\SDL3\lib\pkgconfig\"
+```
+
+You'll also want to add a `cabal.project.local` file to the root directory with:
 
 ```
 package *
@@ -16,58 +76,138 @@ package *
   extra-lib-dirs: "path/to/SDL3/lib/"
 ```
 
+Once all of this is done, you can find your way into this directory and run `cabal build sdl3`. If you would like to install the examples, run `cabal build` instead.
+
 ## SDL.h Header File Support Checklist
-- [x] SDL3/SDL_stdinc.h
-- [x] SDL3/SDL_assert.h
-- [x] SDL3/SDL_asyncio.h
-- [x] SDL3/SDL_atomic.h
-- [x] SDL3/SDL_audio.h
-- [x] SDL3/SDL_bits.h
-- [x] SDL3/SDL_blendmode.h
-- [x] SDL3/SDL_camera.h
-- [x] SDL3/SDL_clipboard.h
-- [x] SDL3/SDL_cpuinfo.h
-- [x] SDL3/SDL_dialog.h (Example stopped working, must investigate)
-- [x] SDL3/SDL_endian.h
-- [x] SDL3/SDL_error.h
-- [x] SDL3/SDL_events.h
-- [x] SDL3/SDL_filesystem.h
-- [x] SDL3/SDL_gamepad.h
-- [x] SDL3/SDL_gpu.h (Refactor pattern declarations with ScopedTypeVariables)
-- [x] SDL3/SDL_guid.h
-- [x] SDL3/SDL_haptic.h
-- [x] SDL3/SDL_hidapi.h
-- [x] SDL3/SDL_hints.h
-- [x] SDL3/SDL_init.h (Refactor this file)
-- [x] SDL3/SDL_iostream.h
-- [x] SDL3/SDL_joystick.h
-- [x] SDL3/SDL_keyboard.h
-- [x] SDL3/SDL_keycode.h
-- [x] SDL3/SDL_loadso.h
-- [x] SDL3/SDL_locale.h
-- [x] SDL3/SDL_log.h
-- [x] SDL3/SDL_messagebox.h
-- [x] SDL3/SDL_metal.h
-- [x] SDL3/SDL_misc.h
-- [x] SDL3/SDL_mouse.h
-- [x] SDL3/SDL_mutex.h
-- [x] SDL3/SDL_pen.h
-- [x] SDL3/SDL_pixels.h
-- [x] SDL3/SDL_platform.h
-- [x] SDL3/SDL_power.h
-- [x] SDL3/SDL_process.h
-- [x] SDL3/SDL_properties.h
-- [x] SDL3/SDL_rect.h
-- [x] SDL3/SDL_render.h
-- [x] SDL3/SDL_scancode.h
-- [x] SDL3/SDL_sensor.h
-- [x] SDL3/SDL_storage.h
-- [x] SDL3/SDL_surface.h
-- [x] SDL3/SDL_system.h
-- [x] SDL3/SDL_thread.h
-- [x] SDL3/SDL_time.h
-- [x] SDL3/SDL_timer.h
-- [x] SDL3/SDL_tray.h
-- [x] SDL3/SDL_touch.h
-- [x] SDL3/SDL_version.h
-- [x] SDL3/SDL_video.h
+
+🟧 means that the related header file should be implemented for the most part. Some things might be missing or non-functioning, though I have tried to be careful.
+
+| Header File | Status | Notes |
+|-------------|--------|-------|
+| SDL3/SDL_stdinc.h | 🟧 | |
+| SDL3/SDL_assert.h | 🟧 | |
+| SDL3/SDL_asyncio.h | 🟧 | |
+| SDL3/SDL_atomic.h | 🟧 | |
+| SDL3/SDL_audio.h | 🟧 | |
+| SDL3/SDL_bits.h | 🟧 | |
+| SDL3/SDL_blendmode.h | 🟧 | |
+| SDL3/SDL_camera.h | 🟧 | |
+| SDL3/SDL_clipboard.h | 🟧 | |
+| SDL3/SDL_cpuinfo.h | 🟧 | |
+| SDL3/SDL_dialog.h | 🟧 | Example stopped working, must investigate |
+| SDL3/SDL_endian.h | 🟧 | |
+| SDL3/SDL_error.h | 🟧 | |
+| SDL3/SDL_events.h | 🟧 | |
+| SDL3/SDL_filesystem.h | 🟧 | |
+| SDL3/SDL_gamepad.h | 🟧 | |
+| SDL3/SDL_gpu.h | 🟧 | |
+| SDL3/SDL_guid.h | 🟧 | |
+| SDL3/SDL_haptic.h | 🟧 | |
+| SDL3/SDL_hidapi.h | 🟧 | |
+| SDL3/SDL_hints.h | 🟧 | |
+| SDL3/SDL_init.h | 🟧 | This entire file should be refactored. It was one of the first. |
+| SDL3/SDL_iostream.h | 🟧 | |
+| SDL3/SDL_joystick.h | 🟧 | |
+| SDL3/SDL_keyboard.h | 🟧 | |
+| SDL3/SDL_keycode.h | 🟧 | |
+| SDL3/SDL_loadso.h | 🟧 | |
+| SDL3/SDL_locale.h | 🟧 | |
+| SDL3/SDL_log.h | 🟧 | |
+| SDL3/SDL_messagebox.h | 🟧 | |
+| SDL3/SDL_metal.h | 🟧 | |
+| SDL3/SDL_misc.h | 🟧 | |
+| SDL3/SDL_mouse.h | 🟧 | |
+| SDL3/SDL_mutex.h | 🟧 | |
+| SDL3/SDL_pen.h | 🟧 | |
+| SDL3/SDL_pixels.h | 🟧 | |
+| SDL3/SDL_platform.h | 🟧 | |
+| SDL3/SDL_power.h | 🟧 | |
+| SDL3/SDL_process.h | 🟧 | |
+| SDL3/SDL_properties.h | 🟧 | |
+| SDL3/SDL_rect.h | 🟧 | |
+| SDL3/SDL_render.h | 🟧 | |
+| SDL3/SDL_scancode.h | 🟧 | |
+| SDL3/SDL_sensor.h | 🟧 | |
+| SDL3/SDL_storage.h | 🟧 | |
+| SDL3/SDL_surface.h | 🟧 | |
+| SDL3/SDL_system.h | 🟧 | |
+| SDL3/SDL_thread.h | 🟧 | |
+| SDL3/SDL_time.h | 🟧 | |
+| SDL3/SDL_timer.h | 🟧 | |
+| SDL3/SDL_tray.h | 🟧 | |
+| SDL3/SDL_touch.h | 🟧 | |
+| SDL3/SDL_version.h | 🟧 | |
+| SDL3/SDL_video.h | 🟧 | |
+
+# Working Examples
+
+## Core Functionality
+### Initialization & System
+- [Init](examples/InitExample.hs) - Basic SDL initialization
+- [System](examples/SystemExample.hs) - System information and capabilities
+- [Platform](examples/PlatformExample.hs) - Platform-specific functionality
+- [CPU Info](examples/CPUInfoExample.hs) - Processor information
+- [Power](examples/PowerExample.hs) - Power state monitoring
+- [Hints](examples/HintsExample.hs) - SDL configuration hints
+
+## Window & Rendering
+### Rendering
+- [Render](examples/RenderExample.hs) - 2D rendering basics
+### Misc
+- [Rect](examples/RectExample.hs) - Rectangle basics (no rendering here)
+
+### GPU & Graphics
+These examples are based off of the original [SDL3 GPU Examples](https://github.com/TheSpydog/SDL_gpu_examples/)
+- [GPU Triangle](examples/GPURawTriangleExample.hs) - Raw triangle rendering
+- [GPU Clear](examples/GPUClearExample.hs) - Basic screen clearing
+- [GPU Vertex Buffer](examples/GPUVertexBufferExample.hs) - Vertex buffer usage
+- [GPU Textured Quad](examples/GPUTexturedQuadExample.hs) - Texture mapping
+- [GPU Animated Quad](examples/GPUAnimatedQuadExample.hs) - Animation basics
+- [GPU Instanced](examples/GPUInstancedExample.hs) - Instanced rendering
+- [GPU Stencil](examples/GPUStencilExample.hs) - Stencil buffer operations
+- [GPU Cull](examples/GPUCullExample.hs) - Culling techniques
+- [GPU Multi-Window](examples/GPUMultiWindowExample.hs) - Multiple window rendering
+- (... More coming ...)
+
+## Input & Interaction
+### User Input
+- [Events](examples/EventsExample.hs) - Event handling
+- [Gamepad](examples/GamepadExample.hs) - Controller input
+- [Touch Device](examples/TouchDeviceExample.hs) - Touch input handling (Can't test properly but compiles.)
+- [Haptic](examples/HapticExample.hs) - Force feedback (Can't test properly but compiles.)
+
+### User Interface
+- [Dialog](examples/DialogExample.hs) - Dialog boxes
+- [Message Box](examples/MessageBoxExample.hs) - Simple message dialogs
+- [Clipboard](examples/ClipboardExample.hs) - Clipboard manipulation
+- [Tray](examples/TrayExample.hs) - System tray integration
+
+## Audio & Media
+### Audio
+- [Audio](examples/AudioExample.hs) - Audio playback
+- [WAV](examples/WAVExample.hs) - WAV file handling
+
+### Camera
+- [Camera](examples/CameraExample.hs) - Camera device access (Can't test properly but compiles.)
+
+## System Integration
+### File & Data
+- [Filesystem](examples/FilesystemExample.hs) - File system operations
+- [Storage](examples/StorageExample.hs) - Persistent storage
+- [GUID](examples/GUIDExample.hs) - Globally unique identifier handling
+
+### Internationalization
+- [Locale](examples/LocaleExample.hs) - Localization support
+
+## Time & Process Management
+### Time
+- [Time](examples/TimeExample.hs) - Time functions
+- [Timer](examples/TimerExample.hs) - Timer functionality
+
+### Process
+- [Process](examples/ProcessExample.hs) - Process management
+
+## Sensors
+### Hardware
+- [Sensor](examples/SensorExample.hs) - Hardware sensor access (Can't test properly but compiles.)
+

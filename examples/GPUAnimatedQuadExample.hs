@@ -69,14 +69,14 @@ main = do
           sdlLog "Application finished successfully."
           exitSuccess
 
--- runAppGPU (Added timeRef)
+-- runAppGPU
 runAppGPU :: Context -> IO ()
 runAppGPU context@Context{..} = do
     sdlLog "Base context initialized."
     timeRef <- newIORef (0.0 :: CFloat) -- For animation time
 
     bracket (createResources context)
-            (releaseResources context) -- Needs updated release function
+            (releaseResources context) -- Bracket release
             $ \case
             Nothing -> sdlLog "Failed to create resources. Exiting."
             Just resources -> do
@@ -86,7 +86,7 @@ runAppGPU context@Context{..} = do
                 deltaTimeRef <- newIORef 0.0
                 eventLoopGPU context resources startTime freq deltaTimeRef timeRef -- Pass timeRef
 
--- createResources (Updated shader loading counts)
+-- createResources
 createResources :: Context -> IO (Maybe AppResources)
 createResources Context{ contextDevice = dev, contextWindow = win } = do
     sdlLog "--- Beginning Resource Creation ---"
