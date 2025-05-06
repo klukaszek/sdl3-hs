@@ -2581,12 +2581,12 @@ sdlBindGPUVertexStorageBuffers (SDLGPURenderPass rp) firstSlot buffers =
 -- | Binds texture-sampler pairs for use on the fragment shader.
 -- FFI signature uses Ptr () for the array pointer due to const qualifier.
 foreign import ccall unsafe "SDL_BindGPUFragmentSamplers"
-  c_sdlBindGPUFragmentSamplers :: Ptr SDLGPURenderPass -> CUInt -> Ptr () -> CUInt -> IO ()
+  c_sdlBindGPUFragmentSamplers :: Ptr SDLGPURenderPass -> CUInt -> Ptr SDLGPUTextureSamplerBinding -> CUInt -> IO ()
 
 sdlBindGPUFragmentSamplers :: SDLGPURenderPass -> Word32 -> [SDLGPUTextureSamplerBinding] -> IO ()
 sdlBindGPUFragmentSamplers (SDLGPURenderPass rp) firstSlot bindings =
   withArrayLen bindings $ \numBindings bindingsPtr ->
-    c_sdlBindGPUFragmentSamplers rp (fromIntegral firstSlot) (castPtr bindingsPtr) (fromIntegral numBindings)
+    c_sdlBindGPUFragmentSamplers rp (fromIntegral firstSlot) bindingsPtr (fromIntegral numBindings)
 
 -- | Binds storage textures for use on the fragment shader.
 -- FFI signature uses Ptr () for the array pointer due to const qualifier.

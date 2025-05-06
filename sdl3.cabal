@@ -61,7 +61,7 @@ data-files:
     Content/Shaders/Compiled/MSL/*.msl
     Content/Shaders/Compiled/SPIRV/*.spv
     Content/Shaders/Compiled/DXIL/*.dxil
-    
+
 common warnings
     ghc-options: -Wall -g
 

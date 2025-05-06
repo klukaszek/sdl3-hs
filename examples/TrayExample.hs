@@ -20,7 +20,7 @@ main = do
   sdlLog "Initialized subsystems:"
   mapM_ printSubsystem initializedSystems
 
-  mSurfacePtr <- sdlLoadBMP "assets/ravioli.bmp"
+  mSurfacePtr <- sdlLoadBMP "examples/Content/Images/ravioli.bmp"
   case mSurfacePtr of
     Nothing -> do
       err <- sdlGetError

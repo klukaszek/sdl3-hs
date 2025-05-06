@@ -270,18 +270,16 @@ foreign import ccall unsafe "SDL_GetSurfaceProperties"
 foreign import ccall unsafe "SDL_SetSurfaceColorspace"
   c_sdlSetSurfaceColorspace :: Ptr SDLSurface -> Word32 -> IO CBool -- Use SDLColorspace directly if it's an enum based on Uint32/int
 
-sdlSetSurfaceColorspace :: SDLSurface -> SDLColorspace -> IO Bool
-sdlSetSurfaceColorspace surfaceRec (SDLColorspace csVal) =
-    with surfaceRec $ \surfacePtr -> -- Temporarily allocates memory, copies surfaceRec, passes pointer
-        fromCBool <$> c_sdlSetSurfaceColorspace surfacePtr (fromIntegral csVal)
+sdlSetSurfaceColorspace :: Ptr SDLSurface -> SDLColorspace -> IO Bool
+sdlSetSurfaceColorspace surfacePtr (SDLColorspace csVal) =
+    fromCBool <$> c_sdlSetSurfaceColorspace surfacePtr (fromIntegral csVal)
 
 -- | Get the colorspace used by a surface.
 foreign import ccall unsafe "SDL_GetSurfaceColorspace"
   c_sdlGetSurfaceColorspace :: Ptr SDLSurface -> IO Word32
 
-sdlGetSurfaceColorspace :: SDLSurface -> IO SDLColorspace
-sdlGetSurfaceColorspace surfaceRec =
-    with surfaceRec $ \surfacePtr -> -- Use 'with' to pass pointer to the C function
+sdlGetSurfaceColorspace :: Ptr SDLSurface -> IO SDLColorspace
+sdlGetSurfaceColorspace surfacePtr =
         cUIntToColorspace . fromIntegral <$> c_sdlGetSurfaceColorspace surfacePtr
         
 -- | Create a palette and associate it with a surface.

@@ -25,12 +25,13 @@ import Foreign.C.String (peekCString)
 import Foreign.Storable (peek, Storable(..))
 
 import Control.Monad (unless, when, void)
-import Control.Exception (bracket)
+import Control.Monad.IO.Class (liftIO)
+import Control.Exception (bracket, catch, try, Exception, IOException, SomeException)
 
 import System.Exit (exitFailure)
 import Paths_sdl3 (getDataFileName) -- Import the function from the auto-generated module
 import System.FilePath ((</>))      -- For path manipulation (optional but clean)
-import System.Directory (doesFileExist) -- Need this directly now
+import System.Directory (doesFileExist, getCurrentDirectory)
 
 import Data.Maybe (fromMaybe, isNothing, isJust, fromJust)
 import Data.Bits ((.|.), (.&.))
@@ -89,6 +90,20 @@ instance Storable PositionTextureVertex where
 -- Default Structs
 defaultShaderCreateInfo :: SDLGPUShaderCreateInfo
 defaultShaderCreateInfo = SDLGPUShaderCreateInfo { shaderCode = nullPtr, shaderCodeSize = 0, shaderEntryPoint = "", shaderFormat = SDL_GPU_SHADERFORMAT_INVALID, shaderStage = SDL_GPU_SHADERSTAGE_VERTEX, shaderNumSamplers = 0, shaderNumStorageTextures = 0, shaderNumStorageBuffers = 0, shaderNumUniformBuffers = 0, shaderProps = 0 }
+defaultColorTargetInfo :: SDLGPUColorTargetInfo
+defaultColorTargetInfo = SDLGPUColorTargetInfo
+    { texture           = error "Texture must be set"
+    , mipLevel          = 0
+    , layerOrDepthPlane = 0
+    , clearColor        = SDLFColor 0 0 0 1
+    , loadOp            = SDL_GPU_LOADOP_DONT_CARE
+    , storeOp           = SDL_GPU_STOREOP_DONT_CARE
+    , resolveTexture    = Nothing
+    , resolveMipLevel   = 0
+    , resolveLayer      = 0
+    , targetCycle             = False
+    , targetCycleResolve      = False
+    }
 defaultColorTargetBlendState :: SDLGPUColorTargetBlendState
 defaultColorTargetBlendState = SDLGPUColorTargetBlendState { writeMask = 0x0F, enableBlend = False, blendOp = SDL_GPU_BLENDOP_ADD, srcColorFactor = SDL_GPU_BLENDFACTOR_ONE, dstColorFactor = SDL_GPU_BLENDFACTOR_ZERO, alphaOp = SDL_GPU_BLENDOP_ADD, srcAlphaFactor = SDL_GPU_BLENDFACTOR_ONE, dstAlphaFactor = SDL_GPU_BLENDFACTOR_ZERO, enableColorWrite = True }
 defaultRasterizerState :: SDLGPURasterizerState
@@ -183,7 +198,6 @@ withContext exampleName windowFlags appAction =
             (maybe (return ()) commonQuit)
             (mapM appAction)
 
-
 -- | Loads shader code from a file located via Cabal's data-files mechanism.
 loadShader :: SDLGPUDevice -> FilePath -> SDLGPUShaderStage -> SDLGPUShaderCreateInfo -> IO (Maybe SDLGPUShader)
 loadShader device baseFilename stage baseCreateInfo = do
@@ -197,7 +211,8 @@ loadShader device baseFilename stage baseCreateInfo = do
 
     -- Helper to construct the relative path for getDataFileName
     let constructRelativePath fmtDir ext = "Content" </> "Shaders" </> "Compiled" </> fmtDir </> baseFilename ++ "." ++ ext
-
+    cwd <- getCurrentDirectory
+    putStrLn cwd
     -- Find first supported shader format where the *data file* exists
     maybeFound <- findM (\(fmt, fmtDir, ext, _) ->
                             if supportedFormats .&. fmt /= SDL_GPU_SHADERFORMAT_INVALID
@@ -248,6 +263,69 @@ loadShader device baseFilename stage baseCreateInfo = do
                                 sdlGetError >>= sdlLog . ("SDL Error: " ++)
                             return maybeShader
                     )
+
+-- | Loads an image using SDL_LoadBMP and converts it to ABGR8888 format if necessary.
+-- Mimics the C example's LoadImage helper.
+-- The caller is responsible for calling SDL_DestroySurface on the returned pointer
+-- when it's no longer needed. This function handles destroying the *intermediate*
+-- original surface if a conversion occurs.
+loadImage :: FilePath -- ^ Relative path within the data directory (e.g., "Content/Images/ravioli.bmp")
+          -> IO (Maybe (Ptr SDLSurface)) -- ^ Returns pointer to the final surface (ABGR8888) or Nothing on failure.
+loadImage relativeImagePath = do
+    sdlLog $ "Attempting to load image: " ++ relativeImagePath
+    fullPath <- getDataFileName relativeImagePath `catch` \(e :: IOException) -> do
+        sdlLog $ "Error constructing image file path for '" ++ relativeImagePath ++ "': " ++ show e
+        return ""
+
+    -- Check if getDataFileName failed
+    when (null fullPath) $ sdlLog "Failed to get absolute path using getDataFileName."
+    if null fullPath then return Nothing else do
+
+        -- Load the initial BMP surface
+        maybeOriginalSurfPtr <- sdlLoadBMP fullPath
+        case maybeOriginalSurfPtr of
+            Nothing -> do
+                sdlLog $ "SDL_LoadBMP failed for: " ++ fullPath
+                sdlGetError >>= sdlLog . ("SDL Error: " ++)
+                return Nothing
+            Just originalSurfPtr -> do
+                sdlLog $ "Loaded original surface: " ++ show originalSurfPtr ++ " from " ++ fullPath
+
+                -- Peek the original surface's format
+                originalData <- peek originalSurfPtr
+                let originalFormat = surfaceFormat originalData
+                let targetFormat = SDL_PIXELFORMAT_ABGR8888 -- Target format
+
+                -- Check if conversion is needed
+                if originalFormat == targetFormat then do
+                    sdlLog $ "Surface already in target format (" ++ show targetFormat ++ "). Returning original pointer."
+                    -- No conversion needed, return the pointer we loaded. Caller now owns it.
+                    return $ Just originalSurfPtr
+                else do
+                    sdlLog $ "Original format (" ++ show originalFormat ++ ") differs from target (" ++ show targetFormat ++ "). Converting..."
+
+                    -- Attempt conversion
+                    eitherConverted <- try (sdlConvertSurface originalSurfPtr targetFormat)
+                                        :: IO (Either SomeException (Maybe (Ptr SDLSurface)))
+
+                    -- IMPORTANT: Destroy the original surface *after* the conversion attempt,
+                    -- regardless of whether it succeeded or failed. We no longer need it.
+                    sdlLog $ "Destroying original intermediate surface: " ++ show originalSurfPtr
+                    sdlDestroySurface originalSurfPtr
+
+                    -- Handle the result of the conversion attempt
+                    case eitherConverted of
+                        Left ex -> do
+                            sdlLog $ "!!! Exception during SDL_ConvertSurface: " ++ show ex
+                            return Nothing -- Conversion failed due to exception
+                        Right Nothing -> do
+                            sdlLog "!!! SDL_ConvertSurface returned NULL (failed)."
+                            sdlGetError >>= sdlLog . ("SDL Error: " ++)
+                            return Nothing -- Conversion failed, returned null
+                        Right (Just convertedSurfPtr) -> do
+                            sdlLog $ "Successfully converted to new surface: " ++ show convertedSurfPtr
+                            -- Conversion succeeded, return the new pointer. Caller now owns it.
+                            return $ Just convertedSurfPtr
 
 -- | findM
 findM :: Monad m => (a -> m Bool) -> [a] -> m (Maybe a)
