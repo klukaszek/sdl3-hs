@@ -146,8 +146,8 @@ data SDLIOStreamInterface = SDLIOStreamInterface
   { sdlIOStreamVersion :: Word32
   , sdlIOStreamSize :: FunPtr (Ptr () -> IO Int64)
   , sdlIOStreamSeek :: FunPtr (Ptr () -> Int64 -> CInt -> IO Int64)
-  , sdlIOStreamRead :: FunPtr (Ptr () -> Ptr () -> CSize -> Ptr CInt -> IO CSize)
-  , sdlIOStreamWrite :: FunPtr (Ptr () -> Ptr () -> CSize -> Ptr CInt -> IO CSize)
+  , sdlIOStreamRead :: FunPtr (Ptr () -> Ptr () -> Word32 -> Ptr CInt -> IO Word32)
+  , sdlIOStreamWrite :: FunPtr (Ptr () -> Ptr () -> Word32 -> Ptr CInt -> IO Word32)
   , sdlIOStreamFlush :: FunPtr (Ptr () -> Ptr CInt -> IO Bool)
   , sdlIOStreamClose :: FunPtr (Ptr () -> IO Bool)
   }
@@ -323,7 +323,7 @@ foreign import ccall "SDL_LoadFile"
 -- | Load all the data from a file path
 --
 -- @since 3.2.0
-sdlLoadFile :: String -> IO (Maybe (Ptr (), CSize))
+sdlLoadFile :: String -> IO (Maybe (Ptr (), Word32))
 sdlLoadFile file =
   alloca $ \(sizePtr :: Ptr CSize) ->    -- Allocate space for the size output parameter
   withCString file $ \cfile -> do       -- Convert FilePath to CString
@@ -333,7 +333,7 @@ sdlLoadFile file =
       then return Nothing               -- Return Nothing on failure
       else do
         actualSize <- peek sizePtr        -- Peek the size *only if* dataPtr is valid
-        return (Just (dataPtr, actualSize)) -- Return the Ptr () and the size
+        return (Just (dataPtr, fromIntegral actualSize)) -- Return the Ptr () and the size
 
 -- | Save all the data into an SDL data stream
 --

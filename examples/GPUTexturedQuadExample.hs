@@ -109,7 +109,7 @@ runAppGPU context@Context{..} = do
             Just resources -> do
                 sdlLog "Resources created successfully."
                 sdlLog "Press Left/Right to switch between sampler states"
-                sdlLog $ "Setting initial sampler state to: " ++ samplerNames !! 0
+                sdlLog $ "Setting initial sampler state to: " ++ head samplerNames
                 startTime <- sdlGetPerformanceCounter
                 freq <- sdlGetPerformanceFrequency
                 deltaTimeRef <- newIORef 0.0

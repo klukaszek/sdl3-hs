@@ -31,7 +31,7 @@ import Control.Monad (unless, when, void)
 import Control.Exception (bracket, bracketOnError, finally)
 
 import Foreign.Ptr (Ptr, nullPtr, castPtr, plusPtr)
-import Foreign.Storable (Storable(..), peek, sizeOf, poke)
+import Foreign.Storable (peek, sizeOf, poke)
 import Foreign.C.Types (CFloat, CSize)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Array (pokeArray)

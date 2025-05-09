@@ -232,11 +232,21 @@ executable gamepad
     hs-source-dirs:   examples
     default-language: Haskell2010
 
+executable gpu-basiccompute
+    main-is: GPUBasicCompute.hs
+    build-depends:
+        base,
+        sdl3,
+        filepath,
+        directory
+
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
 executable gpu-clear
     main-is: GPUClearExample.hs
     build-depends:
         base,
-        bytestring,
         sdl3,
         filepath,
         directory
@@ -248,7 +258,17 @@ executable gpu-clear3dslice
     main-is: GPUClear3DSlice.hs
     build-depends:
         base,
-        bytestring,
+        sdl3,
+        filepath,
+        directory
+
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
+executable gpu-computeuniforms
+    main-is: GPUComputeUniforms.hs
+    build-depends:
+        base,
         sdl3,
         filepath,
         directory
@@ -260,7 +280,6 @@ executable gpu-cull
     main-is: GPUCullExample.hs
     build-depends:
         base,
-        bytestring,
         sdl3,
         filepath,
         directory
@@ -272,7 +291,6 @@ executable gpu-instanced
     main-is: GPUInstancedExample.hs
     build-depends:
         base,
-        bytestring,
         sdl3,
         filepath,
         directory
@@ -284,7 +302,6 @@ executable gpu-multiwindow
     main-is: GPUMultiWindowExample.hs
     build-depends:
         base,
-        bytestring,
         sdl3,
         filepath,
         directory
@@ -295,7 +312,6 @@ executable gpu-stencil
     main-is: GPUStencilExample.hs
     build-depends:
         base,
-        bytestring,
         sdl3,
         filepath,
         directory
@@ -307,7 +323,6 @@ executable gpu-animatedquad
     main-is: GPUAnimatedQuadExample.hs
     build-depends:
         base,
-        bytestring,
         linear,
         geomancy,
         sdl3,
@@ -321,7 +336,6 @@ executable gpu-texturedquad
     main-is: GPUTexturedQuadExample.hs
     build-depends:
         base,
-        bytestring,
         sdl3,
         filepath,
         directory
@@ -333,7 +347,6 @@ executable gpu-triangle
     main-is: GPURawTriangleExample.hs
     build-depends:
         base,
-        bytestring,
         sdl3,
         filepath,
         directory
@@ -344,7 +357,6 @@ executable gpu-vbuf
     main-is: GPUVertexBufferExample.hs
     build-depends:
         base,
-        bytestring,
         sdl3,
         filepath,
         directory
@@ -363,7 +375,7 @@ executable haptic
     main-is: HapticExample.hs
     build-depends:
         base,
-        sdl3
+        sdl3,
     hs-source-dirs:   examples
     default-language: Haskell2010
 

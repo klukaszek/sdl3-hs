@@ -1452,7 +1452,7 @@ instance Storable SDLGPUColorTargetBlendState where
 
 data SDLGPUShaderCreateInfo = SDLGPUShaderCreateInfo
   { shaderCode             :: Ptr Word8 -- Pointer to shader code bytes
-  , shaderCodeSize         :: CSize
+  , shaderCodeSize         :: Word32
   , shaderEntryPoint       :: String -- Managed String
   , shaderFormat           :: SDLGPUShaderFormat
   , shaderStage            :: SDLGPUShaderStage
@@ -1796,7 +1796,7 @@ withGPUGraphicsPipelineCreateInfo SDLGPUGraphicsPipelineCreateInfo{..} f =
 -- SDL_GPUComputePipelineCreateInfo
 data SDLGPUComputePipelineCreateInfo = SDLGPUComputePipelineCreateInfo
   { code                      :: Ptr Word8
-  , codeSize                  :: CSize
+  , codeSize                  :: Word32
   , entryPoint                :: String
   , compFormat                    :: SDLGPUShaderFormat
   , numSamplers               :: Word32

@@ -39,7 +39,6 @@ import Data.Maybe (fromMaybe, isNothing, isJust, fromJust)
 import Data.Bits ((.|.), (.&.))
 import Data.List (find)
 import Data.Word (Word8, Word16, Word32)
-import qualified Data.ByteString as BS
 
 -- | Context structure
 data Context = Context
@@ -47,7 +46,7 @@ data Context = Context
     , contextWindow :: SDLWindow
     } deriving (Show)
 
--- Storables
+-- | Storables
 data PositionColorVertex = PositionColorVertex
     { pcVertexX :: {-# UNPACK #-} !CFloat
     , pcVertexY :: {-# UNPACK #-} !CFloat
@@ -113,9 +112,39 @@ instance Storable FragMultiplyUniform where
         pokeByteOff ptr 8 b
         pokeByteOff ptr 12 a
 
--- Default Structs
+-- | Default Structs and Helpers
 defaultShaderCreateInfo :: SDLGPUShaderCreateInfo
-defaultShaderCreateInfo = SDLGPUShaderCreateInfo { shaderCode = nullPtr, shaderCodeSize = 0, shaderEntryPoint = "", shaderFormat = SDL_GPU_SHADERFORMAT_INVALID, shaderStage = SDL_GPU_SHADERSTAGE_VERTEX, shaderNumSamplers = 0, shaderNumStorageTextures = 0, shaderNumStorageBuffers = 0, shaderNumUniformBuffers = 0, shaderProps = 0 }
+defaultShaderCreateInfo = SDLGPUShaderCreateInfo
+    { shaderCode                 = nullPtr,
+      shaderCodeSize             = 0,
+      shaderEntryPoint           = "",
+      shaderFormat               = SDL_GPU_SHADERFORMAT_INVALID,
+      shaderStage                = SDL_GPU_SHADERSTAGE_VERTEX,
+      shaderNumSamplers          = 0,
+      shaderNumStorageTextures   = 0,
+      shaderNumStorageBuffers    = 0,
+      shaderNumUniformBuffers    = 0,
+      shaderProps                = 0
+    }
+
+defaultComputePipelineCreateInfo :: SDLGPUComputePipelineCreateInfo
+defaultComputePipelineCreateInfo = SDLGPUComputePipelineCreateInfo
+  { code = nullPtr
+  , codeSize = 0
+  , entryPoint = ""
+  , compFormat = SDL_GPU_SHADERFORMAT_INVALID
+  , numSamplers = 0
+  , numReadOnlyStorageTextures = 0
+  , numReadOnlyStorageBuffers = 0
+  , numReadWriteStorageTextures = 0
+  , numReadWriteStorageBuffers = 0
+  , numUniformBuffers = 0
+  , threadCountX = 1
+  , threadCountY = 1
+  , threadCountZ = 1
+  , compProps = 0
+  }
+
 defaultColorTargetInfo :: SDLGPUColorTargetInfo
 defaultColorTargetInfo = SDLGPUColorTargetInfo
     { texture           = error "Texture must be set"
@@ -130,8 +159,21 @@ defaultColorTargetInfo = SDLGPUColorTargetInfo
     , targetCycle             = False
     , targetCycleResolve      = False
     }
+
+defaultSamplerCreateInfo filt =
+    SDLGPUSamplerCreateInfo filt filt SDL_GPU_SAMPLERMIPMAPMODE_NEAREST
+                                     SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE
+                                     0.0 1.0 SDL_GPU_COMPAREOP_NEVER 0.0 0.0 False False 0
+
 defaultColorTargetBlendState :: SDLGPUColorTargetBlendState
 defaultColorTargetBlendState = SDLGPUColorTargetBlendState { writeMask = 0x0F, enableBlend = False, blendOp = SDL_GPU_BLENDOP_ADD, srcColorFactor = SDL_GPU_BLENDFACTOR_ONE, dstColorFactor = SDL_GPU_BLENDFACTOR_ZERO, alphaOp = SDL_GPU_BLENDOP_ADD, srcAlphaFactor = SDL_GPU_BLENDFACTOR_ONE, dstAlphaFactor = SDL_GPU_BLENDFACTOR_ZERO, enableColorWrite = True }
+
+defaultColorTargetDescription :: SDLGPUColorTargetDescription
+defaultColorTargetDescription = SDLGPUColorTargetDescription
+  { targetFormat     = SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM
+  , targetBlendState = defaultColorTargetBlendState
+  }
+
 defaultRasterizerState :: SDLGPURasterizerState
 defaultRasterizerState = SDLGPURasterizerState { fillMode = SDL_GPU_FILLMODE_FILL, cullMode = SDL_GPU_CULLMODE_NONE, frontFace = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE, enableDepthBias = False, depthBiasConstantFactor = 0.0, depthBiasClamp = 0.0, depthBiasSlopeFactor = 0.0, enableDepthClip = False }
 defaultMultiSampleState :: SDLGPUMultisampleState
@@ -142,6 +184,10 @@ defaultDepthStencilState :: SDLGPUDepthStencilState
 defaultDepthStencilState = SDLGPUDepthStencilState { enableDepthTest = False, enableDepthWrite = False, depthStencilCompareOp = SDL_GPU_COMPAREOP_ALWAYS, enableStencilTest = False, backStencilState = defaultStencilOpState, frontStencilState = defaultStencilOpState, stencilCompareMask = 0xFF, stencilWriteMask = 0xFF }
 defaultVertexInputState :: SDLGPUVertexInputState
 defaultVertexInputState = SDLGPUVertexInputState { inputVertexBuffers = [], inputVertexAttribs = [] }        
+defaultTextureCreateInfo :: Int -> Int -> SDLGPUTextureCreateInfo
+defaultTextureCreateInfo w h = SDLGPUTextureCreateInfo
+    SDL_GPU_TEXTURETYPE_2D SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM SDL_GPU_TEXTUREUSAGE_SAMPLER
+    (fromIntegral w) (fromIntegral h) 1 1 SDL_GPU_SAMPLECOUNT_1 0
 
 -- | commonInit
 commonInit :: String -> [SDLWindowFlags] -> IO (Maybe Context)
@@ -288,6 +334,50 @@ loadShader device baseFilename stage baseCreateInfo = do
                                 sdlLog $ "sdlCreateGPUShader failed for: " ++ absolutePath
                                 sdlGetError >>= sdlLog . ("SDL Error: " ++)
                             return maybeShader
+                    )
+
+createComputePipelineFromShader :: SDLGPUDevice
+                                -> FilePath -- ^ Base filename (e.g., "FillTexture.comp")
+                                -> SDLGPUComputePipelineCreateInfo -- ^ Base create info with resource counts, thread counts
+                                -> IO (Maybe SDLGPUComputePipeline)
+createComputePipelineFromShader device baseFilename baseCreateInfo = do
+    supportedFormats <- sdlGetGPUShaderFormats device
+    let formatsToTry =
+            [ (SDL_GPU_SHADERFORMAT_SPIRV,  "SPIRV", "spv", "main")
+            , (SDL_GPU_SHADERFORMAT_MSL,    "MSL", "msl", "main0")
+            , (SDL_GPU_SHADERFORMAT_DXIL,   "DXIL", "dxil", "main")
+            ]
+    let constructRelativePath fmtDir ext = "Content" </> "Shaders" </> "Compiled" </> fmtDir </> baseFilename ++ "." ++ ext
+
+    maybeFound <- findM (\(fmt, fmtDir, ext, _) ->
+                            if supportedFormats .&. fmt /= SDL_GPU_SHADERFORMAT_INVALID
+                            then getDataFileName (constructRelativePath fmtDir ext) >>= System.Directory.doesFileExist
+                            else return False
+                        ) formatsToTry
+
+    case maybeFound of
+        Nothing -> do
+            sdlLog $ "Could not find suitable compute shader file for: " ++ baseFilename
+            return Nothing
+        Just (shaderFmt, fmtDir, ext, entryP) -> do
+            let relativePath = constructRelativePath fmtDir ext
+            absolutePath <- getDataFileName relativePath
+            sdlLog $ "Attempting to load compute shader from: " ++ absolutePath
+            bracket (sdlLoadFile absolutePath)
+                    (\loadResult -> case loadResult of Just (ptr, _) -> free ptr; Nothing -> return ())
+                    (\loadResult -> case loadResult of
+                        Nothing -> do
+                            sdlLog $ "SDL_LoadFile failed for compute shader: " ++ absolutePath
+                            return Nothing
+                        Just (codePtr, loadedSize) -> do
+                            sdlLog $ "Successfully loaded " ++ show loadedSize ++ " bytes for compute shader."
+                            let finalCI = baseCreateInfo
+                                    { code = castPtr codePtr
+                                    , codeSize = fromIntegral loadedSize -- Ensure types match
+                                    , entryPoint = entryP
+                                    , compFormat = shaderFmt
+                                    }
+                            sdlCreateGPUComputePipeline device finalCI
                     )
 
 -- | Loads an image using SDL_LoadBMP and converts it to ABGR8888 format if necessary.
