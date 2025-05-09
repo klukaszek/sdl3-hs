@@ -152,7 +152,7 @@ createResources Context{ contextDevice = dev, contextWindow = win } = do
                             bracket (return surfacePtr) -- Manage final surface lifetime
                                     sdlDestroySurface
                                     $ \surfManagedPtr -> do
-                                        maybeResources <- createGpuObjects dev win vertShader fragShader surfManagedPtr
+                                        maybeResources <- createGPUObjects dev win vertShader fragShader surfManagedPtr
                                         sdlLog "Releasing shaders..."
                                         sdlReleaseGPUShader dev vertShader
                                         sdlReleaseGPUShader dev fragShader
@@ -165,9 +165,9 @@ createResources Context{ contextDevice = dev, contextWindow = win } = do
             maybe (return ()) (sdlReleaseGPUShader dev) maybeFragShader
             return Nothing
 
--- createGpuObjects (Creates single sampler, uses updated pipeline)
-createGpuObjects :: SDLGPUDevice -> SDLWindow -> SDLGPUShader -> SDLGPUShader -> Ptr SDLSurface -> IO (Maybe AppResources)
-createGpuObjects dev win vertShader fragShader surfacePtr = do
+-- createGPUObjects (Creates single sampler, uses updated pipeline)
+createGPUObjects :: SDLGPUDevice -> SDLWindow -> SDLGPUShader -> SDLGPUShader -> Ptr SDLSurface -> IO (Maybe AppResources)
+createGPUObjects dev win vertShader fragShader surfacePtr = do
     sdlLog "Creating GPU objects (pipeline, sampler, buffers, texture)..."
 
     -- Peek Surface Info
@@ -525,8 +525,3 @@ renderFrameGPU Context{..} AppResources{..} timeRef = do
                     -- Submit after bracket ensures render pass is ended
                     submitted <- sdlSubmitGPUCommandBuffer cmdbuf
                     unless submitted $ sdlLog "Error: Failed to submit render command buffer."
-
--- cleanupMaybeRenderPass
-cleanupMaybeRenderPass :: Maybe SDLGPURenderPass -> IO ()
-cleanupMaybeRenderPass Nothing = return ()
-cleanupMaybeRenderPass (Just rp) = sdlEndGPURenderPass rp

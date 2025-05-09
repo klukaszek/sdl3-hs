@@ -244,6 +244,18 @@ executable gpu-clear
     hs-source-dirs:   examples
     default-language: Haskell2010
 
+executable gpu-clear3dslice
+    main-is: GPUClear3DSlice.hs
+    build-depends:
+        base,
+        bytestring,
+        sdl3,
+        filepath,
+        directory
+
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
 executable gpu-cull
     main-is: GPUCullExample.hs
     build-depends:

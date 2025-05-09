@@ -393,6 +393,11 @@ cleanupTransferBuffer dev (Just tb) = do
      sdlLog $ "Releasing Transfer Buffer: " ++ show tb
      sdlReleaseGPUTransferBuffer dev tb
 
+-- cleanupMaybeRenderPass
+cleanupMaybeRenderPass :: Maybe SDLGPURenderPass -> IO ()
+cleanupMaybeRenderPass Nothing = return ()
+cleanupMaybeRenderPass (Just rp) = sdlEndGPURenderPass rp
+
 --createGPUTeture
 createGPUTexture :: SDLGPUDevice -> Int -> Int -> IO (Maybe SDLGPUTexture)
 createGPUTexture dev w h = do

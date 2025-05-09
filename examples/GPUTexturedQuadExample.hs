@@ -532,8 +532,3 @@ renderFrameGPU Context{..} AppResources{..} samplerIndexRef = do
                                 sdlDrawGPUIndexedPrimitives renderPass 6 1 0 0 0
                     submitted <- sdlSubmitGPUCommandBuffer cmdbuf
                     unless submitted $ sdlLog "Error: Failed to submit render command buffer."
-
--- cleanupMaybeRenderPass
-cleanupMaybeRenderPass :: Maybe SDLGPURenderPass -> IO ()
-cleanupMaybeRenderPass Nothing = return ()
-cleanupMaybeRenderPass (Just rp) = sdlEndGPURenderPass rp
