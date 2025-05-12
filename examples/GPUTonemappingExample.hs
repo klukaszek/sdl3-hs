@@ -2,6 +2,51 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+{-|
+Example     : GPUTonemappingExample
+Description : Demonstrates HDR image loading, compute shader-based tonemapping, and color space conversion.
+Copyright   : (c) Kyle Lukaszek, 2025
+License     : BSD3
+
+Based on the SDL_gpu_examples/Tonemapping C example.
+This example showcases a comprehensive GPU pipeline:
+- Loading an HDR (High Dynamic Range) image file (e.g., .hdr) using a wrapper around stb_image's `stbi_loadf`.
+- Creating multiple textures for different stages:
+    - `HDRTexture`: Stores the original HDR image data (e.g., R32G32B32A32_FLOAT format).
+    - `ToneMapTexture`: Intermediate texture to store the tonemapped HDR data (e.g., R16G16B16A16_FLOAT).
+    - `TransferTexture`: Intermediate texture for color space converted output, matching swapchain format.
+- Uploading the loaded HDR pixel data to the `HDRTexture`.
+- Creating several compute pipelines:
+    - A set of tonemapping operators (Reinhard, ACES, etc.), each implemented as a compute shader. These shaders
+      read from `HDRTexture` and write the tonemapped result to `ToneMapTexture`.
+    - `LinearToSRGBPipeline`: A compute shader to convert linear HDR data (from `ToneMapTexture`) to sRGB space,
+      writing to `TransferTexture`.
+    - `LinearToST2084Pipeline`: A compute shader to convert linear HDR data (from `ToneMapTexture`) to ST2084 (PQ)
+      HDR10 space, writing to `TransferTexture`.
+- Managing user interaction to cycle through:
+    - Different SDL Swapchain Compositions (SDR, SDR_LINEAR, HDR_EXTENDED_LINEAR, HDR10_ST2084) using
+      `SDL_SetGPUSwapchainParameters` and checking support with `SDL_WindowSupportsGPUSwapchainComposition`.
+    - Different tonemapping operators.
+- In each frame's render process:
+    1. **Tonemapping Pass:**
+        - A compute pass is initiated.
+        - The selected tonemapping compute pipeline is bound.
+        - `HDRTexture` is bound as a read-only storage texture input.
+        - `ToneMapTexture` is bound as a read/write storage texture output.
+        - The compute shader is dispatched.
+    2. **Color Space Conversion Pass (Conditional):**
+        - If the current swapchain composition is SDR or HDR10_ST2084, another compute pass is run.
+        - The appropriate conversion pipeline (`LinearToSRGBPipeline` or `LinearToST2084Pipeline`) is bound.
+        - `ToneMapTexture` is bound as a read-only storage texture input.
+        - `TransferTexture` is bound as a read/write storage texture output.
+        - The compute shader is dispatched.
+    3. **Blit to Swapchain:**
+        - The resulting texture (`ToneMapTexture` or `TransferTexture` if conversion occurred) is blitted to the
+          acquired swapchain texture using `SDL_BlitGPUTexture`.
+- This example demonstrates a multi-stage image processing pipeline using compute shaders, handling
+  different color spaces, and adapting output based on swapchain capabilities.
+|-}
+
 module Main where
 
 import Control.Exception (bracket, bracketOnError, finally)
@@ -9,7 +54,6 @@ import Control.Monad (forM, forM_, unless, void, when)
 import Data.Bits ((.|.))
 import Data.IORef
 import Data.Maybe (catMaybes, fromJust, isJust, isNothing)
-import Foreign.Marshal.Utils (copyBytes, with)
 import Foreign.Ptr (Ptr, castPtr)
 import GPUCommon
 import SDL
@@ -193,7 +237,7 @@ createResources context@Context {..} = do
                         (\mptr -> when (isJust mptr) $ sdlUnmapGPUTransferBuffer contextDevice transferBuf)
                         $ \case
                           Nothing -> return False
-                          Just mappedPtr -> copyBytes mappedPtr (castPtr pixelPtr) (fromIntegral dataSizeBytes) >> return True
+                          Just mappedPtr -> memcpy mappedPtr (castPtr pixelPtr) (fromIntegral dataSizeBytes) >> return True
                       if mapOk
                         then do
                           cmdBuf <- sdlAcquireGPUCommandBuffer contextDevice
