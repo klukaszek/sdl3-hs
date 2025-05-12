@@ -176,10 +176,10 @@ createGPUObjects dev win vertShader fragShader surfacePtr = do
   when (surfacePixels surfaceData == nullPtr) $ sdlLog "!!! WARNING: Surface pixel data pointer is NULL!"
 
   -- Calculate data sizes
-  (_, vertexDataSizeC, _) <- calculateBufferDataSize vertexData "Vertex"
-  (_, indexDataSizeC, _) <- calculateBufferDataSize indexData "Index"
-  let bytesPerPixel = 4 -- Assuming ABGR8888 or RGBA8888 after conversion
-  let textureDataSizeC = fromIntegral (texWidth * texHeight * bytesPerPixel) :: CSize
+  (_, _, vertexDataSize) <- calculateBufferDataSize vertexData "Vertex"
+  (_, _, indexDataSize) <- calculateBufferDataSize indexData "Index"
+  let bytesPerPixel = 4 :: Int -- Assuming ABGR8888 or RGBA8888 after conversion
+  let textureDataSize = fromIntegral (texWidth * texHeight * bytesPerPixel) :: Word32
 
   -- \*** Create ONE Sampler ***
   let samplerCI =
@@ -210,11 +210,11 @@ createGPUObjects dev win vertShader fragShader surfacePtr = do
         (cleanupMaybe "Sampler" (sdlReleaseGPUSampler dev))
         $ \maybeSampler ->
           bracketOnError
-            (createGPUBuffer dev SDL_GPU_BUFFERUSAGE_VERTEX vertexDataSizeC "VertexBuffer")
+            (createGPUBuffer dev SDL_GPU_BUFFERUSAGE_VERTEX vertexDataSize "VertexBuffer")
             (cleanupMaybe "VertexBuffer" (sdlReleaseGPUBuffer dev))
             $ \maybeVertexBuffer ->
               bracketOnError
-                (createGPUBuffer dev SDL_GPU_BUFFERUSAGE_INDEX indexDataSizeC "IndexBuffer")
+                (createGPUBuffer dev SDL_GPU_BUFFERUSAGE_INDEX indexDataSize "IndexBuffer")
                 (cleanupMaybe "IndexBuffer" (sdlReleaseGPUBuffer dev))
                 $ \maybeIndexBuffer ->
                   bracketOnError
@@ -234,9 +234,9 @@ createGPUObjects dev win vertShader fragShader surfacePtr = do
                               vertexBuffer
                               indexBuffer
                               texture
-                              vertexDataSizeC
-                              indexDataSizeC
-                              textureDataSizeC
+                              vertexDataSize
+                              indexDataSize
+                              textureDataSize
                           if uploadOk
                             then do
                               sdlLog "--- Resource Creation Successful ---"
@@ -304,20 +304,20 @@ createPipeline dev win vertShader fragShader = do
 
 -- | Helper function to upload vertex, index, and texture data
 -- Accepts Ptr SDLSurface
-uploadAllData :: SDLGPUDevice -> Ptr SDLSurface -> Int -> Int -> Int -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> CSize -> CSize -> CSize -> IO Bool
-uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf texture vertexSizeC indexSizeC textureSizeC = do
+uploadAllData :: SDLGPUDevice -> Ptr SDLSurface -> Int -> Int -> Int -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> Word32 -> Word32 -> Word32 -> IO Bool
+uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf texture vertexSize indexSize textureSize = do
   sdlLog "Starting data upload process..."
 
-  let bufferDataTotalSizeC = vertexSizeC + indexSizeC
-  let vertexOffsetC = 0
-  let indexOffsetC = vertexSizeC
+  let bufferDataTotalSize = vertexSize + indexSize
+  let vertexOffset = 0
+  let indexOffset = vertexSize
 
   bracket
-    (createTransferBuffer dev bufferDataTotalSizeC SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "Buffer")
+    (createTransferBuffer dev bufferDataTotalSize SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "Buffer")
     (cleanupTransferBuffer dev)
     $ \maybeBufTransfer ->
       bracket
-        (createTransferBuffer dev textureSizeC SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "Texture")
+        (createTransferBuffer dev textureSize SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "Texture")
         (cleanupTransferBuffer dev)
         $ \maybeTexTransfer ->
           bracket
@@ -328,7 +328,7 @@ uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf
                 (Just bufTransfer, Just texTransfer, Just cmdBuf) -> do
                   sdlLog "All necessary transfer buffers and command buffer acquired."
 
-                  bufMapOk <- mapAndCopyBufferData dev bufTransfer vertexData indexData vertexOffsetC indexOffsetC
+                  bufMapOk <- mapAndCopyBufferData dev bufTransfer vertexData indexData vertexOffset indexOffset
                   unless bufMapOk $ sdlLog "!!! Buffer data map/copy failed."
 
                   texMapOk <-
@@ -348,8 +348,8 @@ uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf
                           vertexBuf
                           indexBuf
                           texture
-                          vertexOffsetC
-                          indexOffsetC
+                          vertexOffset
+                          indexOffset
                           texWidth
                           texHeight
                       if recordOk
@@ -378,8 +378,8 @@ uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf
                   sdlLog "!!! Failed to acquire transfer buffers or command buffer for upload."
                   return False
 
-recordUploadCommands :: SDLGPUDevice -> SDLGPUCommandBuffer -> SDLGPUTransferBuffer -> SDLGPUTransferBuffer -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> CSize -> CSize -> Int -> Int -> IO Bool
-recordUploadCommands dev cmdBuf bufTransfer texTransfer vertexBuf indexBuf texture vOffsetC iOffsetC texWidth texHeight = do
+recordUploadCommands :: SDLGPUDevice -> SDLGPUCommandBuffer -> SDLGPUTransferBuffer -> SDLGPUTransferBuffer -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> Word32 -> Word32 -> Int -> Int -> IO Bool
+recordUploadCommands dev cmdBuf bufTransfer texTransfer vertexBuf indexBuf texture vOffset iOffset texWidth texHeight = do
   sdlLog "Beginning Copy Pass for uploads..."
   bracket
     (sdlBeginGPUCopyPass cmdBuf)
@@ -391,12 +391,12 @@ recordUploadCommands dev cmdBuf bufTransfer texTransfer vertexBuf indexBuf textu
         (_, _, vertexSizeW32) <- calculateBufferDataSize vertexData "Vertex"
         (_, _, indexSizeW32) <- calculateBufferDataSize indexData "Index"
 
-        let vbSrc = SDLGPUTransferBufferLocation bufTransfer (fromIntegral vOffsetC)
+        let vbSrc = SDLGPUTransferBufferLocation bufTransfer (fromIntegral vOffset)
         let vbDst = SDLGPUBufferRegion vertexBuf 0 vertexSizeW32
         sdlLog $ "Recording Vertex Buffer Upload: " ++ show vbSrc ++ " -> " ++ show vbDst
         sdlUploadToGPUBuffer copyPass vbSrc vbDst False
 
-        let ibSrc = SDLGPUTransferBufferLocation bufTransfer (fromIntegral iOffsetC)
+        let ibSrc = SDLGPUTransferBufferLocation bufTransfer (fromIntegral iOffset)
         let ibDst = SDLGPUBufferRegion indexBuf 0 indexSizeW32
         sdlLog $ "Recording Index Buffer Upload: " ++ show ibSrc ++ " -> " ++ show ibDst
         sdlUploadToGPUBuffer copyPass ibSrc ibDst False

@@ -290,6 +290,17 @@ executable gpu-cull
     hs-source-dirs:   examples
     default-language: Haskell2010
 
+executable gpu-customsampling
+    main-is: GPUCustomSamplingExample.hs
+    build-depends:
+        base,
+        sdl3,
+        filepath,
+        directory
+
+    hs-source-dirs: examples
+    default-language: Haskell2010
+
 executable gpu-instanced
     main-is: GPUInstancedExample.hs
     build-depends:

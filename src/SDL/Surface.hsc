@@ -175,11 +175,11 @@ pattern SDL_SURFACE_SIMD_ALIGNED = SDLSurfaceFlags #{const SDL_SURFACE_SIMD_ALIG
 data SDLSurface = SDLSurface -- Use the original name
   { surfaceFlags   :: SDLSurfaceFlags  -- ^ Surface flags, read-only
   , surfaceFormat  :: SDLPixelFormat   -- ^ Pixel format, read-only
-  , surfaceW       :: CInt             -- ^ Width, read-only
-  , surfaceH       :: CInt             -- ^ Height, read-only
-  , surfacePitch   :: CInt             -- ^ Bytes between rows, read-only
+  , surfaceW       :: Int             -- ^ Width, read-only
+  , surfaceH       :: Int             -- ^ Height, read-only
+  , surfacePitch   :: Int             -- ^ Bytes between rows, read-only
   , surfacePixels  :: Ptr ()           -- ^ Pointer to pixel data
-  , surfaceRefcount :: CInt            -- ^ Reference count (internal use)
+  , surfaceRefcount :: Int            -- ^ Reference count (internal use)
   } deriving (Show, Eq)
 
 instance Storable SDLSurface where -- Use the original name
@@ -188,15 +188,15 @@ instance Storable SDLSurface where -- Use the original name
   peek ptr = do
     flagsWord <- #{peek SDL_Surface, flags} ptr :: IO CUInt
     formatWord <- #{peek SDL_Surface, format} ptr :: IO Word32
-    w        <- #{peek SDL_Surface, w} ptr
-    h        <- #{peek SDL_Surface, h} ptr
-    pitch    <- #{peek SDL_Surface, pitch} ptr
+    w        <- #{peek SDL_Surface, w} ptr :: IO CInt
+    h        <- #{peek SDL_Surface, h} ptr :: IO CInt
+    pitch    <- #{peek SDL_Surface, pitch} ptr :: IO CInt
     pixels   <- #{peek SDL_Surface, pixels} ptr
     refcount <- #{peek SDL_Surface, refcount} ptr
     -- Convert from raw C types to Haskell types
     let flags = SDLSurfaceFlags flagsWord
     -- Assuming SDLPixelFormat has an Enum instance mapping from Word32
-    return $ SDLSurface flags (cUIntToPixelFormat (fromIntegral formatWord)) w h pitch pixels refcount
+    return $ SDLSurface flags (cUIntToPixelFormat (fromIntegral formatWord)) (fromIntegral w) (fromIntegral h) (fromIntegral pitch) pixels refcount
   poke ptr (SDLSurface flags format w h pitch pixels refcount) = do
     -- Convert from Haskell types back to C types
     let (SDLSurfaceFlags flagsWord) = flags

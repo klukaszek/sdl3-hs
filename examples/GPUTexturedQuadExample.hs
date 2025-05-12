@@ -27,21 +27,17 @@ import GPUCommon
 import Paths_sdl3 (getDataFileName)
 import System.FilePath ((</>))
 
-import Control.Monad (unless, when, void, zipWithM_)
+import Control.Monad (unless, when, void)
 import Control.Exception (bracket, bracketOnError, onException, finally, try, SomeException)
 import System.Exit (exitFailure, exitSuccess)
-import Foreign.Ptr (Ptr, nullPtr, castPtr, plusPtr)
-import Foreign.Storable (Storable(..), peek, peekByteOff, pokeByteOff, sizeOf, poke) -- Need peek
-import Foreign.C.Types (CFloat, CInt, CSize, CUChar)
-import Foreign.Marshal.Alloc (alloca, free, mallocBytes)
-import Foreign.Marshal.Array (pokeArray, withArray)
-import Foreign.Marshal.Utils (with)
+import Foreign.Ptr (Ptr, nullPtr, castPtr)
+import Foreign.Storable (peek, sizeOf) -- Need peek
+import Foreign.C.Types (CFloat)
 import Data.IORef
-import Data.Word (Word64, Word32, Word16, Word8)
+import Data.Word (Word64, Word32, Word16)
 import Text.Printf (printf)
 import Data.Maybe (isJust, fromJust, fromMaybe, isNothing)
 import Data.Bits ((.|.))
-import Data.List (genericLength)
 import System.IO (hFlush, stdout)
 
 -- Constants
@@ -190,20 +186,20 @@ createGpuObjects dev win vertShader fragShader surfacePtr = do
         return Nothing -- Cannot proceed
     else do
         surfaceData <- peek surfacePtr :: IO SDLSurface
-        let texWidthCInt  = surfaceW surfaceData
-        let texHeightCInt = surfaceH surfaceData
-        let pitchCInt = surfacePitch surfaceData
+        let texWidth  = surfaceW surfaceData
+        let texHeight = surfaceH surfaceData
+        let pitch = surfacePitch surfaceData
         let pixelsPtr = surfacePixels surfaceData
         let surfaceFlagsEnum = surfaceFlags surfaceData -- Use the field name from your SDLSurface definition
-        let surfaceFormatEnum = surfaceFormat surfaceData -- Use the field name
+        let surfaceFormatEnum = surfaceFormat surfaceData
 
         formatName <- case surfaceFormatEnum of
                          -- Handle known invalid/unknown formats if necessary
                          SDL_PIXELFORMAT_UNKNOWN -> return "Unknown/Invalid Format"
                          fmt -> sdlGetPixelFormatName fmt -- Assuming this function exists and takes your SDLPixelFormat type
 
-        sdlLog $ printf "  Dimensions: %d x %d" (fromIntegral texWidthCInt :: Int) (fromIntegral texHeightCInt :: Int)
-        sdlLog $ printf "  Pitch: %d bytes" (fromIntegral pitchCInt :: Int)
+        sdlLog $ printf "  Dimensions: %d x %d" texWidth texHeight
+        sdlLog $ printf "  Pitch: %d bytes" pitch
         sdlLog $ "  Pixel Format Enum: " ++ show surfaceFormatEnum
         sdlLog $ "  Pixel Format Name: " ++ formatName
         sdlLog $ printf "  Flags: %s" (show surfaceFlagsEnum)
@@ -213,18 +209,14 @@ createGpuObjects dev win vertShader fragShader surfacePtr = do
         when (pixelsPtr == nullPtr) $
             sdlLog "!!! WARNING: Surface pixel data pointer is NULL!"
 
-        -- texWidth and texHeight are already Int here, which is fine
-        let texWidth = fromIntegral texWidthCInt :: Int
-        let texHeight = fromIntegral texHeightCInt :: Int
-
         -- Calculate data sizes
-        (_, vertexDataSizeC, vertexDataSizeW32) <- calculateBufferDataSize vertexData "Vertex"
-        (_, indexDataSizeC, indexDataSizeW32) <- calculateBufferDataSize indexData "Index"
+        (_, _, vertexDataSize) <- calculateBufferDataSize vertexData "Vertex"
+        (_, _, indexDataSize) <- calculateBufferDataSize indexData "Index"
 
         -- Assuming RGBA format (4 bytes per pixel) for now
         let bytesPerPixel = 4 -- Assumption
-        let textureDataSizeC = fromIntegral (texWidth * texHeight * bytesPerPixel) :: CSize
-        sdlLog $ printf "Texture Info - Width: %d, Height: %d, Assumed BPP: %d, Total Bytes: %d" texWidth texHeight bytesPerPixel (fromIntegral textureDataSizeC :: Int)
+        let textureDataSize = fromIntegral (texWidth * texHeight * bytesPerPixel) :: Word32
+        sdlLog $ printf "Texture Info - Width: %u, Height: %u, Assumed BPP: %u, Total Bytes: %u" texWidth texHeight bytesPerPixel textureDataSize
 
         -- Sampler Create Infos
         let samplerCIs =
@@ -241,9 +233,9 @@ createGpuObjects dev win vertShader fragShader surfacePtr = do
                        (cleanupMaybe "Pipeline" (sdlReleaseGPUGraphicsPipeline dev)) $ \maybePipeline ->
           bracketOnError (createSamplers dev samplerCIs)
                          (cleanupList "Sampler" (sdlReleaseGPUSampler dev)) $ \maybeSamplers ->
-          bracketOnError (createGPUBuffer dev SDL_GPU_BUFFERUSAGE_VERTEX vertexDataSizeC "VertexBuffer")
+          bracketOnError (createGPUBuffer dev SDL_GPU_BUFFERUSAGE_VERTEX vertexDataSize "VertexBuffer")
                          (cleanupMaybe "VertexBuffer" (sdlReleaseGPUBuffer dev)) $ \maybeVertexBuffer ->
-          bracketOnError (createGPUBuffer dev SDL_GPU_BUFFERUSAGE_INDEX indexDataSizeC "IndexBuffer")
+          bracketOnError (createGPUBuffer dev SDL_GPU_BUFFERUSAGE_INDEX indexDataSize "IndexBuffer")
                          (cleanupMaybe "IndexBuffer" (sdlReleaseGPUBuffer dev)) $ \maybeIndexBuffer ->
           bracketOnError (createGPUTexture dev texWidth texHeight)
                          (cleanupMaybe "Texture" (sdlReleaseGPUTexture dev)) $ \maybeTexture ->
@@ -255,7 +247,7 @@ createGpuObjects dev win vertShader fragShader surfacePtr = do
                   -- Pass surfacePtr to uploadAllData
                   uploadOk <- uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel
                                             vertexBuffer indexBuffer texture
-                                            vertexDataSizeC indexDataSizeC textureDataSizeC
+                                            vertexDataSize indexDataSize textureDataSize
                   if uploadOk
                   then do
                       sdlLog "--- Resource Creation Successful ---"
@@ -334,17 +326,17 @@ createPipeline dev win vertShader fragShader = do
 
 -- | Helper function to upload vertex, index, and texture data
 -- Accepts Ptr SDLSurface
-uploadAllData :: SDLGPUDevice -> Ptr SDLSurface -> Int -> Int -> Int -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> CSize -> CSize -> CSize -> IO Bool
-uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf texture vertexSizeC indexSizeC textureSizeC = do
+uploadAllData :: SDLGPUDevice -> Ptr SDLSurface -> Int -> Int -> Int -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> Word32 -> Word32 -> Word32 -> IO Bool
+uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf texture vertexSize indexSize textureSize = do
     sdlLog "Starting data upload process..."
 
-    let bufferDataTotalSizeC = vertexSizeC + indexSizeC
-    let vertexOffsetC = 0
-    let indexOffsetC = vertexSizeC
+    let bufferDataTotalSize = vertexSize + indexSize
+    let vertexOffset = 0
+    let indexOffset = vertexSize
 
-    bracket (createTransferBuffer dev bufferDataTotalSizeC SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "Buffer")
+    bracket (createTransferBuffer dev bufferDataTotalSize SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "Buffer")
             (cleanupTransferBuffer dev) $ \maybeBufTransfer ->
-      bracket (createTransferBuffer dev textureSizeC SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "Texture")
+      bracket (createTransferBuffer dev textureSize SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "Texture")
               (cleanupTransferBuffer dev) $ \maybeTexTransfer ->
       bracket (sdlAcquireGPUCommandBuffer dev)
               cleanupCommandBuffer $ \maybeCmdBuf ->
@@ -353,7 +345,7 @@ uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf
           (Just bufTransfer, Just texTransfer, Just cmdBuf) -> do
               sdlLog "All necessary transfer buffers and command buffer acquired." >> hFlush stdout
 
-              bufMapOk <- mapAndCopyBufferData dev bufTransfer vertexData indexData vertexOffsetC indexOffsetC
+              bufMapOk <- mapAndCopyBufferData dev bufTransfer vertexData indexData vertexOffset indexOffset
               unless bufMapOk $ sdlLog "!!! Buffer data map/copy failed." >> hFlush stdout
 
               texMapOk <- if bufMapOk
@@ -364,7 +356,7 @@ uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf
               if bufMapOk && texMapOk then do
                   recordOk <- recordUploadCommands dev cmdBuf bufTransfer texTransfer
                                                  vertexBuf indexBuf texture
-                                                 vertexOffsetC indexOffsetC
+                                                 vertexOffset indexOffset
                                                  texWidth texHeight
                   if recordOk then do
                       sdlLog "Submitting upload commands..." >> hFlush stdout
@@ -390,8 +382,8 @@ uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf
               sdlLog "!!! Failed to acquire transfer buffers or command buffer for upload." >> hFlush stdout
               return False
 
-recordUploadCommands :: SDLGPUDevice -> SDLGPUCommandBuffer -> SDLGPUTransferBuffer -> SDLGPUTransferBuffer -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> CSize -> CSize -> Int -> Int -> IO Bool
-recordUploadCommands dev cmdBuf bufTransfer texTransfer vertexBuf indexBuf texture vOffsetC iOffsetC texWidth texHeight = do
+recordUploadCommands :: SDLGPUDevice -> SDLGPUCommandBuffer -> SDLGPUTransferBuffer -> SDLGPUTransferBuffer -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> Word32 -> Word32 -> Int -> Int -> IO Bool
+recordUploadCommands dev cmdBuf bufTransfer texTransfer vertexBuf indexBuf texture vOffset iOffset texWidth texHeight = do
     sdlLog "Beginning Copy Pass for uploads..."
     bracket (sdlBeginGPUCopyPass cmdBuf)
             (\mcp -> when (isJust mcp) $ sdlEndGPUCopyPass (fromJust mcp)) $
@@ -402,12 +394,12 @@ recordUploadCommands dev cmdBuf bufTransfer texTransfer vertexBuf indexBuf textu
                 (_, _, vertexSizeW32) <- calculateBufferDataSize vertexData "Vertex"
                 (_, _, indexSizeW32) <- calculateBufferDataSize indexData "Index"
 
-                let vbSrc = SDLGPUTransferBufferLocation bufTransfer (fromIntegral vOffsetC)
+                let vbSrc = SDLGPUTransferBufferLocation bufTransfer (fromIntegral vOffset)
                 let vbDst = SDLGPUBufferRegion vertexBuf 0 vertexSizeW32
                 sdlLog $ "Recording Vertex Buffer Upload: " ++ show vbSrc ++ " -> " ++ show vbDst
                 sdlUploadToGPUBuffer copyPass vbSrc vbDst False
 
-                let ibSrc = SDLGPUTransferBufferLocation bufTransfer (fromIntegral iOffsetC)
+                let ibSrc = SDLGPUTransferBufferLocation bufTransfer (fromIntegral iOffset)
                 let ibDst = SDLGPUBufferRegion indexBuf 0 indexSizeW32
                 sdlLog $ "Recording Index Buffer Upload: " ++ show ibSrc ++ " -> " ++ show ibDst
                 sdlUploadToGPUBuffer copyPass ibSrc ibDst False

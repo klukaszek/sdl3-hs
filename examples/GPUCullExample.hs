@@ -242,7 +242,7 @@ runAppGPU context@Context {..} = do
           (vSizeCW, totalCSizeCW, totalSizeW32CW) <- calculateVertexDataSize dataCW
           (vSizeCCW, totalCSizeCCW, totalSizeW32CCW) <- calculateVertexDataSize dataCCW
 
-          let totalTransferSize = totalCSizeCW + totalCSizeCCW -- Combine sizes for one transfer buffer
+          let totalTransferSize = totalSizeW32CW + totalSizeW32CCW -- Combine sizes for one transfer buffer
           sdlLog $ "Total Transfer Buffer Size: " ++ show totalTransferSize
 
           -- Create buffers first (using bracketOnError for complex cleanup)

@@ -262,7 +262,7 @@ runAppGPU context = do
             indexDataCSize = fromIntegral indexDataBytes :: CSize
             indexDataSizeW32 = fromIntegral indexDataBytes :: Word32
 
-        let totalTransferSize = vertexDataCSize + indexDataCSize
+        let totalTransferSize = vertexDataSizeW32 + indexDataSizeW32
         sdlLog $ printf "Vertex Data: %d bytes (%d verts * %d bytes/vert)" vertexDataBytes numVertices vertexSize
         sdlLog $ printf "Index Data: %d bytes (%d indices * %d bytes/index)" indexDataBytes numIndices indexSize
         sdlLog $ printf "Total Transfer Size: %d bytes" (fromIntegral totalTransferSize :: Int)

@@ -1,4 +1,3 @@
--- Main.hs for ComputeFillTexture Example
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE LambdaCase           #-}
@@ -6,19 +5,13 @@
 module Main where
 
 import SDL
-import GPUCommon -- Import common setup and new helpers
+import GPUCommon
 
 import Control.Monad (unless, when, void)
 import Control.Exception (bracket, bracketOnError, finally)
-
-import Foreign.Ptr (Ptr, nullPtr, castPtr, plusPtr)
-import Foreign.Storable (Storable(..), peek, sizeOf, poke)
-import Foreign.C.Types (CFloat, CSize)
-import Foreign.Marshal.Array (pokeArray)
-import Foreign.Marshal.Utils (copyBytes, with)
-
+import Foreign.Storable (sizeOf)
+import Foreign.C.Types (CFloat)
 import Data.IORef (IORef, newIORef, writeIORef, readIORef)
-import Data.Word (Word64, Word32, Word16)
 import Data.Maybe (isJust, fromJust, fromMaybe, isNothing)
 import Data.Bits ((.|.))
 
@@ -120,13 +113,13 @@ createResources Context{ contextDevice = dev, contextWindow = win } = do
                     maybeSampler <- sdlCreateGPUSampler dev samplerCI
 
                     -- Create Vertex Buffer
-                    (_, vertexDataSizeC, _) <- calculateBufferDataSize vertexData "Vertex"
-                    maybeVertexBuffer <- createGPUBuffer dev SDL_GPU_BUFFERUSAGE_VERTEX vertexDataSizeC "ScreenQuadVB"
+                    (_, _, vertexDataSize) <- calculateBufferDataSize vertexData "Vertex"
+                    maybeVertexBuffer <- createGPUBuffer dev SDL_GPU_BUFFERUSAGE_VERTEX vertexDataSize "ScreenQuadVB"
 
                     -- Bracket for resources that need compute pass
                     bracketOnError (sdlAcquireGPUCommandBuffer dev)
                                    cleanupCommandBuffer $ \maybeInitialCmdBuf ->
-                      bracketOnError (createTransferBuffer dev vertexDataSizeC SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "VBTransfer")
+                      bracketOnError (createTransferBuffer dev vertexDataSize SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "VBTransfer")
                                      (cleanupTransferBuffer dev) $ \maybeVBTransfer ->
 
                         case (maybeDrawPipeline, maybeTexture, maybeSampler, maybeVertexBuffer, maybeInitialCmdBuf, maybeVBTransfer) of
@@ -144,7 +137,7 @@ createResources Context{ contextDevice = dev, contextWindow = win } = do
                                         Just cp -> do
                                             sdlLog "Copy pass begun for VB."
                                             let vbSrc = SDLGPUTransferBufferLocation vbTransfer 0
-                                            let vbDst = SDLGPUBufferRegion vb 0 (fromIntegral vertexDataSizeC)
+                                            let vbDst = SDLGPUBufferRegion vb 0 (fromIntegral vertexDataSize)
                                             sdlUploadToGPUBuffer cp vbSrc vbDst False
                                             sdlEndGPUCopyPass cp
                                             sdlLog "VB upload commands recorded and copy pass ended."

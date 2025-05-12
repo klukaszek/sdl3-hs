@@ -453,7 +453,7 @@ loadImage relativeImagePath = do
 -- | Generic Helpers
 
 -- createGPUBuffer
-createGPUBuffer :: SDLGPUDevice -> SDLGPUBufferUsageFlags -> CSize -> String -> IO (Maybe SDLGPUBuffer)
+createGPUBuffer :: SDLGPUDevice -> SDLGPUBufferUsageFlags -> Word32 -> String -> IO (Maybe SDLGPUBuffer)
 createGPUBuffer dev usage size name = do
     sdlLog $ "Creating " ++ name ++ " (Size: " ++ show size ++ " bytes)..."
     let ci = SDLGPUBufferCreateInfo { bufferUsage = usage, bufferSize = fromIntegral size, bufferProps = 0 }
@@ -475,7 +475,7 @@ cleanupCommandBuffer (Just cmdbuf) =
 
 -- createTransferBuffer
 createTransferBuffer :: SDLGPUDevice
-                     -> CSize
+                     -> Word32
                      -> SDLGPUTransferBufferUsage
                      -> String
                      -> IO (Maybe SDLGPUTransferBuffer)
@@ -525,7 +525,7 @@ createGPUTexture dev w h = do
 
 -- Helper for mapping and copying raw data to a GPU buffer using a transferbuffer.
 -- mapAndCopyBufferData
-mapAndCopyBufferData :: SDLGPUDevice -> SDLGPUTransferBuffer -> [PositionTextureVertex] ->  [Word16] -> CSize -> CSize -> IO Bool
+mapAndCopyBufferData :: SDLGPUDevice -> SDLGPUTransferBuffer -> [PositionTextureVertex] ->  [Word16] -> Word32 -> Word32 -> IO Bool
 mapAndCopyBufferData dev tb vertexData indexData vOffset iOffset = do
     sdlLog $ "Mapping Buffer Transfer Buffer: " ++ show tb
     bracket (sdlMapGPUTransferBuffer dev tb False)
@@ -559,7 +559,7 @@ mapAndCopyTextureData dev tb surfacePtr w h bytesPerPixel = do
                 else do
                     let dataSize = w * h * bytesPerPixel
                     sdlLog $ "Texture Transfer Buffer mapped. Copying " ++ show dataSize ++ " bytes of pixel data."
-                    copyBytes (castPtr mappedPtr) pixelsPtr dataSize
+                    copyBytes (castPtr mappedPtr) pixelsPtr (fromIntegral dataSize)
                     sdlLog "Texture data copied."
                     return True
 
@@ -612,7 +612,7 @@ foreign import ccall unsafe "hs_stbi_loadf_wrapper"
 -- The FilePath argument should be relative to your Cabal data directory's "Content/Images/" subfolder
 -- (e.g., "memorial.hdr" if the full relative path is "Content/Images/memorial.hdr").
 -- Returns Nothing on failure, or Just (pixelDataPtr, width, height, channelsInFile) on success.
--- The caller is responsible for freeing the pixelDataPtr using Foreign.Marshal.Alloc.free.
+-- The caller is responsible for freeing the pixelDataPtr using SDL's `free`.
 loadHDRImageFromFile :: FilePath       -- ^ Filename relative to "Content/Images/"
                      -> Int            -- ^ Desired channels (0=original, 3=RGB, 4=RGBA)
                      -> IO (Maybe (HDRImagePixelData, Int, Int, Int))

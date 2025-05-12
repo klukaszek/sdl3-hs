@@ -103,32 +103,28 @@ runAppGPU context = do
                 sdlLog $ "Using Depth/Stencil Format: " ++ show depthStencilFormat
 
                 -- Bracket ensures shaders are released even if subsequent steps fail
-                bracketOnError (loadShaders dev) (releaseShaders dev) $ \maybeShaders ->
-                 case maybeShaders of
+                bracketOnError (loadShaders dev) (releaseShaders dev) $ \case
                     Nothing -> return Nothing -- Shader loading failed
                     Just (vertShader, fragShader) -> do
                         sdlLog "Shaders loaded successfully."
 
                         -- Bracket ensures texture is released if pipelines/VB fail
                         bracketOnError (createDepthStencilTexture dev win depthStencilFormat)
-                                       (maybe (return ()) (sdlReleaseGPUTexture dev)) $ \maybeDSTexture ->
-                         case maybeDSTexture of
+                                       (maybe (return ()) (sdlReleaseGPUTexture dev)) $ \case
                             Nothing -> return Nothing -- DS Texture creation failed
                             Just dsTexture -> do
                                 sdlLog "Depth/Stencil Texture created."
 
                                 -- Bracket ensures pipelines are released if VB fails
                                 bracketOnError (createPipelines dev win vertShader fragShader depthStencilFormat)
-                                               (releasePipelines dev) $ \maybePipelines ->
-                                 case maybePipelines of
+                                               (releasePipelines dev) $ \case
                                     Nothing -> return Nothing -- Pipeline creation failed
                                     Just (maskerPipe, maskeePipe) -> do
                                         sdlLog "Pipelines created successfully."
 
                                         -- Bracket ensures VB is released on upload failure
                                         bracketOnError (createAndUploadVertexBuffer dev vertexData)
-                                                       (maybe (return ()) (sdlReleaseGPUBuffer dev)) $ \maybeVB ->
-                                         case maybeVB of
+                                                       (maybe (return ()) (sdlReleaseGPUBuffer dev)) $ \case
                                              Nothing -> return Nothing -- VB creation/upload failed
                                              Just vertexBuffer -> do
                                                  sdlLog "Vertex Buffer created and data uploaded."
@@ -296,13 +292,12 @@ runAppGPU context = do
     createAndUploadVertexBuffer dev dataList = do
         sdlLog "--- Beginning Vertex Buffer Creation and Upload ---"
         if null dataList then sdlLog "Error: Vertex data list is empty." >> return Nothing else do
-            (_, totalCSize, totalSizeW32) <- calculateVertexDataSize dataList
-            bracketOnError (sdlCreateGPUBuffer dev (SDLGPUBufferCreateInfo SDL_GPU_BUFFERUSAGE_VERTEX (fromIntegral totalCSize) 0))
-                           (maybe (return ()) (sdlReleaseGPUBuffer dev)) $ \maybeVB ->
-             case maybeVB of
+            (_, _, totalSizeW32) <- calculateVertexDataSize dataList
+            bracketOnError (sdlCreateGPUBuffer dev (SDLGPUBufferCreateInfo SDL_GPU_BUFFERUSAGE_VERTEX totalSizeW32 0))
+                           (maybe (return ()) (sdlReleaseGPUBuffer dev)) $ \case
                  Nothing -> sdlLog "!!! Vertex Buffer creation failed." >> return Nothing
                  Just vertexBuffer -> do
-                     uploadSuccess <- uploadViaTransferBuffer dev vertexBuffer dataList totalCSize totalSizeW32
+                     uploadSuccess <- uploadViaTransferBuffer dev vertexBuffer dataList totalSizeW32
                      if uploadSuccess then do
                          sdlLog "--- Vertex Buffer Creation and Upload Successful ---"
                          return $ Just vertexBuffer
@@ -340,14 +335,14 @@ calculateVertexDataSize dataList = do
     return (vertexSize, totalCSize, totalSizeWord32)
 
 -- | Reusable upload helper (copied from previous)
-uploadViaTransferBuffer :: SDLGPUDevice -> SDLGPUBuffer -> [PositionColorVertex] -> CSize -> Word32 -> IO Bool
-uploadViaTransferBuffer dev vertexBuffer dataList transferSize totalSizeW32 = do
+uploadViaTransferBuffer :: SDLGPUDevice -> SDLGPUBuffer -> [PositionColorVertex] -> Word32 -> IO Bool
+uploadViaTransferBuffer dev vertexBuffer dataList transferSize = do
     bracket (createTransferBuffer dev transferSize SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "buffer") (cleanupTransferBuffer dev) $ \case
         Nothing -> return False
         Just transferBuffer -> do
             mapCopySuccess <- mapAndCopyData dev transferBuffer dataList
             if mapCopySuccess
-            then uploadDataCommandBuffer dev vertexBuffer transferBuffer totalSizeW32
+            then uploadDataCommandBuffer dev vertexBuffer transferBuffer transferSize
             else return False
 
 mapAndCopyData :: SDLGPUDevice -> SDLGPUTransferBuffer -> [PositionColorVertex] -> IO Bool
