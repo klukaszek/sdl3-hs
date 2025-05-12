@@ -342,7 +342,7 @@ calculateVertexDataSize dataList = do
 -- | Reusable upload helper (copied from previous)
 uploadViaTransferBuffer :: SDLGPUDevice -> SDLGPUBuffer -> [PositionColorVertex] -> CSize -> Word32 -> IO Bool
 uploadViaTransferBuffer dev vertexBuffer dataList transferSize totalSizeW32 = do
-    bracket (createTransferBuffer dev transferSize "buffer") (cleanupTransferBuffer dev) $ \case
+    bracket (createTransferBuffer dev transferSize SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "buffer") (cleanupTransferBuffer dev) $ \case
         Nothing -> return False
         Just transferBuffer -> do
             mapCopySuccess <- mapAndCopyData dev transferBuffer dataList

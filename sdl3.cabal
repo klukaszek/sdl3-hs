@@ -61,6 +61,7 @@ data-files:
     Content/Shaders/Compiled/MSL/*.msl
     Content/Shaders/Compiled/SPIRV/*.spv
     Content/Shaders/Compiled/DXIL/*.dxil
+    Content/Images/*.hdr
 
 common warnings
     ghc-options: -Wall -g
@@ -151,9 +152,11 @@ library
     includes:
         SDL3/SDL.h
         include/helpers.h
+        include/stb_image.h
 
     c-sources:
         cbits/helpers.c
+        cbits/stb_image_wrapper.c
 
     extra-libraries:
         SDL3
@@ -342,7 +345,17 @@ executable gpu-texturedquad
 
     hs-source-dirs:   examples
     default-language: Haskell2010
-        
+
+executable gpu-tonemapping
+    main-is: GPUTonemappingExample.hs
+    build-depends:
+        base,
+        sdl3,
+        filepath,
+        directory,
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
 executable gpu-triangle
     main-is: GPURawTriangleExample.hs
     build-depends:

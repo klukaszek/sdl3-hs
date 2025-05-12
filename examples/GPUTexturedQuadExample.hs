@@ -342,9 +342,9 @@ uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf
     let vertexOffsetC = 0
     let indexOffsetC = vertexSizeC
 
-    bracket (createTransferBuffer dev bufferDataTotalSizeC "Buffer")
+    bracket (createTransferBuffer dev bufferDataTotalSizeC SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "Buffer")
             (cleanupTransferBuffer dev) $ \maybeBufTransfer ->
-      bracket (createTransferBuffer dev textureSizeC "Texture")
+      bracket (createTransferBuffer dev textureSizeC SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "Texture")
               (cleanupTransferBuffer dev) $ \maybeTexTransfer ->
       bracket (sdlAcquireGPUCommandBuffer dev)
               cleanupCommandBuffer $ \maybeCmdBuf ->

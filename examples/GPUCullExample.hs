@@ -286,7 +286,7 @@ runAppGPU context@Context {..} = do
         -- Reuses helpers from previous example's meticulous version, adapted slightly
         uploadBothViaTransferBuffer dev vbCW vbCCW dataCW dataCCW transferSize totalSizeCW_CSize totalSizeCW_W32 totalSizeCCW_W32 = do
           bracket
-            (createTransferBuffer dev transferSize "buffer")
+            (createTransferBuffer dev transferSize SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "buffer")
             (cleanupTransferBuffer dev)
             $ \case
               Nothing -> return False

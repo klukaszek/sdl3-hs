@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
 
 {-|
 Module      : GPUCommon
@@ -21,9 +22,10 @@ import SDL
 
 import Foreign.C.Types
 import Foreign.Ptr (Ptr, nullPtr, castPtr, plusPtr)
-import Foreign.C.String (peekCString)
+import Foreign.C.String
 import Foreign.Storable (peek, Storable(..))
 import Foreign.Marshal.Array (pokeArray, withArray)
+import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Utils (copyBytes)
 
 import Control.Monad (unless, when, void)
@@ -188,6 +190,10 @@ defaultTextureCreateInfo :: Int -> Int -> SDLGPUTextureCreateInfo
 defaultTextureCreateInfo w h = SDLGPUTextureCreateInfo
     SDL_GPU_TEXTURETYPE_2D SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM SDL_GPU_TEXTUREUSAGE_SAMPLER
     (fromIntegral w) (fromIntegral h) 1 1 SDL_GPU_SAMPLECOUNT_1 0
+defaultTextureRegion :: SDLGPUTexture -> Int -> Int -> SDLGPUTextureRegion
+defaultTextureRegion tex w h = SDLGPUTextureRegion tex 0 0 0 0 0 (fromIntegral w) (fromIntegral h) 1
+defaultBlitRegion :: SDLGPUTexture -> Int -> Int -> SDLGPUBlitRegion
+defaultBlitRegion tex w h = SDLGPUBlitRegion tex 0 0 0 0 (fromIntegral w) (fromIntegral h)
 
 -- | commonInit
 commonInit :: String -> [SDLWindowFlags] -> IO (Maybe Context)
@@ -468,12 +474,19 @@ cleanupCommandBuffer (Just cmdbuf) =
     sdlLog $ "Upload Command Buffer bracket cleanup for: " ++ show cmdbuf
 
 -- createTransferBuffer
-createTransferBuffer :: SDLGPUDevice -> CSize -> String -> IO (Maybe SDLGPUTransferBuffer)
-createTransferBuffer dev size name = do
-    sdlLog $ "Creating Transfer Buffer '" ++ name ++ "' (Size: " ++ show size ++ " bytes)..."
-    let tbCreateInfo = SDLGPUTransferBufferCreateInfo SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD (fromIntegral size) 0
+createTransferBuffer :: SDLGPUDevice
+                     -> CSize
+                     -> SDLGPUTransferBufferUsage
+                     -> String
+                     -> IO (Maybe SDLGPUTransferBuffer)
+createTransferBuffer dev size usage name = do
+    let logName = if null name then "Transfer Buffer" else name
+    sdlLog $ "Creating " ++ logName ++ " (Size: " ++ show size ++ " bytes, Usage: " ++ show usage ++ ")..."
+    let tbCreateInfo = SDLGPUTransferBufferCreateInfo usage (fromIntegral size) 0
     maybeTb <- sdlCreateGPUTransferBuffer dev tbCreateInfo
-    when (isNothing maybeTb) $ sdlGetError >>= sdlLog . ((("!!! Failed to create transfer buffer '" ++ name ++ "': ") ++) )
+    when (isNothing maybeTb) $ do
+        err <- sdlGetError
+        sdlLog $ "!!! Failed to create " ++ logName ++ ": " ++ err
     return maybeTb
 
 -- cleanupTransferBuffer
@@ -581,3 +594,65 @@ printSubsystem flag = sdlLog $ "  - " ++ case flag of
   SDL_INIT_SENSOR   -> "Sensor"
   SDL_INIT_CAMERA   -> "Camera"
   _            -> "Unknown subsystem"
+
+-- | ----------------- FFI Helpers --------------------
+
+-- Define a type alias for the pixel data
+type HDRImagePixelData = Ptr CFloat
+
+foreign import ccall unsafe "hs_stbi_loadf_wrapper"
+  c_stbi_loadf :: CString         -- fullPath
+               -> Ptr CInt        -- pWidth
+               -> Ptr CInt        -- pHeight
+               -> Ptr CInt        -- pChannelsInFile
+               -> CInt            -- desiredChannels
+               -> IO HDRImagePixelData
+
+-- | Loads an HDR image from a file using stb_image.
+-- The FilePath argument should be relative to your Cabal data directory's "Content/Images/" subfolder
+-- (e.g., "memorial.hdr" if the full relative path is "Content/Images/memorial.hdr").
+-- Returns Nothing on failure, or Just (pixelDataPtr, width, height, channelsInFile) on success.
+-- The caller is responsible for freeing the pixelDataPtr using Foreign.Marshal.Alloc.free.
+loadHDRImageFromFile :: FilePath       -- ^ Filename relative to "Content/Images/"
+                     -> Int            -- ^ Desired channels (0=original, 3=RGB, 4=RGBA)
+                     -> IO (Maybe (HDRImagePixelData, Int, Int, Int))
+loadHDRImageFromFile baseImageFilename desiredChannels = do
+    -- Construct the full relative path as expected by getDataFileName
+    let relativePath = "Content" </> "Images" </> baseImageFilename
+
+    eitherAbsolutePath <- try (getDataFileName relativePath) :: IO (Either IOException FilePath)
+
+    case eitherAbsolutePath of
+        Left ex -> do
+            sdlLog $ "Error resolving HDR image path for '" ++ relativePath ++ "' using getDataFileName: " ++ show ex
+            sdlLog $ "Ensure the file is listed in your .cabal's data-files and accessible."
+            return Nothing
+        Right absolutePath -> do
+            sdlLog $ "Attempting to load HDR image from resolved absolute path: " ++ absolutePath
+
+            -- Optional: Check if the file exists at the absolute path before calling C
+            fileExists <- System.Directory.doesFileExist absolutePath
+            unless fileExists $ do
+                sdlLog $ "Resolved HDR image path does not exist: " ++ absolutePath
+                -- Fall through to stbi_loadf, which will also fail and return null,
+                -- or return Nothing here directly:
+                -- return Nothing
+
+            -- Call the C wrapper with the absolute path
+            withCString absolutePath $ \cAbsolutePath ->
+              alloca $ \wPtr ->
+              alloca $ \hPtr ->
+              alloca $ \cPtr -> do
+                pixelData <- c_stbi_loadf cAbsolutePath wPtr hPtr cPtr (fromIntegral desiredChannels)
+                if pixelData == nullPtr
+                then do
+                    sdlLog $ "stbi_loadf failed for: " ++ absolutePath
+                    -- You could try to get stbi_failure_reason() here if you added an FFI for it
+                    return Nothing
+                else do
+                    width <- fromIntegral <$> peek wPtr
+                    height <- fromIntegral <$> peek hPtr
+                    channelsInFile <- fromIntegral <$> peek cPtr
+                    sdlLog $ "Successfully loaded HDR image: " ++ absolutePath
+                    sdlLog $ "Width: " ++ show width ++ " Height: " ++ show height ++ " Channels: " ++ show channelsInFile
+                    return $ Just (pixelData, width, height, channelsInFile)

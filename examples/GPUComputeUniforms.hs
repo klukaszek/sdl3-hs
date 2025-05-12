@@ -57,8 +57,8 @@ data AppResources = AppResources
     , resGradientTexture  :: SDLGPUTexture
     } deriving Show
 
-data GradientUniforms = GradientUniforms
-  { time :: {-# UNPACK #-} !CFloat
+newtype GradientUniforms = GradientUniforms
+  { time :: CFloat
   } deriving (Show, Eq)
 
 instance Storable GradientUniforms where

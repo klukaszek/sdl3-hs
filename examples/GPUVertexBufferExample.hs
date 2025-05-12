@@ -289,7 +289,7 @@ createAndUploadVertexBuffer dev vertexData = do
     -- Inner helper grouping transfer buffer logic
     uploadViaTransferBuffer :: SDLGPUDevice -> SDLGPUBuffer -> CSize -> Word32 -> IO Bool
     uploadViaTransferBuffer dev vb transferSizeCSize uploadSizeWord32 = do
-        bracket (createTransferBuffer dev (fromIntegral transferSizeCSize) "buffer")
+        bracket (createTransferBuffer dev (fromIntegral transferSizeCSize) SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "buffer")
                 (cleanupTransferBuffer dev) $ \maybeTransferBuffer -> do
             case maybeTransferBuffer of
                Nothing -> return False -- Transfer buffer creation failed

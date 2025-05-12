@@ -267,7 +267,8 @@ runAppGPU context = do
         sdlLog $ printf "Index Data: %d bytes (%d indices * %d bytes/index)" indexDataBytes numIndices indexSize
         sdlLog $ printf "Total Transfer Size: %d bytes" (fromIntegral totalTransferSize :: Int)
 
-        bracket (createTransferBuffer dev totalTransferSize "transfer") (cleanupTransferBuffer dev) $ \case
+        bracket (createTransferBuffer dev totalTransferSize SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "transfer")
+                (cleanupTransferBuffer dev) $ \case
             Nothing -> return False -- Transfer buffer creation failed
             Just transferBuffer -> do
                 -- Map, Poke, Unmap

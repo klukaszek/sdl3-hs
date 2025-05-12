@@ -126,7 +126,7 @@ createResources Context{ contextDevice = dev, contextWindow = win } = do
                     -- Bracket for resources that need compute pass
                     bracketOnError (sdlAcquireGPUCommandBuffer dev)
                                    cleanupCommandBuffer $ \maybeInitialCmdBuf ->
-                      bracketOnError (createTransferBuffer dev vertexDataSizeC "VBTransfer")
+                      bracketOnError (createTransferBuffer dev vertexDataSizeC SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "VBTransfer")
                                      (cleanupTransferBuffer dev) $ \maybeVBTransfer ->
 
                         case (maybeDrawPipeline, maybeTexture, maybeSampler, maybeVertexBuffer, maybeInitialCmdBuf, maybeVBTransfer) of
