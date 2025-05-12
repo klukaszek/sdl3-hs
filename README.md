@@ -68,6 +68,8 @@ set PKG_CONFIG_PATH="path\to\SDL3\lib\pkgconfig"
 $env:PKG_CONFIG_PATH="path\to\SDL3\lib\pkgconfig\"
 ```
 
+Ensure the .DLL file is present in your `PATH` environment variable or within the root directory for this project.
+
 You'll also want to add a `cabal.project.local` file to the root directory with:
 
 ```
@@ -160,13 +162,16 @@ Once all of this is done, you can find your way into this directory and run `cab
 These examples are based off of the original [SDL3 GPU Examples](https://github.com/TheSpydog/SDL_gpu_examples/)
 - [GPU Triangle](examples/GPURawTriangleExample.hs) - Raw triangle rendering
 - [GPU Clear](examples/GPUClearExample.hs) - Basic screen clearing
-- [GPU Vertex Buffer](examples/GPUVertexBufferExample.hs) - Vertex buffer usage
+- [GPU Vertex Buffer](examples/GPUVertexBufferExample.hs) - Vertex buffer usage (matches `gpu-vbuf`)
 - [GPU Textured Quad](examples/GPUTexturedQuadExample.hs) - Texture mapping
 - [GPU Animated Quad](examples/GPUAnimatedQuadExample.hs) - Animation basics
 - [GPU Instanced](examples/GPUInstancedExample.hs) - Instanced rendering
 - [GPU Stencil](examples/GPUStencilExample.hs) - Stencil buffer operations
 - [GPU Cull](examples/GPUCullExample.hs) - Culling techniques
 - [GPU Multi-Window](examples/GPUMultiWindowExample.hs) - Multiple window rendering
+- [GPU Basic Compute](examples/GPUBasicComputeExample.hs) - Basic compute shader usage
+- [GPU Clear 3D Slice](examples/GPUClear3DSliceExample.hs) - Clearing a slice of a 3D texture
+- [GPU Compute Uniforms](examples/GPUComputeUniformsExample.hs) - Using uniforms with compute shaders
 - (... More coming ...)
 
 ## Input & Interaction
@@ -210,4 +215,3 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 ## Sensors
 ### Hardware
 - [Sensor](examples/SensorExample.hs) - Hardware sensor access (Can't test properly but compiles.)
-
