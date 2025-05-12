@@ -172,6 +172,7 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 - [GPU Basic Compute](examples/GPUBasicComputeExample.hs) - Basic compute shader usage
 - [GPU Clear 3D Slice](examples/GPUClear3DSliceExample.hs) - Clearing a slice of a 3D texture
 - [GPU Compute Uniforms](examples/GPUComputeUniformsExample.hs) - Using uniforms with compute shaders
+- [GPU Compute Tonemapping](examples/GPUTonemappingExample.hs) - Using compute pipelines for HDRI texture tonemapping.
 - (... More coming ...)
 
 ## Input & Interaction
