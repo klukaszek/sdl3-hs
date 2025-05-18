@@ -1,7 +1,21 @@
--- Main.hs for GPUCustomSampling Example
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE LambdaCase           #-}
+
+{-|
+Example     : GPUCustomSampling
+Description : Demonstrates manual texture sampling in a fragment shader using a storage texture.
+Copyright   : (c) Kyle Lukaszek, 2025
+License     : BSD3
+
+Based on SDL_gpu_examples/CustomSampling.c example.
+Demonstrates:
+- Loading an image into a GPU texture with `GRAPHICS_STORAGE_READ` usage.
+- A fragment shader (`CustomSampling.frag`) that performs custom texture filtering (e.g., nearest neighbor, bilinear)
+  by reading texels directly from a read-only storage texture (`texture2D` or `image2D` in GLSL, bound as storage).
+- Passing a "sampler mode" uniform to the fragment shader to switch between different custom sampling techniques.
+- No traditional `SDL_GPUSampler` object is used for the primary texture lookup in the shader.
+|-}
 
 module Main where
 

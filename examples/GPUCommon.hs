@@ -16,6 +16,7 @@ assuming SDL3 Haskell bindings where:
 - sdlLoadFile returns IO (Maybe (Ptr (), CSize)), requiring caller to free Ptr.
 - SDL.free exists and works.
 -}
+
 module GPUCommon where
 
 import SDL
