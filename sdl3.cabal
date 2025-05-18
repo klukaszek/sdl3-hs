@@ -163,7 +163,7 @@ library
 
     if flag(pkgconfig)
       pkgconfig-depends:
-        sdl3 >= 3.0.0
+        sdl3 >= 3.3.0
 
     -- Base language which the package is written in.
     default-language: Haskell2010
