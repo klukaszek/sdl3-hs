@@ -468,6 +468,7 @@ cleanupCopyPass :: Maybe SDLGPUCopyPass -> IO ()
 cleanupCopyPass = maybe (return ()) sdlEndGPUCopyPass
 
 -- cleanupCommandBuffer
+-- Command buffers are never actually released by the user, this is mostly for logging
 cleanupCommandBuffer :: Maybe SDLGPUCommandBuffer -> IO ()
 cleanupCommandBuffer Nothing = return ()
 cleanupCommandBuffer (Just cmdbuf) =

@@ -376,17 +376,6 @@ createAndUploadVertexBuffer dev vertexData = do
                        void $ sdlCancelGPUCommandBuffer cmdBuf -- Cancel if copy pass failed
                        return False -- Upload ultimately failed
 
-    -- Helper to cleanup Command Buffer (Cancel if not submitted)
-    -- Note: This cleanup runs *after* the main block of the command buffer bracket finishes.
-    -- The logic inside determines if submission or cancellation is appropriate.
-    cleanupCommandBuffer maybeCmdBuf =
-        case maybeCmdBuf of
-            Nothing -> return ()
-            Just cmdbuf -> sdlLog $ "Command Buffer bracket cleanup for: " ++ show cmdbuf
-                           -- If submission failed inside, cancelling again is harmless
-                           -- If copy pass failed, it was cancelled inside.
-                           -- If submission succeeded, cancelling is harmless.
-
     -- Helper to cleanup Copy Pass
     cleanupCopyPass maybeCopyPass =
         when (isJust maybeCopyPass) $ do
