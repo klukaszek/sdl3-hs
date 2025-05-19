@@ -2,6 +2,8 @@
 
 Work in progress bindings for the SDL3 library written in Haskell.
 
+Please report any bugs or suggestions you have for the bindings!
+
 ## Setup Instructions
 
 ::: {.note}
