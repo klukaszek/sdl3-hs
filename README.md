@@ -1,15 +1,14 @@
-# SDL3 Haskell Bindings
+# SDL3 Haskell Bindings λ
 
-> **WARNING:** NOT STABLE! NOT EVERY FUNCTION IS TESTED IN THE EXAMPLES THOUGH THEY COMPILE!
-I USED GEMINI 2.5 TO REDUCE WORKLOAD. I AM WORKING TO TEST MOST IMPORTANT FUNCTIONALITY NOW. SEE EXAMPLES BELOW.
-
-I put these bindings together to provide Haskell access to the SDL3 library.
+Work in progress bindings for the SDL3 library written in Haskell.
 
 ## Setup Instructions
 
-> **NOTE:** These bindings are for SDL version 3.3 as of right now.
+::: {.note}
+**NOTE:** These bindings are for SDL version 3.3 as of right now.
+:::
 
-Install SDL3: [SDL GitHub](https://github.com/libsdl-org/SDL/)
+Install SDL3 from source: [SDL GitHub](https://github.com/libsdl-org/SDL/)
 
 ### Linux
 To build SDL3 from source on Linux:

@@ -1,0 +1,40 @@
+name: Build and Deploy Readme
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write # Needed to push to gh-pages branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Pandoc
+        uses: r-lib/actions/setup-pandoc@v2 # A reliable action to install Pandoc
+
+      - name: Convert README to HTML
+        run: |
+          pandoc --standalone \
+                 -f gfm \
+                 -t html5 \
+                 --template=.github/template.html \
+                 --metadata title="SDL3 Haskell Bindings" \
+                 -o index.html \
+                 README.md
+          echo "HTML generation complete. index.html created."
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: . # Directory containing index.html
+          publish_branch: gh-pages # Branch to deploy to
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'Deploy docs: ${{ github.event.head_commit.message }}'
