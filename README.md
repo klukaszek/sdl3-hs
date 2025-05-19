@@ -170,11 +170,11 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 - [GPU Stencil](examples/GPUStencilExample.hs) - Stencil buffer operations
 - [GPU Cull](examples/GPUCullExample.hs) - Culling techniques
 - [GPU Multi-Window](examples/GPUMultiWindowExample.hs) - Multiple window rendering
-- [GPU Draw Indirect](examples/GPUDrawIndirect.hs) - Leveraging indirect draw commands for GPU-driven rendering
+- [GPU Draw Indirect](examples/GPUDrawIndirectExample.hs) - Leveraging indirect draw commands for GPU-driven rendering
 - [GPU Basic Compute](examples/GPUBasicComputeExample.hs) - Basic compute shader usage
 - [GPU Clear 3D Slice](examples/GPUClear3DSliceExample.hs) - Clearing a slice of a 3D texture
 - [GPU Compute Uniforms](examples/GPUComputeUniformsExample.hs) - Using uniforms with compute shaders
-- [GPU Compute Sampler](examples/GPUComputeSampler.hs) - Using samplers within compute shaders
+- [GPU Compute Sampler](examples/GPUComputeSamplerExample.hs) - Using samplers within compute shaders
 - [GPU Compute Tonemapping](examples/GPUTonemappingExample.hs) - Using compute pipelines for HDRI texture tonemapping.
 - [GPU Copy & Readback](examples/GPUCopyAndReadbackExample.hs) - Write texture to GPU and read it back, verifying data integrity.
 - (... More coming ...)

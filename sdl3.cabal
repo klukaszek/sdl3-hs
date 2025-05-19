@@ -236,7 +236,7 @@ executable gamepad
     default-language: Haskell2010
 
 executable gpu-basiccompute
-    main-is: GPUBasicCompute.hs
+    main-is: GPUBasicComputeExample.hs
     build-depends:
         base,
         sdl3,
@@ -258,7 +258,7 @@ executable gpu-clear
     default-language: Haskell2010
 
 executable gpu-clear3dslice
-    main-is: GPUClear3DSlice.hs
+    main-is: GPUClear3DSliceExample.hs
     build-depends:
         base,
         sdl3,
@@ -269,7 +269,7 @@ executable gpu-clear3dslice
     default-language: Haskell2010
 
 executable gpu-computeuniforms
-    main-is: GPUComputeUniforms.hs
+    main-is: GPUComputeUniformsExample.hs
     build-depends:
         base,
         sdl3,
@@ -303,7 +303,7 @@ executable gpu-cull
     default-language: Haskell2010
 
 executable gpu-computesampler
-    main-is: GPUComputeSampler.hs
+    main-is: GPUComputeSamplerExample.hs
     build-depends:
         base,
         sdl3,
@@ -325,7 +325,7 @@ executable gpu-customsampling
     default-language: Haskell2010
 
 executable gpu-drawindirect
-    main-is: GPUDrawIndirect.hs
+    main-is: GPUDrawIndirectExample.hs
     build-depends:
         base,
         sdl3,
