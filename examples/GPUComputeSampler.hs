@@ -121,7 +121,7 @@ createResources context@Context{..} = do
 
     -- 1. Load Source Image ("ravioli.bmp")
     maybeSurf <- bracketOnError (loadImage ("Content" </> "Images" </> "ravioli.bmp"))
-        (\mSurf -> case mSurf of Just surf -> sdlDestroySurface surf; _ -> pure ())
+        (\case Just surf -> sdlDestroySurface surf; _ -> pure ())
         pure
 
     case maybeSurf of
@@ -167,14 +167,14 @@ createResources context@Context{..} = do
                     Just srcTexToUploadTo ->
                         bracket (createTransferBuffer contextDevice (fromIntegral $ imgW * imgH * 4) SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "SrcTexTransfer")
                                 (cleanupTransferBuffer contextDevice)
-                                $ \mTexTransfer -> case mTexTransfer of
+                                $ \case
                                     Nothing -> return False
                                     Just texTransfer -> do
                                         mapOk <- mapAndCopyTextureData contextDevice texTransfer surf imgW imgH 4
                                         if mapOk then
                                             bracket (sdlAcquireGPUCommandBuffer contextDevice)
                                                     cleanupCommandBuffer
-                                                    $ \mCmd -> case mCmd of
+                                                    $ \case
                                                         Nothing -> return False
                                                         Just cmd -> do
                                                             mcp <- sdlBeginGPUCopyPass cmd
@@ -301,8 +301,8 @@ renderFrameGPU Context{..} AppResources{..} = do
                             sdlEndGPUComputePass computePass
 
                     -- 2. Blit resWriteTexture to Swapchain
-                    let srcBlitRegion = (defaultBlitRegion resWriteTexture (fromIntegral dispatchW) (fromIntegral dispatchH))
-                    let dstBlitRegion = (defaultBlitRegion swapchainTexture (fromIntegral swapW) (fromIntegral swapH))
+                    let srcBlitRegion = defaultBlitRegion resWriteTexture (fromIntegral dispatchW) (fromIntegral dispatchH)
+                    let dstBlitRegion = defaultBlitRegion swapchainTexture (fromIntegral swapW) (fromIntegral swapH)
                           { gpuBlitRegW = swapW, gpuBlitRegH = swapH }
 
                     let blitInfo = SDLGPUBlitInfo
