@@ -21,7 +21,7 @@ jobs:
       - name: Convert README to HTML
         run: |
           pandoc --standalone \
-                 -f gfm \
+                 -f gfm+fenced_divs \
                  -t html5 \
                  --template=.github/template.html \
                  --metadata title="SDL3 Haskell Bindings" \
