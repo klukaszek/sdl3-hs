@@ -1,0 +1,113 @@
+-- Main module
+module SDL
+  ( module SDL.Assert,
+    module SDL.AsyncIO,
+    module SDL.Atomic,
+    module SDL.Audio,
+    module SDL.Bits,
+    module SDL.BlendMode,
+    module SDL.Camera,
+    module SDL.Clipboard,
+    module SDL.CPUInfo,
+    module SDL.Dialog,
+    module SDL.Endian,
+    module SDL.Error,
+    module SDL.Events,
+    module SDL.Filesystem,
+    module SDL.Gamepad,
+    module SDL.GPU,
+    module SDL.GUID,
+    module SDL.Haptic,
+    module SDL.Hidapi,
+    module SDL.Hints,
+    module SDL.IOStream,
+    module SDL.Init,
+    module SDL.Joystick,
+    module SDL.Keyboard,
+    module SDL.Keycode,
+    module SDL.Locale,
+    module SDL.LoadSO,
+    module SDL.Log,
+    module SDL.MessageBox,
+    module SDL.Metal,
+    module SDL.Misc,
+    module SDL.Mouse,
+    module SDL.Mutex,
+    module SDL.Pen,
+    module SDL.Pixels,
+    module SDL.Platform,
+    module SDL.Power,
+    module SDL.Process,
+    module SDL.Properties,
+    module SDL.Rect,
+    module SDL.Render,
+    module SDL.Scancode,
+    module SDL.Sensor,
+    module SDL.Stdinc,
+    module SDL.Storage,
+    module SDL.Surface,
+    module SDL.System,
+    module SDL.Thread,
+    module SDL.Time,
+    module SDL.Timer,
+    module SDL.Touch,
+    module SDL.Tray,
+    module SDL.Version,
+    module SDL.Video,
+  )
+where
+
+import SDL.Assert
+import SDL.AsyncIO
+import SDL.Atomic
+import SDL.Audio
+import SDL.Bits
+import SDL.BlendMode
+import SDL.Camera
+import SDL.Clipboard
+import SDL.CPUInfo
+import SDL.Dialog
+import SDL.Endian
+import SDL.Error
+import SDL.Events
+import SDL.Filesystem
+import SDL.Gamepad
+import SDL.GPU
+import SDL.GUID
+import SDL.Haptic
+import SDL.Hidapi
+import SDL.Hints
+import SDL.IOStream
+import SDL.Init
+import SDL.Joystick
+import SDL.Keyboard
+import SDL.Keycode
+import SDL.Locale
+import SDL.LoadSO
+import SDL.Log
+import SDL.MessageBox
+import SDL.Metal
+import SDL.Misc
+import SDL.Mouse
+import SDL.Mutex
+import SDL.Pen
+import SDL.Pixels
+import SDL.Platform
+import SDL.Power
+import SDL.Process
+import SDL.Properties
+import SDL.Rect
+import SDL.Render
+import SDL.Scancode
+import SDL.Sensor
+import SDL.Stdinc
+import SDL.Storage
+import SDL.Surface
+import SDL.System
+import SDL.Thread
+import SDL.Time
+import SDL.Timer
+import SDL.Touch
+import SDL.Tray
+import SDL.Version
+import SDL.Video
