@@ -216,14 +216,10 @@ runAppGPU context = do
 
             rasterizerState = defaultRasterizerState -- CullNone, Fill, CCW
 
-            basePipelineCI = SDLGPUGraphicsPipelineCreateInfo
-                { vertexShader = vertShader, fragmentShader = fragShader
-                , vertexInputState = vertexInputState
-                , primitiveType = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST
+            basePipelineCI = (defaultGraphicsPipelineCreateInfo vertShader fragShader swapchainFormat)
+                { vertexInputState = vertexInputState
                 , rasterizerState = rasterizerState
-                , multisampleState = defaultMultiSampleState
                 , targetInfo = targetInfo
-                , depthStencilState = undefined -- Will be set per-pipeline
                 , props = 0
                 }
 

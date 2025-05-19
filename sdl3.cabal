@@ -279,6 +279,18 @@ executable gpu-computeuniforms
     hs-source-dirs:   examples
     default-language: Haskell2010
 
+executable gpu-copyconsistency
+    main-is: GPUCopyConsistencyExample.hs
+    build-depends:
+        base,
+        sdl3,
+        filepath,
+        directory,
+        bytestring
+
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
 executable gpu-copyreadback
     main-is: GPUCopyAndReadbackExample.hs
     build-depends:
