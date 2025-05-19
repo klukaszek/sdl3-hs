@@ -201,16 +201,9 @@ runAppGPU context = do
                 , depthStencilFormat = SDL_GPU_TEXTUREFORMAT_INVALID
                 }
 
-            pipelineCI = SDLGPUGraphicsPipelineCreateInfo
-                { vertexShader = vertShader
-                , fragmentShader = fragShader
-                , vertexInputState = vertexInputState
-                , primitiveType = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST
-                , rasterizerState = defaultRasterizerState
-                , multisampleState = defaultMultiSampleState
+            pipelineCI = (defaultGraphicsPipelineCreateInfo vertShader fragShader swapchainFormat)
+                { vertexInputState = vertexInputState
                 , targetInfo = targetInfo
-                , depthStencilState = defaultDepthStencilState -- Depth/Stencil disabled
-                , props = 0
                 }
 
         mPipeline <- sdlCreateGPUGraphicsPipeline dev pipelineCI

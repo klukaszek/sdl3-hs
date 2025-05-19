@@ -175,6 +175,7 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 - [GPU Compute Uniforms](examples/GPUComputeUniformsExample.hs) - Using uniforms with compute shaders
 - [GPU Compute Sampler](examples/GPUComputeSamplerExample.hs) - Using samplers within compute shaders
 - [GPU Compute Tonemapping](examples/GPUTonemappingExample.hs) - Using compute pipelines for HDRI texture tonemapping.
+- [GPU Copy Consistency](examples/GPUCopyConsistencyExample.hs) - Copy a texture to the GPU, alter it, and draw it to the framebuffer.
 - [GPU Copy & Readback](examples/GPUCopyAndReadbackExample.hs) - Write texture to GPU and read it back, verifying data integrity.
 - (... More coming ...)
 

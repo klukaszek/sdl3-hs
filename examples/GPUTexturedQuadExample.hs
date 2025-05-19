@@ -310,15 +310,9 @@ createPipeline dev win vertShader fragShader = do
         vertexInputState = SDLGPUVertexInputState vertexBufferDesc vertexAttributes
     let colorTargetDesc = SDLGPUColorTargetDescription swapchainFormat defaultColorTargetBlendState
         targetInfo = SDLGPUGraphicsPipelineTargetInfo [colorTargetDesc] SDL_GPU_TEXTUREFORMAT_INVALID False
-        pipelineCI = SDLGPUGraphicsPipelineCreateInfo
-            { vertexShader = vertShader, fragmentShader = fragShader
-            , vertexInputState = vertexInputState
-            , primitiveType = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST
-            , rasterizerState = defaultRasterizerState
-            , multisampleState = defaultMultiSampleState
-            , depthStencilState = defaultDepthStencilState
+        pipelineCI = (defaultGraphicsPipelineCreateInfo vertShader fragShader swapchainFormat)
+            { vertexInputState = vertexInputState
             , targetInfo = targetInfo
-            , props = 0
             }
     maybePipeline <- sdlCreateGPUGraphicsPipeline dev pipelineCI
     when (isNothing maybePipeline) $ sdlGetError >>= sdlLog . ("!!! Failed to create graphics pipeline: " ++)

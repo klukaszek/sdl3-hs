@@ -52,7 +52,6 @@ data AppResources = AppResources
     , textureWidth           :: Int
     , textureHeight          :: Int
     }
-    -- No deriving Show
 
 -- Test buffer data
 bufferData :: [Word32]

@@ -130,6 +130,29 @@ defaultShaderCreateInfo = SDLGPUShaderCreateInfo
       shaderProps                = 0
     }
 
+defaultGraphicsPipelineTargetInfo :: SDLGPUTextureFormat -> SDLGPUGraphicsPipelineTargetInfo
+defaultGraphicsPipelineTargetInfo swapchainFormat = SDLGPUGraphicsPipelineTargetInfo
+    { colorTargets       = [defaultColorTargetDescription { targetFormat = swapchainFormat }]
+    , depthStencilFormat = SDL_GPU_TEXTUREFORMAT_INVALID -- Or a common depth format if always used
+    , hasDepthStencil    = False
+    }
+
+defaultGraphicsPipelineCreateInfo :: SDLGPUShader
+                                  -> SDLGPUShader
+                                  -> SDLGPUTextureFormat -- For the primary color target
+                                  -> SDLGPUGraphicsPipelineCreateInfo
+defaultGraphicsPipelineCreateInfo vShader fShader swapchainFormat = SDLGPUGraphicsPipelineCreateInfo
+    { vertexShader      = vShader
+    , fragmentShader    = fShader
+    , vertexInputState  = defaultVertexInputState -- Assuming this is a good general default
+    , primitiveType     = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST
+    , rasterizerState   = defaultRasterizerState
+    , multisampleState  = defaultMultiSampleState
+    , depthStencilState = defaultDepthStencilState
+    , targetInfo        = defaultGraphicsPipelineTargetInfo swapchainFormat
+    , props             = 0
+    }
+
 defaultComputePipelineCreateInfo :: SDLGPUComputePipelineCreateInfo
 defaultComputePipelineCreateInfo = SDLGPUComputePipelineCreateInfo
   { code = nullPtr
