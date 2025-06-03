@@ -97,7 +97,7 @@ Once all of this is done, you can find your way into this directory and run `cab
 | SDL3/SDL_camera.h | 🟧 | |
 | SDL3/SDL_clipboard.h | 🟧 | |
 | SDL3/SDL_cpuinfo.h | 🟧 | |
-| SDL3/SDL_dialog.h | 🟧 | Example stopped working, must investigate |
+| SDL3/SDL_dialog.h | 🟧 | |
 | SDL3/SDL_endian.h | 🟧 | |
 | SDL3/SDL_error.h | 🟧 | |
 | SDL3/SDL_events.h | 🟧 | |
@@ -108,7 +108,7 @@ Once all of this is done, you can find your way into this directory and run `cab
 | SDL3/SDL_haptic.h | 🟧 | |
 | SDL3/SDL_hidapi.h | 🟧 | |
 | SDL3/SDL_hints.h | 🟧 | |
-| SDL3/SDL_init.h | 🟧 | This entire file should be refactored. It was one of the first. |
+| SDL3/SDL_init.h | 🟧 | |
 | SDL3/SDL_iostream.h | 🟧 | |
 | SDL3/SDL_joystick.h | 🟧 | |
 | SDL3/SDL_keyboard.h | 🟧 | |
