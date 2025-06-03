@@ -1,5 +1,5 @@
 {-|
-Example     : SDL.Render
+Example     : SDL.Render (evolved from SDL.Events)
 Description : SDL Window, Event, and Basic Rendering Example
 Copyright   : (c) Kyle Lukaszek, 2025
 License     : BSD3
@@ -10,11 +10,16 @@ module Main where
 import SDL
 import Control.Monad (unless, when, void)
 import System.Exit (exitFailure, exitSuccess)
+import Foreign (toBool)
 import Foreign.Ptr (nullPtr)
+import Foreign.Storable (sizeOf)
 import Data.IORef
 import Data.Word (Word32, Word64)
 import Text.Printf (printf)
-import Data.Maybe (isJust, fromJust, fromMaybe)
+import Data.Maybe (fromMaybe) -- Used for rendererName
+
+-- Key state IORefs type alias for clarity
+type KeyStates = (IORef Bool, IORef Bool, IORef Bool, IORef Bool) -- Up, Down, Left, Right
 
 main :: IO ()
 main = do
@@ -26,8 +31,8 @@ main = do
   linkedVersion <- sdlGetVersion
   sdlLog $ "Linked SDL Version: " ++ show linkedVersion
 
-  -- Initialize SDL (Ensure Video is initialized for rendering)
-  initSuccess <- sdlInit [SDL_INIT_VIDEO]
+  -- Initialize SDL (Events are implicitly initialized by Video, but explicit is fine)
+  initSuccess <- sdlInit [SDL_INIT_VIDEO, SDL_INIT_EVENTS]
   unless initSuccess $ do
     sdlLog "Failed to initialize SDL!"
     exitFailure
@@ -47,9 +52,8 @@ main = do
     Just win -> do
       sdlLog "Window created successfully!"
 
-      -- *** Create a Renderer ***
-      -- Try creating a GPU accelerated renderer first, fall back to software
-      renderer <- sdlCreateRenderer win Nothing -- Let SDL choose the best driver
+      -- Create a Renderer
+      renderer <- sdlCreateRenderer win Nothing -- Let SDL choose
       case renderer of
         Nothing -> do
             sdlLog "Failed to create default renderer!"
@@ -59,11 +63,9 @@ main = do
             sdlQuit
             exitFailure
         Just ren -> do
-            rendererName <- sdlGetRendererName ren
-            sdlLog $ "Created renderer: " ++ fromMaybe "Unknown" rendererName -- Corrected fromMaybe usage below
-            runApp win ren
-
-      -- *** Cleanup moved inside runApp or called after it returns ***
+            mRendererName <- sdlGetRendererName ren
+            sdlLog $ "Created renderer: " ++ fromMaybe "Unknown" mRendererName
+            runApp win ren -- Pass window and renderer to runApp
 
   sdlLog "Shutting down SDL..."
   sdlQuit
@@ -73,14 +75,22 @@ main = do
 -- | Encapsulate the application logic with window and renderer
 runApp :: SDLWindow -> SDLRenderer -> IO ()
 runApp win renderer = do
-    -- Start event loop with initial time
     startTime <- sdlGetPerformanceCounter
     freq <- sdlGetPerformanceFrequency
-    deltaTimeRef <- newIORef 0.0
-    rectPosRef <- newIORef (SDLFPoint 100 100) -- Initial position for rectangle
-    eventLoop win renderer startTime freq deltaTimeRef rectPosRef
+    deltaTimeRef <- newIORef 0.0 -- Will store delta time in seconds
+    rectPosRef <- newIORef (SDLFPoint 100 100)
+    shouldQuitRef <- newIORef False
 
-    -- Cleanup Renderer and Window
+    -- Create IORefs for key states
+    upPressedRef <- newIORef False
+    downPressedRef <- newIORef False
+    leftPressedRef <- newIORef False
+    rightPressedRef <- newIORef False
+    let keyStates = (upPressedRef, downPressedRef, leftPressedRef, rightPressedRef)
+
+    eventLoop win renderer startTime freq deltaTimeRef rectPosRef shouldQuitRef keyStates
+
+    -- Cleanup (happens after eventLoop finishes)
     sdlLog "Destroying renderer..."
     sdlDestroyRenderer renderer
     sdlLog "Renderer destroyed."
@@ -88,68 +98,104 @@ runApp win renderer = do
     sdlDestroyWindow win
     sdlLog "Window destroyed."
 
-
--- | Main event loop that tracks FPS, processes events, and renders
-eventLoop :: SDLWindow -> SDLRenderer -> Word64 -> Word64 -> IORef Double -> IORef SDLFPoint -> IO ()
-eventLoop window renderer lastTime freq deltaTimeRef rectPosRef = do
+-- | Main event loop
+eventLoop :: SDLWindow -> SDLRenderer -> Word64 -> Word64 -> IORef Double -> IORef SDLFPoint -> IORef Bool -> KeyStates -> IO ()
+eventLoop window renderer lastTime freq deltaTimeRef rectPosRef shouldQuitRef keyStates = do
   currentTime <- sdlGetPerformanceCounter
-  let deltaTime = fromIntegral (currentTime - lastTime) / fromIntegral freq -- Delta time in seconds
+  let deltaTimeInSeconds = fromIntegral (currentTime - lastTime) / fromIntegral freq
+  writeIORef deltaTimeRef deltaTimeInSeconds -- Store delta time in seconds
 
-  -- Store the new deltaTime (in milliseconds for logging consistency)
-  writeIORef deltaTimeRef (deltaTime * 1000.0)
-
-  -- Event handling
+  -- Event handling: Process all pending events for this frame
   sdlPumpEvents
-  shouldQuitRef <- newIORef False
-  -- Process all available events this frame
-  processEvents shouldQuitRef rectPosRef deltaTimeRef
+  processEvents shouldQuitRef keyStates -- This will handle multiple events
 
   shouldQuit <- readIORef shouldQuitRef
   unless shouldQuit $ do
-    -- *** Rendering ***
+    -- Update game logic based on current key states and delta time
+    updateGameLogic rectPosRef deltaTimeRef keyStates
+
+    -- Render the scene
     renderFrame renderer rectPosRef
-
+   
     -- Continue loop
-    eventLoop window renderer currentTime freq deltaTimeRef rectPosRef
+    eventLoop window renderer currentTime freq deltaTimeRef rectPosRef shouldQuitRef keyStates
 
--- | Process all pending events
-processEvents :: IORef Bool -> IORef SDLFPoint -> IORef Double -> IO ()
-processEvents shouldQuitRef rectPosRef deltaTimeRef = do
+-- | Process all pending events from the queue for the current frame
+processEvents :: IORef Bool -> KeyStates -> IO ()
+processEvents shouldQuitRef keyStates = do
     maybeEvent <- sdlPollEvent
     case maybeEvent of
-        Nothing -> return () -- No more events
+        Nothing -> return () -- No more events in queue for this frame
         Just event -> do
-            quit <- handleEvent event deltaTimeRef rectPosRef
-            when quit $ writeIORef shouldQuitRef True
-            processEvents shouldQuitRef rectPosRef deltaTimeRef -- Process next event
+            -- Handle the current event
+            quitSignalFromEvent <- handleSingleEvent event keyStates -- Renamed from handleEvent to avoid clash
+            when quitSignalFromEvent $ writeIORef shouldQuitRef True
 
--- | Handle a single SDL event
-handleEvent :: SDLEvent -> IORef Double -> IORef SDLFPoint -> IO Bool
-handleEvent event deltaTimeRef rectPosRef = case event of
+            -- Check if we should continue processing events (e.g., if quit wasn't signaled)
+            currentQuitState <- readIORef shouldQuitRef
+            unless currentQuitState $
+                processEvents shouldQuitRef keyStates -- Recursively process next event
+
+-- | Handle a single SDL event, updating key states. Returns True if this event signals a quit.
+handleSingleEvent :: SDLEvent -> KeyStates -> IO Bool
+handleSingleEvent event keyStatesTuple@(upRef, downRef, leftRef, rightRef) = case event of
   SDLEventQuit _ -> do
     sdlLog "Quit event received."
     return True
-  SDLEventKeyboard (SDLKeyboardEvent _ _ _ _ scancode _ _ _ down _) | down -> do
-    dtMs <- readIORef deltaTimeRef
-    sdlLog $ printf "Key '%s' pressed. Delta Time: %.3f ms" (show scancode) dtMs
-    -- Move rectangle based on arrow keys
-    let moveSpeed = 400.0 -- Pixels per second
-    let dtSec = dtMs / 1000.0
-    let moveAmount = realToFrac (moveSpeed * dtSec)
+
+  SDLEventKeyboard ke -> do
+    let scancode = sdlKeyboardScancode ke
+    let isKeyDown = sdlKeyboardDown ke
+    let eventType = sdlKeyboardType ke
+    let isRepeat = sdlKeyboardRepeat ke
+
+    sdlLog $ printf "Keyboard Event: Type: %s, Scancode: %s, isKeyDown: %s, Repeat: %s"
+                    (show eventType) (show scancode) (show isKeyDown) (show isRepeat)
+   
+    -- Update IORefs based on key state
     case scancode of
-        SDL_SCANCODE_Q -> return True -- Quit on Q
-        SDL_SCANCODE_UP -> modifyIORef' rectPosRef (\(SDLFPoint x y) -> SDLFPoint x (y - moveAmount)) >> return False
-        SDL_SCANCODE_DOWN -> modifyIORef' rectPosRef (\(SDLFPoint x y) -> SDLFPoint x (y + moveAmount)) >> return False
-        SDL_SCANCODE_LEFT -> modifyIORef' rectPosRef (\(SDLFPoint x y) -> SDLFPoint (x - moveAmount) y) >> return False
-        SDL_SCANCODE_RIGHT -> modifyIORef' rectPosRef (\(SDLFPoint x y) -> SDLFPoint (x + moveAmount) y) >> return False
-        _ -> return False
-  _ -> return False
+        SDL_SCANCODE_Q ->
+            if isKeyDown then do -- Quit only on Q press
+                sdlLog "Q pressed, signaling quit."
+                return True
+            else
+                return False
+        SDL_SCANCODE_UP    -> writeIORef upRef isKeyDown    >> return False
+        SDL_SCANCODE_DOWN  -> writeIORef downRef isKeyDown  >> return False
+        SDL_SCANCODE_LEFT  -> writeIORef leftRef isKeyDown >> return False
+        SDL_SCANCODE_RIGHT -> writeIORef rightRef isKeyDown >> return False
+        _ -> return False -- Other scancodes don't signal quit by default
+  _ -> return False -- Other event types don't signal quit by default
+
+-- | Update game state (like rectangle position) based on current input states and delta time
+updateGameLogic :: IORef SDLFPoint -> IORef Double -> KeyStates -> IO ()
+updateGameLogic rectPosRef deltaTimeRef (upRef, downRef, leftRef, rightRef) = do
+    dtSec <- readIORef deltaTimeRef -- Delta time of the frame in seconds
+    let moveSpeed = 200.0          -- Pixels per second
+    let moveAmount = realToFrac (moveSpeed * dtSec)
+
+    -- Read current key states
+    up <- readIORef upRef
+    down <- readIORef downRef
+    left <- readIORef leftRef
+    right <- readIORef rightRef
+
+    -- Optional: Log states if debugging movement
+    -- sdlLog $ printf "updateGameLogic: up:%s, down:%s, left:%s, right:%s, dt:%.4fs, move:%.3f"
+    --                 (show up) (show down) (show left) (show right) dtSec moveAmount
+
+    currentPos@(SDLFPoint currentX currentY) <- readIORef rectPosRef
+    let newX | left = currentX - moveAmount | right = currentX + moveAmount | otherwise = currentX
+    let newY | up = currentY - moveAmount | down = currentY + moveAmount | otherwise = currentY
+
+    when (newX /= currentX || newY /= currentY) $
+        writeIORef rectPosRef (SDLFPoint newX newY)
 
 -- | Render a single frame
 renderFrame :: SDLRenderer -> IORef SDLFPoint -> IO ()
 renderFrame renderer rectPosRef = do
     -- 1. Set draw color to clear color (e.g., dark blue) and clear
-    _ <- sdlSetRenderDrawColor renderer 32 32 64 255 -- Use return value to silence warning if needed
+    _ <- sdlSetRenderDrawColor renderer 32 32 64 255
     clearSuccess <- sdlRenderClear renderer
     unless clearSuccess $ sdlLog "Warning: Failed to clear renderer"
 
@@ -157,10 +203,10 @@ renderFrame renderer rectPosRef = do
     _ <- sdlSetRenderDrawColor renderer 255 255 0 255
 
     -- 3. Get current rectangle position
-    (SDLFPoint rectX rectY) <- readIORef rectPosRef
+    (SDLFPoint fPointX fPointY) <- readIORef rectPosRef
 
     -- 4. Define rectangle geometry
-    let rect = SDLFRect rectX rectY 50 50 -- x, y, width, height
+    let rect = SDLFRect fPointX fPointY 50 50 -- x, y, width, height
 
     -- 5. Draw the filled rectangle
     fillRectSuccess <- sdlRenderFillRect renderer (Just rect)
@@ -169,9 +215,8 @@ renderFrame renderer rectPosRef = do
     -- 6. Present the rendered frame
     presentSuccess <- sdlRenderPresent renderer
     unless presentSuccess $ do
-      err <- sdlGetError -- Check why presentation failed (e.g., device lost)
+      err <- sdlGetError
       sdlLog $ "Warning: Failed to present renderer: " ++ err
-      -- Potentially handle device lost errors here if needed
 
 -- Helper function to print subsystem names
 printSubsystem :: SDLInitFlags -> IO ()
@@ -184,4 +229,4 @@ printSubsystem flag = sdlLog $ "  - " ++ case flag of
   SDL_INIT_EVENTS   -> "Events"
   SDL_INIT_SENSOR   -> "Sensor"
   SDL_INIT_CAMERA   -> "Camera"
-  _            -> "Unknown subsystem"
+  _                 -> "Unknown subsystem"

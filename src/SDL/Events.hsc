@@ -462,9 +462,9 @@ peekKeyboardEvent ptr = do
   key <- peekByteOff ptr 28                          
   mod <- peekByteOff ptr 32                          
   raw <- peekByteOff ptr 34                          
-  down <-  peekByteOff ptr 36              
+  down <- peekByteOff ptr 36
   repeat <- peekByteOff ptr 37            
-  return $ SDLKeyboardEvent t ts wid which scancode key mod raw down repeat
+  return $ SDLKeyboardEvent t ts wid which scancode key mod raw (toBool (down :: CBool)) (toBool (repeat :: CBool))
 
 peekTextInputEvent :: Ptr SDLEvent -> IO SDLTextInputEvent
 peekTextInputEvent ptr = do
@@ -499,7 +499,7 @@ peekMouseButtonEvent ptr = do
   clicks <- peekByteOff ptr 26
   x <- peekByteOff ptr 32
   y <- peekByteOff ptr 36
-  return $ SDLMouseButtonEvent t ts wid which button down clicks x y
+  return $ SDLMouseButtonEvent t ts wid which button (toBool (down :: CBool)) clicks x y
 
 peekMouseWheelEvent :: Ptr SDLEvent -> IO SDLMouseWheelEvent
 peekMouseWheelEvent ptr = do
