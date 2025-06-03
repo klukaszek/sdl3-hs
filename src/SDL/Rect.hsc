@@ -69,8 +69,8 @@ instance Storable SDLPoint where
 
 -- | A structure that defines a point using floating-point values (SDL_FPoint).
 data SDLFPoint = SDLFPoint
-  { sdlFPointX :: CFloat  -- ^ x coordinate
-  , sdlFPointY :: CFloat  -- ^ y coordinate
+  { fPointX :: CFloat  -- ^ x coordinate
+  , fPointY :: CFloat  -- ^ y coordinate
   } deriving (Eq, Show)
 
 instance Storable SDLFPoint where
@@ -109,10 +109,10 @@ instance Storable SDLRect where
 
 -- | A rectangle with the origin at the upper left, using floating-point values (SDL_FRect).
 data SDLFRect = SDLFRect
-  { sdlFRectX :: CFloat  -- ^ x coordinate of top-left corner
-  , sdlFRectY :: CFloat  -- ^ y coordinate of top-left corner
-  , sdlFRectW :: CFloat  -- ^ width
-  , sdlFRectH :: CFloat  -- ^ height
+  { fRectX :: CFloat  -- ^ x coordinate of top-left corner
+  , fRectY :: CFloat  -- ^ y coordinate of top-left corner
+  , fRectW :: CFloat  -- ^ width
+  , fRectH :: CFloat  -- ^ height
   } deriving (Eq, Show)
 
 instance Storable SDLFRect where
@@ -225,23 +225,23 @@ sdlGetRectAndLineIntersection rect (x1, y1) (x2, y2) =
 -- | Determine whether a point resides inside a floating-point rectangle (SDL_PointInRectFloat).
 sdlPointInRectFloat :: SDLFPoint -> SDLFRect -> Bool
 sdlPointInRectFloat p r =
-  sdlFPointX p >= sdlFRectX r &&
-  sdlFPointX p <= (sdlFRectX r + sdlFRectW r) &&
-  sdlFPointY p >= sdlFRectY r &&
-  sdlFPointY p <= (sdlFRectY r + sdlFRectH r)
+  fPointX p >= fRectX r &&
+  fPointX p <= (fRectX r + fRectW r) &&
+  fPointY p >= fRectY r &&
+  fPointY p <= (fRectY r + fRectH r)
 
 -- | Determine whether a floating-point rectangle can contain any point (SDL_RectEmptyFloat).
 sdlRectEmptyFloat :: SDLFRect -> Bool
-sdlRectEmptyFloat r = sdlFRectW r < 0 || sdlFRectH r < 0
+sdlRectEmptyFloat r = fRectW r < 0 || fRectH r < 0
 
 -- | Determine whether two floating-point rectangles are equal within some epsilon (SDL_RectsEqualEpsilon).
 sdlRectsEqualEpsilon :: SDLFRect -> SDLFRect -> CFloat -> Bool
 sdlRectsEqualEpsilon a b epsilon =
   a == b ||
-  (abs (sdlFRectX a - sdlFRectX b) <= epsilon &&
-   abs (sdlFRectY a - sdlFRectY b) <= epsilon &&
-   abs (sdlFRectW a - sdlFRectW b) <= epsilon &&
-   abs (sdlFRectH a - sdlFRectH b) <= epsilon)
+  (abs (fRectX a - fRectX b) <= epsilon &&
+   abs (fRectY a - fRectY b) <= epsilon &&
+   abs (fRectW a - fRectW b) <= epsilon &&
+   abs (fRectH a - fRectH b) <= epsilon)
 
 -- | Determine whether two floating-point rectangles are equal within SDL_FLT_EPSILON (SDL_RectsEqualFloat).
 sdlRectsEqualFloat :: SDLFRect -> SDLFRect -> Bool
