@@ -139,7 +139,7 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 - [WAV](examples/WAVExample.hs) - WAV file handling
 
 ### Camera
-- [Camera](examples/CameraExample.hs) - Camera device access (Can't test properly but compiles.)
+- [Camera](examples/CameraExample.hs) - Camera device access (tested on macOS)
 
 ## System Integration
 ### File & Data
@@ -164,7 +164,7 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 
 ## 📊 Binding Status
 
-*Last updated: 2025-07-03 06:26 UTC*
+*Last updated: 2025-07-03 06:40 UTC*
 
 *SDL3 commit: `cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b`*
 
