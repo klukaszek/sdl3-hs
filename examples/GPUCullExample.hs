@@ -325,36 +325,37 @@ runAppGPU context@Context {..} = do
           bracket (sdlAcquireGPUCommandBuffer dev) cleanupCommandBuffer $ \maybeCmdBuf -> do
             case maybeCmdBuf of
               Nothing -> sdlLog "!!! Acquire upload CB failed" >> return False
-              Just cmdBuf ->
-                bracket (sdlBeginGPUCopyPass cmdBuf) cleanupCopyPass $ \maybeCopyPass ->
-                  do
-                    case maybeCopyPass of
-                      Nothing -> sdlLog "!!! Begin copy pass failed" >> return False
-                      Just copyPass -> do
-                        -- Upload CW
-                        let srcLocCW = SDLGPUTransferBufferLocation tb 0
-                            dstRegCW = SDLGPUBufferRegion vbCW 0 sizeCW
-                        sdlLog $ "Recording upload CW (Size: " ++ show sizeCW ++ ")"
-                        sdlUploadToGPUBuffer copyPass srcLocCW dstRegCW False
-                        -- Upload CCW
-                        let offset = fromIntegral sizeCW -- Offset in transfer buffer
-                        let srcLocCCW = SDLGPUTransferBufferLocation tb offset
-                            dstRegCCW = SDLGPUBufferRegion vbCCW 0 sizeCCW
-                        sdlLog $ "Recording upload CCW (Offset: " ++ show offset ++ ", Size: " ++ show sizeCCW ++ ")"
-                        sdlUploadToGPUBuffer copyPass srcLocCCW dstRegCCW False
-                        sdlLog "Uploads recorded."
-                        return True -- Copy pass commands recorded ok
-                    >>= \copyCommandsOk ->
-                      if copyCommandsOk
-                        then do
-                          sdlLog "Submitting combined upload..."
-                          submitted <- sdlSubmitGPUCommandBuffer cmdBuf
-                          unless submitted $ sdlLog "!!! Combined upload submission failed"
-                          return submitted
-                        else do
-                          sdlLog "Copy pass failed, cancelling."
-                          void $ sdlCancelGPUCommandBuffer cmdBuf
-                          return False
+              Just cmdBuf -> do
+                -- Record copy commands and end copy pass before submitting
+                copyCommandsOk <- bracket (sdlBeginGPUCopyPass cmdBuf) cleanupCopyPass $ \maybeCopyPass ->
+                  case maybeCopyPass of
+                    Nothing -> sdlLog "!!! Begin copy pass failed" >> return False
+                    Just copyPass -> do
+                      -- Upload CW
+                      let srcLocCW = SDLGPUTransferBufferLocation tb 0
+                          dstRegCW = SDLGPUBufferRegion vbCW 0 sizeCW
+                      sdlLog $ "Recording upload CW (Size: " ++ show sizeCW ++ ")"
+                      sdlUploadToGPUBuffer copyPass srcLocCW dstRegCW False
+                      -- Upload CCW
+                      let offset = fromIntegral sizeCW -- Offset in transfer buffer
+                      let srcLocCCW = SDLGPUTransferBufferLocation tb offset
+                          dstRegCCW = SDLGPUBufferRegion vbCCW 0 sizeCCW
+                      sdlLog $ "Recording upload CCW (Offset: " ++ show offset ++ ", Size: " ++ show sizeCCW ++ ")"
+                      sdlUploadToGPUBuffer copyPass srcLocCCW dstRegCCW False
+                      sdlLog "Uploads recorded."
+                      return True -- Copy pass commands recorded ok
+
+                -- Now submit the command buffer after copy pass is ended
+                if copyCommandsOk
+                  then do
+                    sdlLog "Submitting combined upload..."
+                    submitted <- sdlSubmitGPUCommandBuffer cmdBuf
+                    unless submitted $ sdlLog "!!! Combined upload submission failed"
+                    return submitted
+                  else do
+                    sdlLog "Copy pass failed, cancelling."
+                    void $ sdlCancelGPUCommandBuffer cmdBuf
+                    return False
 
     -- Action to release resources
     releaseResources :: Context -> Maybe AppResources -> IO ()

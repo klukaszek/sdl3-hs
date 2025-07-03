@@ -164,7 +164,7 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 
 ## 📊 Binding Status
 
-*Last updated: 2025-07-03 07:26 UTC*
+*Last updated: 2025-07-03 07:34 UTC*
 
 *SDL3 commit: `cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b`*
 
