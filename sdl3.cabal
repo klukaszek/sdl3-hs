@@ -594,14 +594,6 @@ executable wav
     hs-source-dirs:    examples
     default-language: Haskell2010
 
-executable scrape-headers
-    main-is: scrape-headers.hs
-    build-depends:
-        base,
-        text
-    hs-source-dirs: test
-    default-language: Haskell2010
-
 -- SDL3 Binding Checker - Core tool for detecting missing bindings
 -- Also available as smart helper script: ./check-sdl-bindings
 -- The helper script provides modern tool integration (fzf, ripgrep, fd)
@@ -614,15 +606,5 @@ executable binding-checker
         filepath,
         process,
         regex-posix
-    hs-source-dirs: test
-    default-language: Haskell2010
-
-executable test-binding-checker
-    main-is: test-binding-checker.hs
-    build-depends:
-        base,
-        directory,
-        filepath,
-        process
     hs-source-dirs: test
     default-language: Haskell2010
