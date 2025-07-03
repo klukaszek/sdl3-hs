@@ -1,142 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SDL3 Haskell Bindings</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-            line-height: 1.6;
-            margin: 0 auto;
-            max-width: 800px;
-            padding: 20px;
-            color: #24292e;
-            background-color: #EAE6F3; /* Light Haskell-ish Purple */
-        }
-        h1, h2, h3, h4, h5, h6 { /* Apply to all heading levels pandoc might generate */
-            color: #1a1f23;
-            margin-top: 1.5em;
-            margin-bottom: 0.5em; /* Added margin-bottom for spacing */
-        }
-        h1 {
-            border-bottom: 2px solid #d0c8e0;
-            padding-bottom: 0.3em;
-            font-size: 2em; /* Explicit font size */
-        }
-        h2 {
-            border-bottom: 1px solid #d8d0e8;
-            padding-bottom: 0.2em;
-            font-size: 1.75em; /* Explicit font size */
-        }
-        h3 {
-            font-size: 1.5em; /* Explicit font size */
-        }
-        h4 {
-            font-size: 1.25em; /* Explicit font size */
-        }
-        pre {
-            background-color: #f6f8fa;
-            padding: 15px;
-            border-radius: 6px;
-            overflow-x: auto;
-            border: 1px solid #d1d5da;
-        }
-        code {
-            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-            font-size: 0.9em;
-        }
-        pre > code { /* Target code directly inside pre, not other inline code */
-            font-size: 0.85em;
-            background-color: transparent;
-            padding: 0;
-            border-radius: 0;
-            border: 0; /* Remove potential border from inline code style */
-        }
-        /* Style for inline code */
-        p > code, li > code, td > code {
-            background-color: rgba(27,31,35,0.07);
-            padding: .2em .4em;
-            margin: 0 .2em;
-            font-size: 85%;
-            border-radius: 3px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 1em;
-            border: 1px solid #d0c8e0;
-            display: block; /* For overflow scrolling on small screens */
-            overflow-x: auto; /* For overflow scrolling on small screens */
-        }
-        th, td {
-            border: 1px solid #d8d0e8;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #e0dbec;
-        }
-        blockquote {
-            border-left: 3px solid #a399b9;
-            padding: 0.5em 15px; /* Adjusted padding */
-            margin-left: 0;
-            margin-right: 0; /* Added margin-right */
-            font-style: italic;
-            color: #423c52;
-            background-color: #f4f2f9;
-        }
-        a {
-            color: #58468C; /* Haskell logo-ish purple for links */
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        ul, ol { /* Added ol for ordered lists */
-            padding-left: 20px;
-            margin-bottom: 1em; /* Spacing */
-        }
-        li {
-            margin-bottom: 0.25em; /* Spacing between list items */
-        }
-        /* For the "NOTE" block in README, if you use Pandoc's fenced div syntax */
-        .note {
-            background-color: #fff9c4;
-            border-left: 4px solid #ffeb3b;
-            padding: 10px 15px;
-            margin: 1em 0;
-            color: #5C5622;
-        }
-        .status-symbol { /* Already present, just for completeness */
-            font-size: 1.2em;
-            text-align: center;
-        }
-        /* Ensure images are responsive */
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-    </style>
-</head>
-<body>
-    <main>
-        <h1 id="sdl3-haskell-bindings-λ">SDL3 Haskell Bindings λ</h1>
-        <p>Work in progress bindings for the SDL3 library written in
-        Haskell.</p>
-        <p>Please report any bugs or suggestions you have for the
-        bindings!</p>
-        <h2 id="setup-instructions">Setup Instructions</h2>
-        <div class="note">
-        <p><strong>NOTE:</strong> These bindings are for SDL version 3.3
-        as of right now.</p>
-        </div>
-        <p>Install SDL3 from source: <a
-        href="https://github.com/libsdl-org/SDL/">SDL GitHub</a></p>
-        <h3 id="linux">Linux</h3>
-        <p>To build SDL3 from source on Linux:</p>
-        <div class="sourceCode" id="cb1"><pre
-        class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Navigate to SDL3 source directory</span></span>
+<!doctype html>
+<!--
+  Pandoc HTML Template for SDL3 Haskell Bindings Documentation
+
+  NOTE: This file contains Pandoc template variables like SDL3 Haskell
+Bindings and <h1 id="sdl3-haskell-bindings-λ">SDL3 Haskell Bindings
+λ</h1>
+<p>Work in progress bindings for the SDL3 library written in
+Haskell.</p>
+<p>Please report any bugs or suggestions you have for the bindings!</p>
+<h2 id="setup-instructions">Setup Instructions</h2>
+<div class="note">
+<p><strong>NOTE:</strong> These bindings are for SDL version 3.3 as of
+right now.</p>
+</div>
+<p>Install SDL3 from source: <a
+href="https://github.com/libsdl-org/SDL/">SDL GitHub</a></p>
+<h3 id="linux">Linux</h3>
+<p>To build SDL3 from source on Linux:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Navigate to SDL3 source directory</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> path/to/SDL3/source</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create and enter build directory</span></span>
@@ -152,19 +34,19 @@
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Install (requires sudo)</span></span>
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> cmake <span class="at">--install</span> . <span class="at">--config</span> Release</span></code></pre></div>
-        <p>This will install SDL3 to your system so that cabal can find
-        and build the sdl3 package.</p>
-        <p>Find your way back to this project's directory and run
-        <code>cabal build</code> to build the package with examples, or
-        <code>cabal build sdl3</code> to build just the package.</p>
-        <h3 id="windows">Windows</h3>
-        <blockquote>
-        <p><strong>Recommendation:</strong> Use the Developer PowerShell
-        or Developer Command Prompt that comes with Visual Studio for
-        best results.</p>
-        </blockquote>
-        <div class="sourceCode" id="cb2"><pre
-        class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Navigate to SDL3 source directory</span></span>
+<p>This will install SDL3 to your system so that cabal can find and
+build the sdl3 package.</p>
+<p>Find your way back to this project's directory and run
+<code>cabal build</code> to build the package with examples, or
+<code>cabal build sdl3</code> to build just the package.</p>
+<h3 id="windows">Windows</h3>
+<blockquote>
+<p><strong>Recommendation:</strong> Use the Developer PowerShell or
+Developer Command Prompt that comes with Visual Studio for best
+results.</p>
+</blockquote>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Navigate to SDL3 source directory</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> path/to/SDL3/source</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create and enter build directory</span></span>
@@ -180,460 +62,1513 @@
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Install (requires sudo)</span></span>
 <span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--install</span> . <span class="at">--config</span> Release</span></code></pre></div>
-        <p>Make sure SDL3 compiles a .DLL file, and
-        <code>pkgconfig</code> knows that SDL3 exists. (You might have
-        to install <code>pkgconfig</code> using your pacman of
-        choice.)</p>
-        <p>You can do this by setting:</p>
-        <div class="sourceCode" id="cb3"><pre
-        class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> PKG_CONFIG_PATH=<span class="st">&quot;path\to\SDL3\lib\pkgconfig&quot;</span></span>
+<p>Make sure SDL3 compiles a .DLL file, and <code>pkgconfig</code> knows
+that SDL3 exists. (You might have to install <code>pkgconfig</code>
+using your pacman of choice.)</p>
+<p>You can do this by setting:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> PKG_CONFIG_PATH=<span class="st">&quot;path\to\SDL3\lib\pkgconfig&quot;</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># or</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="va">$env</span><span class="ex">:PKG_CONFIG_PATH=</span><span class="st">&quot;path\to\SDL3\lib\pkgconfig</span><span class="dt">\&quot;</span></span></code></pre></div>
-        <p>Ensure the .DLL file is present in your <code>PATH</code>
-        environment variable or within the root directory for this
-        project.</p>
-        <p>You'll also want to add a <code>cabal.project.local</code>
-        file to the root directory with:</p>
-        <pre><code>package *
+<p>Ensure the .DLL file is present in your <code>PATH</code> environment
+variable or within the root directory for this project.</p>
+<p>You'll also want to add a <code>cabal.project.local</code> file to
+the root directory with:</p>
+<pre><code>package *
   extra-include-dirs: &quot;path/to/SDL3/include/&quot;
   extra-lib-dirs: &quot;path/to/SDL3/lib/&quot;</code></pre>
-        <p>Once all of this is done, you can find your way into this
-        directory and run <code>cabal build sdl3</code>. If you would
-        like to install the examples, run <code>cabal build</code>
-        instead.</p>
-        <h2 id="sdlh-header-file-support-checklist">SDL.h Header File
-        Support Checklist</h2>
-        <p>🟧 means that the related header file should be implemented
-        for the most part. Some things might be missing or
-        non-functioning, though I have tried to be careful.</p>
-        <table>
-        <thead>
-        <tr class="header">
-        <th>Header File</th>
-        <th>Status</th>
-        <th>Notes</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr class="odd">
-        <td>SDL3/SDL_stdinc.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_assert.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_asyncio.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_atomic.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_audio.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_bits.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_blendmode.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_camera.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_clipboard.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_cpuinfo.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_dialog.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_endian.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_error.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_events.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_filesystem.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_gamepad.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_gpu.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_guid.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_haptic.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_hidapi.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_hints.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_init.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_iostream.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_joystick.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_keyboard.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_keycode.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_loadso.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_locale.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_log.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_messagebox.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_metal.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_misc.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_mouse.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_mutex.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_pen.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_pixels.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_platform.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_power.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_process.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_properties.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_rect.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_render.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_scancode.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_sensor.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_storage.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_surface.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_system.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_thread.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_time.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_timer.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_tray.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_touch.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="odd">
-        <td>SDL3/SDL_version.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        <tr class="even">
-        <td>SDL3/SDL_video.h</td>
-        <td>🟧</td>
-        <td></td>
-        </tr>
-        </tbody>
-        </table>
-        <h1 id="working-examples">Working Examples</h1>
-        <h2 id="core-functionality">Core Functionality</h2>
-        <h3 id="initialization--system">Initialization &amp; System</h3>
-        <ul>
-        <li><a href="examples/InitExample.hs">Init</a> - Basic SDL
-        initialization</li>
-        <li><a href="examples/SystemExample.hs">System</a> - System
-        information and capabilities</li>
-        <li><a href="examples/PlatformExample.hs">Platform</a> -
-        Platform-specific functionality</li>
-        <li><a href="examples/CPUInfoExample.hs">CPU Info</a> -
-        Processor information</li>
-        <li><a href="examples/PowerExample.hs">Power</a> - Power state
-        monitoring</li>
-        <li><a href="examples/HintsExample.hs">Hints</a> - SDL
-        configuration hints</li>
-        </ul>
-        <h2 id="window--rendering">Window &amp; Rendering</h2>
-        <h3 id="rendering">Rendering</h3>
-        <ul>
-        <li><a href="examples/RenderExample.hs">Render</a> - 2D
-        rendering basics</li>
-        </ul>
-        <h3 id="misc">Misc</h3>
-        <ul>
-        <li><a href="examples/RectExample.hs">Rect</a> - Rectangle
-        basics (no rendering here)</li>
-        </ul>
-        <h3 id="gpu--graphics">GPU &amp; Graphics</h3>
-        <p>These examples are based off of the original <a
-        href="https://github.com/TheSpydog/SDL_gpu_examples/">SDL3 GPU
-        Examples</a></p>
-        <ul>
-        <li><a href="examples/GPURawTriangleExample.hs">GPU Triangle</a>
-        - Raw triangle rendering</li>
-        <li><a href="examples/GPUClearExample.hs">GPU Clear</a> - Basic
-        screen clearing</li>
-        <li><a href="examples/GPUVertexBufferExample.hs">GPU Vertex
-        Buffer</a> - Vertex buffer usage (matches
-        <code>gpu-vbuf</code>)</li>
-        <li><a href="examples/GPUTexturedQuadExample.hs">GPU Textured
-        Quad</a> - Texture mapping</li>
-        <li><a href="examples/GPUCustomSamplingExample.hs">GPU Custom
-        Sampling</a> - Implementing custom texture sampling logic</li>
-        <li><a href="examples/GPUAnimatedQuadExample.hs">GPU Animated
-        Quad</a> - Animation basics</li>
-        <li><a href="examples/GPUInstancedExample.hs">GPU Instanced</a>
-        - Instanced rendering</li>
-        <li><a href="examples/GPUStencilExample.hs">GPU Stencil</a> -
-        Stencil buffer operations</li>
-        <li><a href="examples/GPUCullExample.hs">GPU Cull</a> - Culling
-        techniques</li>
-        <li><a href="examples/GPUMultiWindowExample.hs">GPU
-        Multi-Window</a> - Multiple window rendering</li>
-        <li><a href="examples/GPUDrawIndirectExample.hs">GPU Draw
-        Indirect</a> - Leveraging indirect draw commands for GPU-driven
-        rendering</li>
-        <li><a href="examples/GPUBasicComputeExample.hs">GPU Basic
-        Compute</a> - Basic compute shader usage</li>
-        <li><a href="examples/GPUClear3DSliceExample.hs">GPU Clear 3D
-        Slice</a> - Clearing a slice of a 3D texture</li>
-        <li><a href="examples/GPUComputeUniformsExample.hs">GPU Compute
-        Uniforms</a> - Using uniforms with compute shaders</li>
-        <li><a href="examples/GPUComputeSamplerExample.hs">GPU Compute
-        Sampler</a> - Using samplers within compute shaders</li>
-        <li><a href="examples/GPUTonemappingExample.hs">GPU Compute
-        Tonemapping</a> - Using compute pipelines for HDRI texture
-        tonemapping.</li>
-        <li><a href="examples/GPUCopyConsistencyExample.hs">GPU Copy
-        Consistency</a> - Copy a texture to the GPU, alter it, and draw
-        it to the framebuffer.</li>
-        <li><a href="examples/GPUCopyAndReadbackExample.hs">GPU Copy
-        &amp; Readback</a> - Write texture to GPU and read it back,
-        verifying data integrity.</li>
-        <li>(... More coming ...)</li>
-        </ul>
-        <h2 id="input--interaction">Input &amp; Interaction</h2>
-        <h3 id="user-input">User Input</h3>
-        <ul>
-        <li><a href="examples/EventsExample.hs">Events</a> - Event
-        handling</li>
-        <li><a href="examples/GamepadExample.hs">Gamepad</a> -
-        Controller input</li>
-        <li><a href="examples/TouchDeviceExample.hs">Touch Device</a> -
-        Touch input handling (Can't test properly but compiles.)</li>
-        <li><a href="examples/HapticExample.hs">Haptic</a> - Force
-        feedback (Can't test properly but compiles.)</li>
-        </ul>
-        <h3 id="user-interface">User Interface</h3>
-        <ul>
-        <li><a href="examples/DialogExample.hs">Dialog</a> - Dialog
-        boxes</li>
-        <li><a href="examples/MessageBoxExample.hs">Message Box</a> -
-        Simple message dialogs</li>
-        <li><a href="examples/ClipboardExample.hs">Clipboard</a> -
-        Clipboard manipulation</li>
-        <li><a href="examples/TrayExample.hs">Tray</a> - System tray
-        integration</li>
-        </ul>
-        <h2 id="audio--media">Audio &amp; Media</h2>
-        <h3 id="audio">Audio</h3>
-        <ul>
-        <li><a href="examples/AudioExample.hs">Audio</a> - Audio
-        playback</li>
-        <li><a href="examples/WAVExample.hs">WAV</a> - WAV file
-        handling</li>
-        </ul>
-        <h3 id="camera">Camera</h3>
-        <ul>
-        <li><a href="examples/CameraExample.hs">Camera</a> - Camera
-        device access (Can't test properly but compiles.)</li>
-        </ul>
-        <h2 id="system-integration">System Integration</h2>
-        <h3 id="file--data">File &amp; Data</h3>
-        <ul>
-        <li><a href="examples/FilesystemExample.hs">Filesystem</a> -
-        File system operations</li>
-        <li><a href="examples/StorageExample.hs">Storage</a> -
-        Persistent storage</li>
-        <li><a href="examples/GUIDExample.hs">GUID</a> - Globally unique
-        identifier handling</li>
-        </ul>
-        <h3 id="internationalization">Internationalization</h3>
-        <ul>
-        <li><a href="examples/LocaleExample.hs">Locale</a> -
-        Localization support</li>
-        </ul>
-        <h2 id="time--process-management">Time &amp; Process
-        Management</h2>
-        <h3 id="time">Time</h3>
-        <ul>
-        <li><a href="examples/TimeExample.hs">Time</a> - Time
-        functions</li>
-        <li><a href="examples/TimerExample.hs">Timer</a> - Timer
-        functionality</li>
-        </ul>
-        <h3 id="process">Process</h3>
-        <ul>
-        <li><a href="examples/ProcessExample.hs">Process</a> - Process
-        management</li>
-        </ul>
-        <h2 id="sensors">Sensors</h2>
-        <h3 id="hardware">Hardware</h3>
-        <ul>
-        <li><a href="examples/SensorExample.hs">Sensor</a> - Hardware
-        sensor access (Can't test properly but compiles.)</li>
-        </ul>
-    </main>
-</body>
+<p>Once all of this is done, you can find your way into this directory
+and run <code>cabal build sdl3</code>. If you would like to install the
+examples, run <code>cabal build</code> instead.</p>
+<h1 id="working-examples">Working Examples</h1>
+<h2 id="core-functionality">Core Functionality</h2>
+<h3 id="initialization--system">Initialization &amp; System</h3>
+<ul>
+<li><a href="examples/InitExample.hs">Init</a> - Basic SDL
+initialization</li>
+<li><a href="examples/SystemExample.hs">System</a> - System information
+and capabilities</li>
+<li><a href="examples/PlatformExample.hs">Platform</a> -
+Platform-specific functionality</li>
+<li><a href="examples/CPUInfoExample.hs">CPU Info</a> - Processor
+information</li>
+<li><a href="examples/PowerExample.hs">Power</a> - Power state
+monitoring</li>
+<li><a href="examples/HintsExample.hs">Hints</a> - SDL configuration
+hints</li>
+</ul>
+<h2 id="window--rendering">Window &amp; Rendering</h2>
+<h3 id="rendering">Rendering</h3>
+<ul>
+<li><a href="examples/RenderExample.hs">Render</a> - 2D rendering
+basics</li>
+</ul>
+<h3 id="misc">Misc</h3>
+<ul>
+<li><a href="examples/RectExample.hs">Rect</a> - Rectangle basics (no
+rendering here)</li>
+</ul>
+<h3 id="gpu--graphics">GPU &amp; Graphics</h3>
+<p>These examples are based off of the original <a
+href="https://github.com/TheSpydog/SDL_gpu_examples/">SDL3 GPU
+Examples</a></p>
+<ul>
+<li><a href="examples/GPURawTriangleExample.hs">GPU Triangle</a> - Raw
+triangle rendering</li>
+<li><a href="examples/GPUClearExample.hs">GPU Clear</a> - Basic screen
+clearing</li>
+<li><a href="examples/GPUVertexBufferExample.hs">GPU Vertex Buffer</a> -
+Vertex buffer usage (matches <code>gpu-vbuf</code>)</li>
+<li><a href="examples/GPUTexturedQuadExample.hs">GPU Textured Quad</a> -
+Texture mapping</li>
+<li><a href="examples/GPUCustomSamplingExample.hs">GPU Custom
+Sampling</a> - Implementing custom texture sampling logic</li>
+<li><a href="examples/GPUAnimatedQuadExample.hs">GPU Animated Quad</a> -
+Animation basics</li>
+<li><a href="examples/GPUInstancedExample.hs">GPU Instanced</a> -
+Instanced rendering</li>
+<li><a href="examples/GPUStencilExample.hs">GPU Stencil</a> - Stencil
+buffer operations</li>
+<li><a href="examples/GPUCullExample.hs">GPU Cull</a> - Culling
+techniques</li>
+<li><a href="examples/GPUMultiWindowExample.hs">GPU Multi-Window</a> -
+Multiple window rendering</li>
+<li><a href="examples/GPUDrawIndirectExample.hs">GPU Draw Indirect</a> -
+Leveraging indirect draw commands for GPU-driven rendering</li>
+<li><a href="examples/GPUBasicComputeExample.hs">GPU Basic Compute</a> -
+Basic compute shader usage</li>
+<li><a href="examples/GPUClear3DSliceExample.hs">GPU Clear 3D Slice</a>
+- Clearing a slice of a 3D texture</li>
+<li><a href="examples/GPUComputeUniformsExample.hs">GPU Compute
+Uniforms</a> - Using uniforms with compute shaders</li>
+<li><a href="examples/GPUComputeSamplerExample.hs">GPU Compute
+Sampler</a> - Using samplers within compute shaders</li>
+<li><a href="examples/GPUTonemappingExample.hs">GPU Compute
+Tonemapping</a> - Using compute pipelines for HDRI texture
+tonemapping.</li>
+<li><a href="examples/GPUCopyConsistencyExample.hs">GPU Copy
+Consistency</a> - Copy a texture to the GPU, alter it, and draw it to
+the framebuffer.</li>
+<li><a href="examples/GPUCopyAndReadbackExample.hs">GPU Copy &amp;
+Readback</a> - Write texture to GPU and read it back, verifying data
+integrity.</li>
+<li>(... More coming ...)</li>
+</ul>
+<h2 id="input--interaction">Input &amp; Interaction</h2>
+<h3 id="user-input">User Input</h3>
+<ul>
+<li><a href="examples/EventsExample.hs">Events</a> - Event handling</li>
+<li><a href="examples/GamepadExample.hs">Gamepad</a> - Controller
+input</li>
+<li><a href="examples/TouchDeviceExample.hs">Touch Device</a> - Touch
+input handling (Can't test properly but compiles.)</li>
+<li><a href="examples/HapticExample.hs">Haptic</a> - Force feedback
+(Can't test properly but compiles.)</li>
+</ul>
+<h3 id="user-interface">User Interface</h3>
+<ul>
+<li><a href="examples/DialogExample.hs">Dialog</a> - Dialog boxes</li>
+<li><a href="examples/MessageBoxExample.hs">Message Box</a> - Simple
+message dialogs</li>
+<li><a href="examples/ClipboardExample.hs">Clipboard</a> - Clipboard
+manipulation</li>
+<li><a href="examples/TrayExample.hs">Tray</a> - System tray
+integration</li>
+</ul>
+<h2 id="audio--media">Audio &amp; Media</h2>
+<h3 id="audio">Audio</h3>
+<ul>
+<li><a href="examples/AudioExample.hs">Audio</a> - Audio playback</li>
+<li><a href="examples/WAVExample.hs">WAV</a> - WAV file handling</li>
+</ul>
+<h3 id="camera">Camera</h3>
+<ul>
+<li><a href="examples/CameraExample.hs">Camera</a> - Camera device
+access (Can't test properly but compiles.)</li>
+</ul>
+<h2 id="system-integration">System Integration</h2>
+<h3 id="file--data">File &amp; Data</h3>
+<ul>
+<li><a href="examples/FilesystemExample.hs">Filesystem</a> - File system
+operations</li>
+<li><a href="examples/StorageExample.hs">Storage</a> - Persistent
+storage</li>
+<li><a href="examples/GUIDExample.hs">GUID</a> - Globally unique
+identifier handling</li>
+</ul>
+<h3 id="internationalization">Internationalization</h3>
+<ul>
+<li><a href="examples/LocaleExample.hs">Locale</a> - Localization
+support</li>
+</ul>
+<h2 id="time--process-management">Time &amp; Process Management</h2>
+<h3 id="time">Time</h3>
+<ul>
+<li><a href="examples/TimeExample.hs">Time</a> - Time functions</li>
+<li><a href="examples/TimerExample.hs">Timer</a> - Timer
+functionality</li>
+</ul>
+<h3 id="process">Process</h3>
+<ul>
+<li><a href="examples/ProcessExample.hs">Process</a> - Process
+management</li>
+</ul>
+<h2 id="sensors">Sensors</h2>
+<h3 id="hardware">Hardware</h3>
+<ul>
+<li><a href="examples/SensorExample.hs">Sensor</a> - Hardware sensor
+access (Can't test properly but compiles.)</li>
+</ul>
+<h2 id="-binding-status">📊 Binding Status</h2>
+<p><em>Last updated: 2025-07-03 04:52 UTC</em></p>
+<h3 id="summary">Summary</h3>
+<ul>
+<li><strong>Total Modules</strong>: 54</li>
+<li><strong>Modules with Bindings</strong>: 46</li>
+<li><strong>Complete Bindings</strong>: 39</li>
+<li><strong>Missing Functions</strong>: 133</li>
+<li><strong>Completion Rate</strong>: 84%</li>
+</ul>
+<h3 id="status-by-module">Status by Module</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Module</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>SDL_assert</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_asyncio</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_atomic</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_audio</code></td>
+<td>⚠️ 3 missing</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_bits</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_blendmode</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_camera</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_clipboard</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_cpuinfo</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="even">
+<td><code>SDL_dialog</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_endian</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_error</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_events</code></td>
+<td>⚠️ 1 missing</td>
+</tr>
+<tr class="even">
+<td><code>SDL_filesystem</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_gamepad</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_gpu</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_guid</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="even">
+<td><code>SDL_haptic</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_hidapi</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_hints</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_init</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_iostream</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_joystick</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_keyboard</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_keycode</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_loadso</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_locale</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_log</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_messagebox</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="even">
+<td><code>SDL_metal</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_misc</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_mouse</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_mutex</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_pen</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_pixels</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_platform</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_power</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_process</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_properties</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_rect</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_render</code></td>
+<td>⚠️ 1 missing</td>
+</tr>
+<tr class="even">
+<td><code>SDL_scancode</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_sensor</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_stdinc</code></td>
+<td>⚠️ 2 missing</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_storage</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_surface</code></td>
+<td>⚠️ 35 missing</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_system</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_thread</code></td>
+<td>⚠️ 2 missing</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_time</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_timer</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_touch</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_tray</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_version</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_video</code></td>
+<td>⚠️ 89 missing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="legend">Legend</h3>
+<ul>
+<li>✅ <strong>Complete</strong>: All functions from the header are
+bound</li>
+<li>⚠️ <strong>X missing</strong>: Header has bindings but X functions
+are missing</li>
+<li>❌ <strong>No bindings</strong>: No Haskell bindings exist for this
+header</li>
+<li>❓ <strong>Unknown</strong>: Status could not be determined</li>
+</ul>
+<h3 id="notes">Notes</h3>
+<ul>
+<li>Status reflects core SDL3 headers (test/internal headers
+excluded)</li>
+<li>Missing function details are available in the <code>broken/</code>
+directory after running the binding checker</li>
+<li>Use <code>./check-sdl-bindings -i</code> for interactive binding
+status checking</li>
+<li>Some modules may intentionally have no bindings if not applicable to
+Haskell</li>
+</ul>
+  These are NOT valid HTML by themselves - they get substituted by Pandoc
+  when generating the final HTML documentation.
+
+  Template variables used:
+  - SDL3 Haskell
+Bindings: Document title (set via --metadata title="...")
+  - <h1 id="sdl3-haskell-bindings-λ">SDL3 Haskell Bindings λ</h1>
+<p>Work in progress bindings for the SDL3 library written in
+Haskell.</p>
+<p>Please report any bugs or suggestions you have for the bindings!</p>
+<h2 id="setup-instructions">Setup Instructions</h2>
+<div class="note">
+<p><strong>NOTE:</strong> These bindings are for SDL version 3.3 as of
+right now.</p>
+</div>
+<p>Install SDL3 from source: <a
+href="https://github.com/libsdl-org/SDL/">SDL GitHub</a></p>
+<h3 id="linux">Linux</h3>
+<p>To build SDL3 from source on Linux:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Navigate to SDL3 source directory</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> path/to/SDL3/source</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create and enter build directory</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> build</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Configure with cmake.</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># CMAKE_BUILD_TYPE can be whatever you need it to be.</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-DCMAKE_BUILD_TYPE</span><span class="op">=</span>Release <span class="at">-GNinja</span> ..</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Build</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--build</span> . <span class="at">--config</span> Release <span class="at">--parallel</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Install (requires sudo)</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> cmake <span class="at">--install</span> . <span class="at">--config</span> Release</span></code></pre></div>
+<p>This will install SDL3 to your system so that cabal can find and
+build the sdl3 package.</p>
+<p>Find your way back to this project's directory and run
+<code>cabal build</code> to build the package with examples, or
+<code>cabal build sdl3</code> to build just the package.</p>
+<h3 id="windows">Windows</h3>
+<blockquote>
+<p><strong>Recommendation:</strong> Use the Developer PowerShell or
+Developer Command Prompt that comes with Visual Studio for best
+results.</p>
+</blockquote>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Navigate to SDL3 source directory</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> path/to/SDL3/source</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create and enter build directory</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> build</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Configure with cmake.</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># CMAKE_BUILD_TYPE can be whatever you need it to be.</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-DCMAKE_BUILD_TYPE</span><span class="op">=</span>Release <span class="at">-GNinja</span> ..</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Build</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--build</span> . <span class="at">--config</span> Release <span class="at">--parallel</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Install (requires sudo)</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--install</span> . <span class="at">--config</span> Release</span></code></pre></div>
+<p>Make sure SDL3 compiles a .DLL file, and <code>pkgconfig</code> knows
+that SDL3 exists. (You might have to install <code>pkgconfig</code>
+using your pacman of choice.)</p>
+<p>You can do this by setting:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> PKG_CONFIG_PATH=<span class="st">&quot;path\to\SDL3\lib\pkgconfig&quot;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># or</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="va">$env</span><span class="ex">:PKG_CONFIG_PATH=</span><span class="st">&quot;path\to\SDL3\lib\pkgconfig</span><span class="dt">\&quot;</span></span></code></pre></div>
+<p>Ensure the .DLL file is present in your <code>PATH</code> environment
+variable or within the root directory for this project.</p>
+<p>You'll also want to add a <code>cabal.project.local</code> file to
+the root directory with:</p>
+<pre><code>package *
+  extra-include-dirs: &quot;path/to/SDL3/include/&quot;
+  extra-lib-dirs: &quot;path/to/SDL3/lib/&quot;</code></pre>
+<p>Once all of this is done, you can find your way into this directory
+and run <code>cabal build sdl3</code>. If you would like to install the
+examples, run <code>cabal build</code> instead.</p>
+<h1 id="working-examples">Working Examples</h1>
+<h2 id="core-functionality">Core Functionality</h2>
+<h3 id="initialization--system">Initialization &amp; System</h3>
+<ul>
+<li><a href="examples/InitExample.hs">Init</a> - Basic SDL
+initialization</li>
+<li><a href="examples/SystemExample.hs">System</a> - System information
+and capabilities</li>
+<li><a href="examples/PlatformExample.hs">Platform</a> -
+Platform-specific functionality</li>
+<li><a href="examples/CPUInfoExample.hs">CPU Info</a> - Processor
+information</li>
+<li><a href="examples/PowerExample.hs">Power</a> - Power state
+monitoring</li>
+<li><a href="examples/HintsExample.hs">Hints</a> - SDL configuration
+hints</li>
+</ul>
+<h2 id="window--rendering">Window &amp; Rendering</h2>
+<h3 id="rendering">Rendering</h3>
+<ul>
+<li><a href="examples/RenderExample.hs">Render</a> - 2D rendering
+basics</li>
+</ul>
+<h3 id="misc">Misc</h3>
+<ul>
+<li><a href="examples/RectExample.hs">Rect</a> - Rectangle basics (no
+rendering here)</li>
+</ul>
+<h3 id="gpu--graphics">GPU &amp; Graphics</h3>
+<p>These examples are based off of the original <a
+href="https://github.com/TheSpydog/SDL_gpu_examples/">SDL3 GPU
+Examples</a></p>
+<ul>
+<li><a href="examples/GPURawTriangleExample.hs">GPU Triangle</a> - Raw
+triangle rendering</li>
+<li><a href="examples/GPUClearExample.hs">GPU Clear</a> - Basic screen
+clearing</li>
+<li><a href="examples/GPUVertexBufferExample.hs">GPU Vertex Buffer</a> -
+Vertex buffer usage (matches <code>gpu-vbuf</code>)</li>
+<li><a href="examples/GPUTexturedQuadExample.hs">GPU Textured Quad</a> -
+Texture mapping</li>
+<li><a href="examples/GPUCustomSamplingExample.hs">GPU Custom
+Sampling</a> - Implementing custom texture sampling logic</li>
+<li><a href="examples/GPUAnimatedQuadExample.hs">GPU Animated Quad</a> -
+Animation basics</li>
+<li><a href="examples/GPUInstancedExample.hs">GPU Instanced</a> -
+Instanced rendering</li>
+<li><a href="examples/GPUStencilExample.hs">GPU Stencil</a> - Stencil
+buffer operations</li>
+<li><a href="examples/GPUCullExample.hs">GPU Cull</a> - Culling
+techniques</li>
+<li><a href="examples/GPUMultiWindowExample.hs">GPU Multi-Window</a> -
+Multiple window rendering</li>
+<li><a href="examples/GPUDrawIndirectExample.hs">GPU Draw Indirect</a> -
+Leveraging indirect draw commands for GPU-driven rendering</li>
+<li><a href="examples/GPUBasicComputeExample.hs">GPU Basic Compute</a> -
+Basic compute shader usage</li>
+<li><a href="examples/GPUClear3DSliceExample.hs">GPU Clear 3D Slice</a>
+- Clearing a slice of a 3D texture</li>
+<li><a href="examples/GPUComputeUniformsExample.hs">GPU Compute
+Uniforms</a> - Using uniforms with compute shaders</li>
+<li><a href="examples/GPUComputeSamplerExample.hs">GPU Compute
+Sampler</a> - Using samplers within compute shaders</li>
+<li><a href="examples/GPUTonemappingExample.hs">GPU Compute
+Tonemapping</a> - Using compute pipelines for HDRI texture
+tonemapping.</li>
+<li><a href="examples/GPUCopyConsistencyExample.hs">GPU Copy
+Consistency</a> - Copy a texture to the GPU, alter it, and draw it to
+the framebuffer.</li>
+<li><a href="examples/GPUCopyAndReadbackExample.hs">GPU Copy &amp;
+Readback</a> - Write texture to GPU and read it back, verifying data
+integrity.</li>
+<li>(... More coming ...)</li>
+</ul>
+<h2 id="input--interaction">Input &amp; Interaction</h2>
+<h3 id="user-input">User Input</h3>
+<ul>
+<li><a href="examples/EventsExample.hs">Events</a> - Event handling</li>
+<li><a href="examples/GamepadExample.hs">Gamepad</a> - Controller
+input</li>
+<li><a href="examples/TouchDeviceExample.hs">Touch Device</a> - Touch
+input handling (Can't test properly but compiles.)</li>
+<li><a href="examples/HapticExample.hs">Haptic</a> - Force feedback
+(Can't test properly but compiles.)</li>
+</ul>
+<h3 id="user-interface">User Interface</h3>
+<ul>
+<li><a href="examples/DialogExample.hs">Dialog</a> - Dialog boxes</li>
+<li><a href="examples/MessageBoxExample.hs">Message Box</a> - Simple
+message dialogs</li>
+<li><a href="examples/ClipboardExample.hs">Clipboard</a> - Clipboard
+manipulation</li>
+<li><a href="examples/TrayExample.hs">Tray</a> - System tray
+integration</li>
+</ul>
+<h2 id="audio--media">Audio &amp; Media</h2>
+<h3 id="audio">Audio</h3>
+<ul>
+<li><a href="examples/AudioExample.hs">Audio</a> - Audio playback</li>
+<li><a href="examples/WAVExample.hs">WAV</a> - WAV file handling</li>
+</ul>
+<h3 id="camera">Camera</h3>
+<ul>
+<li><a href="examples/CameraExample.hs">Camera</a> - Camera device
+access (Can't test properly but compiles.)</li>
+</ul>
+<h2 id="system-integration">System Integration</h2>
+<h3 id="file--data">File &amp; Data</h3>
+<ul>
+<li><a href="examples/FilesystemExample.hs">Filesystem</a> - File system
+operations</li>
+<li><a href="examples/StorageExample.hs">Storage</a> - Persistent
+storage</li>
+<li><a href="examples/GUIDExample.hs">GUID</a> - Globally unique
+identifier handling</li>
+</ul>
+<h3 id="internationalization">Internationalization</h3>
+<ul>
+<li><a href="examples/LocaleExample.hs">Locale</a> - Localization
+support</li>
+</ul>
+<h2 id="time--process-management">Time &amp; Process Management</h2>
+<h3 id="time">Time</h3>
+<ul>
+<li><a href="examples/TimeExample.hs">Time</a> - Time functions</li>
+<li><a href="examples/TimerExample.hs">Timer</a> - Timer
+functionality</li>
+</ul>
+<h3 id="process">Process</h3>
+<ul>
+<li><a href="examples/ProcessExample.hs">Process</a> - Process
+management</li>
+</ul>
+<h2 id="sensors">Sensors</h2>
+<h3 id="hardware">Hardware</h3>
+<ul>
+<li><a href="examples/SensorExample.hs">Sensor</a> - Hardware sensor
+access (Can't test properly but compiles.)</li>
+</ul>
+<h2 id="-binding-status">📊 Binding Status</h2>
+<p><em>Last updated: 2025-07-03 04:52 UTC</em></p>
+<h3 id="summary">Summary</h3>
+<ul>
+<li><strong>Total Modules</strong>: 54</li>
+<li><strong>Modules with Bindings</strong>: 46</li>
+<li><strong>Complete Bindings</strong>: 39</li>
+<li><strong>Missing Functions</strong>: 133</li>
+<li><strong>Completion Rate</strong>: 84%</li>
+</ul>
+<h3 id="status-by-module">Status by Module</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Module</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>SDL_assert</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_asyncio</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_atomic</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_audio</code></td>
+<td>⚠️ 3 missing</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_bits</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_blendmode</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_camera</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_clipboard</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_cpuinfo</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="even">
+<td><code>SDL_dialog</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_endian</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_error</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_events</code></td>
+<td>⚠️ 1 missing</td>
+</tr>
+<tr class="even">
+<td><code>SDL_filesystem</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_gamepad</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_gpu</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_guid</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="even">
+<td><code>SDL_haptic</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_hidapi</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_hints</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_init</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_iostream</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_joystick</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_keyboard</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_keycode</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_loadso</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_locale</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_log</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_messagebox</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="even">
+<td><code>SDL_metal</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_misc</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_mouse</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_mutex</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_pen</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_pixels</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_platform</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_power</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_process</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_properties</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_rect</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_render</code></td>
+<td>⚠️ 1 missing</td>
+</tr>
+<tr class="even">
+<td><code>SDL_scancode</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_sensor</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_stdinc</code></td>
+<td>⚠️ 2 missing</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_storage</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_surface</code></td>
+<td>⚠️ 35 missing</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_system</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_thread</code></td>
+<td>⚠️ 2 missing</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_time</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_timer</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_touch</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_tray</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_version</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_video</code></td>
+<td>⚠️ 89 missing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="legend">Legend</h3>
+<ul>
+<li>✅ <strong>Complete</strong>: All functions from the header are
+bound</li>
+<li>⚠️ <strong>X missing</strong>: Header has bindings but X functions
+are missing</li>
+<li>❌ <strong>No bindings</strong>: No Haskell bindings exist for this
+header</li>
+<li>❓ <strong>Unknown</strong>: Status could not be determined</li>
+</ul>
+<h3 id="notes">Notes</h3>
+<ul>
+<li>Status reflects core SDL3 headers (test/internal headers
+excluded)</li>
+<li>Missing function details are available in the <code>broken/</code>
+directory after running the binding checker</li>
+<li>Use <code>./check-sdl-bindings -i</code> for interactive binding
+status checking</li>
+<li>Some modules may intentionally have no bindings if not applicable to
+Haskell</li>
+</ul>:  Main content (converted from Markdown)
+-->
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SDL3 Haskell Bindings</title>
+        <style>
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    Helvetica, Arial, sans-serif, "Apple Color Emoji",
+                    "Segoe UI Emoji", "Segoe UI Symbol";
+                line-height: 1.6;
+                margin: 0 auto;
+                max-width: 800px;
+                padding: 20px;
+                color: #24292e;
+                background-color: #eae6f3; /* Light Haskell-ish Purple */
+            }
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                /* Apply to all heading levels pandoc might generate */
+                color: #1a1f23;
+                margin-top: 1.5em;
+                margin-bottom: 0.5em; /* Added margin-bottom for spacing */
+            }
+            h1 {
+                border-bottom: 2px solid #d0c8e0;
+                padding-bottom: 0.3em;
+                font-size: 2em; /* Explicit font size */
+            }
+            h2 {
+                border-bottom: 1px solid #d8d0e8;
+                padding-bottom: 0.2em;
+                font-size: 1.75em; /* Explicit font size */
+            }
+            h3 {
+                font-size: 1.5em; /* Explicit font size */
+            }
+            h4 {
+                font-size: 1.25em; /* Explicit font size */
+            }
+            pre {
+                background-color: #f6f8fa;
+                padding: 15px;
+                border-radius: 6px;
+                overflow-x: auto;
+                border: 1px solid #d1d5da;
+            }
+            code {
+                font-family:
+                    "SFMono-Regular", Consolas, "Liberation Mono", Menlo,
+                    Courier, monospace;
+                font-size: 0.9em;
+            }
+            pre > code {
+                /* Target code directly inside pre, not other inline code */
+                font-size: 0.85em;
+                background-color: transparent;
+                padding: 0;
+                border-radius: 0;
+                border: 0; /* Remove potential border from inline code style */
+            }
+            /* Style for inline code */
+            p > code,
+            li > code,
+            td > code {
+                background-color: rgba(27, 31, 35, 0.07);
+                padding: 0.2em 0.4em;
+                margin: 0 0.2em;
+                font-size: 85%;
+                border-radius: 3px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 1em;
+                border: 1px solid #d0c8e0;
+                display: block; /* For overflow scrolling on small screens */
+                overflow-x: auto; /* For overflow scrolling on small screens */
+            }
+            th,
+            td {
+                border: 1px solid #d8d0e8;
+                padding: 8px;
+                text-align: left;
+            }
+            th {
+                background-color: #e0dbec;
+            }
+            blockquote {
+                border-left: 3px solid #a399b9;
+                padding: 0.5em 15px; /* Adjusted padding */
+                margin-left: 0;
+                margin-right: 0; /* Added margin-right */
+                font-style: italic;
+                color: #423c52;
+                background-color: #f4f2f9;
+            }
+            a {
+                color: #58468c; /* Haskell logo-ish purple for links */
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+            ul,
+            ol {
+                /* Added ol for ordered lists */
+                padding-left: 20px;
+                margin-bottom: 1em; /* Spacing */
+            }
+            li {
+                margin-bottom: 0.25em; /* Spacing between list items */
+            }
+            /* For the "NOTE" block in README, if you use Pandoc's fenced div syntax */
+            .note {
+                background-color: #fff9c4;
+                border-left: 4px solid #ffeb3b;
+                padding: 10px 15px;
+                margin: 1em 0;
+                color: #5c5622;
+            }
+            .status-symbol {
+                /* Already present, just for completeness */
+                font-size: 1.2em;
+                text-align: center;
+            }
+            /* Ensure images are responsive */
+            img {
+                max-width: 100%;
+                height: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <main><h1 id="sdl3-haskell-bindings-λ">SDL3 Haskell Bindings
+λ</h1>
+<p>Work in progress bindings for the SDL3 library written in
+Haskell.</p>
+<p>Please report any bugs or suggestions you have for the bindings!</p>
+<h2 id="setup-instructions">Setup Instructions</h2>
+<div class="note">
+<p><strong>NOTE:</strong> These bindings are for SDL version 3.3 as of
+right now.</p>
+</div>
+<p>Install SDL3 from source: <a
+href="https://github.com/libsdl-org/SDL/">SDL GitHub</a></p>
+<h3 id="linux">Linux</h3>
+<p>To build SDL3 from source on Linux:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Navigate to SDL3 source directory</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> path/to/SDL3/source</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create and enter build directory</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> build</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Configure with cmake.</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># CMAKE_BUILD_TYPE can be whatever you need it to be.</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-DCMAKE_BUILD_TYPE</span><span class="op">=</span>Release <span class="at">-GNinja</span> ..</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Build</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--build</span> . <span class="at">--config</span> Release <span class="at">--parallel</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Install (requires sudo)</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> cmake <span class="at">--install</span> . <span class="at">--config</span> Release</span></code></pre></div>
+<p>This will install SDL3 to your system so that cabal can find and
+build the sdl3 package.</p>
+<p>Find your way back to this project's directory and run
+<code>cabal build</code> to build the package with examples, or
+<code>cabal build sdl3</code> to build just the package.</p>
+<h3 id="windows">Windows</h3>
+<blockquote>
+<p><strong>Recommendation:</strong> Use the Developer PowerShell or
+Developer Command Prompt that comes with Visual Studio for best
+results.</p>
+</blockquote>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Navigate to SDL3 source directory</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> path/to/SDL3/source</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create and enter build directory</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> build</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> build</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Configure with cmake.</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># CMAKE_BUILD_TYPE can be whatever you need it to be.</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">-DCMAKE_BUILD_TYPE</span><span class="op">=</span>Release <span class="at">-GNinja</span> ..</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Build</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--build</span> . <span class="at">--config</span> Release <span class="at">--parallel</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Install (requires sudo)</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="fu">cmake</span> <span class="at">--install</span> . <span class="at">--config</span> Release</span></code></pre></div>
+<p>Make sure SDL3 compiles a .DLL file, and <code>pkgconfig</code> knows
+that SDL3 exists. (You might have to install <code>pkgconfig</code>
+using your pacman of choice.)</p>
+<p>You can do this by setting:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">set</span> PKG_CONFIG_PATH=<span class="st">&quot;path\to\SDL3\lib\pkgconfig&quot;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># or</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="va">$env</span><span class="ex">:PKG_CONFIG_PATH=</span><span class="st">&quot;path\to\SDL3\lib\pkgconfig</span><span class="dt">\&quot;</span></span></code></pre></div>
+<p>Ensure the .DLL file is present in your <code>PATH</code> environment
+variable or within the root directory for this project.</p>
+<p>You'll also want to add a <code>cabal.project.local</code> file to
+the root directory with:</p>
+<pre><code>package *
+  extra-include-dirs: &quot;path/to/SDL3/include/&quot;
+  extra-lib-dirs: &quot;path/to/SDL3/lib/&quot;</code></pre>
+<p>Once all of this is done, you can find your way into this directory
+and run <code>cabal build sdl3</code>. If you would like to install the
+examples, run <code>cabal build</code> instead.</p>
+<h1 id="working-examples">Working Examples</h1>
+<h2 id="core-functionality">Core Functionality</h2>
+<h3 id="initialization--system">Initialization &amp; System</h3>
+<ul>
+<li><a href="examples/InitExample.hs">Init</a> - Basic SDL
+initialization</li>
+<li><a href="examples/SystemExample.hs">System</a> - System information
+and capabilities</li>
+<li><a href="examples/PlatformExample.hs">Platform</a> -
+Platform-specific functionality</li>
+<li><a href="examples/CPUInfoExample.hs">CPU Info</a> - Processor
+information</li>
+<li><a href="examples/PowerExample.hs">Power</a> - Power state
+monitoring</li>
+<li><a href="examples/HintsExample.hs">Hints</a> - SDL configuration
+hints</li>
+</ul>
+<h2 id="window--rendering">Window &amp; Rendering</h2>
+<h3 id="rendering">Rendering</h3>
+<ul>
+<li><a href="examples/RenderExample.hs">Render</a> - 2D rendering
+basics</li>
+</ul>
+<h3 id="misc">Misc</h3>
+<ul>
+<li><a href="examples/RectExample.hs">Rect</a> - Rectangle basics (no
+rendering here)</li>
+</ul>
+<h3 id="gpu--graphics">GPU &amp; Graphics</h3>
+<p>These examples are based off of the original <a
+href="https://github.com/TheSpydog/SDL_gpu_examples/">SDL3 GPU
+Examples</a></p>
+<ul>
+<li><a href="examples/GPURawTriangleExample.hs">GPU Triangle</a> - Raw
+triangle rendering</li>
+<li><a href="examples/GPUClearExample.hs">GPU Clear</a> - Basic screen
+clearing</li>
+<li><a href="examples/GPUVertexBufferExample.hs">GPU Vertex Buffer</a> -
+Vertex buffer usage (matches <code>gpu-vbuf</code>)</li>
+<li><a href="examples/GPUTexturedQuadExample.hs">GPU Textured Quad</a> -
+Texture mapping</li>
+<li><a href="examples/GPUCustomSamplingExample.hs">GPU Custom
+Sampling</a> - Implementing custom texture sampling logic</li>
+<li><a href="examples/GPUAnimatedQuadExample.hs">GPU Animated Quad</a> -
+Animation basics</li>
+<li><a href="examples/GPUInstancedExample.hs">GPU Instanced</a> -
+Instanced rendering</li>
+<li><a href="examples/GPUStencilExample.hs">GPU Stencil</a> - Stencil
+buffer operations</li>
+<li><a href="examples/GPUCullExample.hs">GPU Cull</a> - Culling
+techniques</li>
+<li><a href="examples/GPUMultiWindowExample.hs">GPU Multi-Window</a> -
+Multiple window rendering</li>
+<li><a href="examples/GPUDrawIndirectExample.hs">GPU Draw Indirect</a> -
+Leveraging indirect draw commands for GPU-driven rendering</li>
+<li><a href="examples/GPUBasicComputeExample.hs">GPU Basic Compute</a> -
+Basic compute shader usage</li>
+<li><a href="examples/GPUClear3DSliceExample.hs">GPU Clear 3D Slice</a>
+- Clearing a slice of a 3D texture</li>
+<li><a href="examples/GPUComputeUniformsExample.hs">GPU Compute
+Uniforms</a> - Using uniforms with compute shaders</li>
+<li><a href="examples/GPUComputeSamplerExample.hs">GPU Compute
+Sampler</a> - Using samplers within compute shaders</li>
+<li><a href="examples/GPUTonemappingExample.hs">GPU Compute
+Tonemapping</a> - Using compute pipelines for HDRI texture
+tonemapping.</li>
+<li><a href="examples/GPUCopyConsistencyExample.hs">GPU Copy
+Consistency</a> - Copy a texture to the GPU, alter it, and draw it to
+the framebuffer.</li>
+<li><a href="examples/GPUCopyAndReadbackExample.hs">GPU Copy &amp;
+Readback</a> - Write texture to GPU and read it back, verifying data
+integrity.</li>
+<li>(... More coming ...)</li>
+</ul>
+<h2 id="input--interaction">Input &amp; Interaction</h2>
+<h3 id="user-input">User Input</h3>
+<ul>
+<li><a href="examples/EventsExample.hs">Events</a> - Event handling</li>
+<li><a href="examples/GamepadExample.hs">Gamepad</a> - Controller
+input</li>
+<li><a href="examples/TouchDeviceExample.hs">Touch Device</a> - Touch
+input handling (Can't test properly but compiles.)</li>
+<li><a href="examples/HapticExample.hs">Haptic</a> - Force feedback
+(Can't test properly but compiles.)</li>
+</ul>
+<h3 id="user-interface">User Interface</h3>
+<ul>
+<li><a href="examples/DialogExample.hs">Dialog</a> - Dialog boxes</li>
+<li><a href="examples/MessageBoxExample.hs">Message Box</a> - Simple
+message dialogs</li>
+<li><a href="examples/ClipboardExample.hs">Clipboard</a> - Clipboard
+manipulation</li>
+<li><a href="examples/TrayExample.hs">Tray</a> - System tray
+integration</li>
+</ul>
+<h2 id="audio--media">Audio &amp; Media</h2>
+<h3 id="audio">Audio</h3>
+<ul>
+<li><a href="examples/AudioExample.hs">Audio</a> - Audio playback</li>
+<li><a href="examples/WAVExample.hs">WAV</a> - WAV file handling</li>
+</ul>
+<h3 id="camera">Camera</h3>
+<ul>
+<li><a href="examples/CameraExample.hs">Camera</a> - Camera device
+access (Can't test properly but compiles.)</li>
+</ul>
+<h2 id="system-integration">System Integration</h2>
+<h3 id="file--data">File &amp; Data</h3>
+<ul>
+<li><a href="examples/FilesystemExample.hs">Filesystem</a> - File system
+operations</li>
+<li><a href="examples/StorageExample.hs">Storage</a> - Persistent
+storage</li>
+<li><a href="examples/GUIDExample.hs">GUID</a> - Globally unique
+identifier handling</li>
+</ul>
+<h3 id="internationalization">Internationalization</h3>
+<ul>
+<li><a href="examples/LocaleExample.hs">Locale</a> - Localization
+support</li>
+</ul>
+<h2 id="time--process-management">Time &amp; Process Management</h2>
+<h3 id="time">Time</h3>
+<ul>
+<li><a href="examples/TimeExample.hs">Time</a> - Time functions</li>
+<li><a href="examples/TimerExample.hs">Timer</a> - Timer
+functionality</li>
+</ul>
+<h3 id="process">Process</h3>
+<ul>
+<li><a href="examples/ProcessExample.hs">Process</a> - Process
+management</li>
+</ul>
+<h2 id="sensors">Sensors</h2>
+<h3 id="hardware">Hardware</h3>
+<ul>
+<li><a href="examples/SensorExample.hs">Sensor</a> - Hardware sensor
+access (Can't test properly but compiles.)</li>
+</ul>
+<h2 id="-binding-status">📊 Binding Status</h2>
+<p><em>Last updated: 2025-07-03 04:52 UTC</em></p>
+<h3 id="summary">Summary</h3>
+<ul>
+<li><strong>Total Modules</strong>: 54</li>
+<li><strong>Modules with Bindings</strong>: 46</li>
+<li><strong>Complete Bindings</strong>: 39</li>
+<li><strong>Missing Functions</strong>: 133</li>
+<li><strong>Completion Rate</strong>: 84%</li>
+</ul>
+<h3 id="status-by-module">Status by Module</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Module</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>SDL_assert</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_asyncio</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_atomic</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_audio</code></td>
+<td>⚠️ 3 missing</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_bits</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_blendmode</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_camera</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_clipboard</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_cpuinfo</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="even">
+<td><code>SDL_dialog</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_endian</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_error</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_events</code></td>
+<td>⚠️ 1 missing</td>
+</tr>
+<tr class="even">
+<td><code>SDL_filesystem</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_gamepad</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_gpu</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_guid</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="even">
+<td><code>SDL_haptic</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_hidapi</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_hints</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_init</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_iostream</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_joystick</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_keyboard</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_keycode</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_loadso</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_locale</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_log</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_messagebox</code></td>
+<td>❌ No bindings</td>
+</tr>
+<tr class="even">
+<td><code>SDL_metal</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_misc</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_mouse</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_mutex</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_pen</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_pixels</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_platform</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_power</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_process</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_properties</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_rect</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_render</code></td>
+<td>⚠️ 1 missing</td>
+</tr>
+<tr class="even">
+<td><code>SDL_scancode</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_sensor</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_stdinc</code></td>
+<td>⚠️ 2 missing</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_storage</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_surface</code></td>
+<td>⚠️ 35 missing</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_system</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_thread</code></td>
+<td>⚠️ 2 missing</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_time</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_timer</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_touch</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_tray</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="odd">
+<td><code>SDL_version</code></td>
+<td>✅ Complete</td>
+</tr>
+<tr class="even">
+<td><code>SDL_video</code></td>
+<td>⚠️ 89 missing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="legend">Legend</h3>
+<ul>
+<li>✅ <strong>Complete</strong>: All functions from the header are
+bound</li>
+<li>⚠️ <strong>X missing</strong>: Header has bindings but X functions
+are missing</li>
+<li>❌ <strong>No bindings</strong>: No Haskell bindings exist for this
+header</li>
+<li>❓ <strong>Unknown</strong>: Status could not be determined</li>
+</ul>
+<h3 id="notes">Notes</h3>
+<ul>
+<li>Status reflects core SDL3 headers (test/internal headers
+excluded)</li>
+<li>Missing function details are available in the <code>broken/</code>
+directory after running the binding checker</li>
+<li>Use <code>./check-sdl-bindings -i</code> for interactive binding
+status checking</li>
+<li>Some modules may intentionally have no bindings if not applicable to
+Haskell</li>
+</ul></main>
+    </body>
 </html>

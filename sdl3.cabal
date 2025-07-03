@@ -142,7 +142,7 @@ library
         bytestring,
         directory,
         filepath
-        
+
     -- Directories containing source files.
     hs-source-dirs:   src
 
@@ -357,7 +357,7 @@ executable gpu-instanced
 
     hs-source-dirs:   examples
     default-language: Haskell2010
-    
+
 executable gpu-multiwindow
     main-is: GPUMultiWindowExample.hs
     build-depends:
@@ -456,7 +456,7 @@ executable hints
         sdl3
     hs-source-dirs:   examples
     default-language: Haskell2010
-    
+
 executable init
     main-is: InitExample.hs
     build-depends:
@@ -539,7 +539,7 @@ executable storage
 
     hs-source-dirs:    examples
     default-language: Haskell2010
-    
+
 executable system
     main-is: SystemExample.hs
     build-depends:
@@ -548,7 +548,7 @@ executable system
 
     hs-source-dirs:    examples
     default-language: Haskell2010
-    
+
 executable time
     main-is: TimeExample.hs
     build-depends:
@@ -592,4 +592,37 @@ executable wav
         sdl3,
         bytestring
     hs-source-dirs:    examples
+    default-language: Haskell2010
+
+executable scrape-headers
+    main-is: scrape-headers.hs
+    build-depends:
+        base,
+        text
+    hs-source-dirs: test
+    default-language: Haskell2010
+
+-- SDL3 Binding Checker - Core tool for detecting missing bindings
+-- Also available as smart helper script: ./check-sdl-bindings
+-- The helper script provides modern tool integration (fzf, ripgrep, fd)
+-- and interactive selection features for better user experience.
+executable binding-checker
+    main-is: binding-checker.hs
+    build-depends:
+        base,
+        directory,
+        filepath,
+        process,
+        regex-posix
+    hs-source-dirs: test
+    default-language: Haskell2010
+
+executable test-binding-checker
+    main-is: test-binding-checker.hs
+    build-depends:
+        base,
+        directory,
+        filepath,
+        process
+    hs-source-dirs: test
     default-language: Haskell2010
