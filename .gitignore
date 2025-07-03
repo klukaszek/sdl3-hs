@@ -22,3 +22,12 @@ cabal.project.local~
 .HTF/
 .ghc.environment.*
 .ccls-cache/*
+
+# Generated directories
+broken/
+
+# Custom directories
+sdl/
+
+# Zed
+AGENTS.MD

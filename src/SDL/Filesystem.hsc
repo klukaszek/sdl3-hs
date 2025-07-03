@@ -13,7 +13,7 @@ This module provides Haskell bindings to the SDL3 filesystem functionality.
 -}
 
 module SDL.Filesystem
-  ( 
+  (
     -- * Path Functions
     sdlGetBasePath
   , sdlGetPrefPath
@@ -136,23 +136,17 @@ foreign import ccall "wrapper"
 -- Haskell Wrappers
 
 -- | Get the directory where the application was run from
--- Requires cleanup via 'free' from SDL.Stdinc
+-- Memory is managed by SDL, no manual cleanup required
 sdlGetBasePath :: IO (Maybe String)
-sdlGetBasePath = bracket
-    -- Acquire: Get the pointer from SDL
-    sdlGetBasePath_
-    -- Release: Free the pointer if it wasn't null
-    (\ptr -> when (ptr /= nullPtr) (free ptr))
-    -- Use: If pointer is valid, copy it into a Haskell String.
-    --      If pointer is null, result is Nothing.
-    (\ptr -> if ptr == nullPtr
-                then return Nothing -- Propagate failure as Nothing
-                else Just <$> peekCString ptr -- Copy to Haskell String
-    )
+sdlGetBasePath = do
+  path <- sdlGetBasePath_
+  if path == nullPtr
+    then return Nothing
+    else Just <$> peekCString path
 
 -- | Get the user-and-app-specific path where files can be written
 sdlGetPrefPath :: String -> String -> IO (Maybe String)
-sdlGetPrefPath org app = 
+sdlGetPrefPath org app =
   withCString org $ \orgPtr ->
   withCString app $ \appPtr -> do
     path <- sdlGetPrefPath_ orgPtr appPtr
@@ -160,7 +154,6 @@ sdlGetPrefPath org app =
       then return Nothing
       else do
         result <- peekCString path
-        free path
         return $ Just result
 
 -- | Find the most suitable user folder for a specific purpose
@@ -177,7 +170,7 @@ sdlCreateDirectory path = withCString path sdlCreateDirectory_
 
 -- | Enumerate a directory through a callback function
 sdlEnumerateDirectory :: String -> SDLEnumerateDirectoryCallback -> Ptr () -> IO Bool
-sdlEnumerateDirectory path callback userdata = 
+sdlEnumerateDirectory path callback userdata =
   withCString path $ \pathPtr -> do
     callbackPtr <- makeEnumerateCallback callback
     result <- sdlEnumerateDirectory_ pathPtr callbackPtr userdata
@@ -204,7 +197,7 @@ sdlCopyFile oldpath newpath =
 
 -- | Get information about a filesystem path
 sdlGetPathInfo :: String -> IO (Maybe SDLPathInfo)
-sdlGetPathInfo path = 
+sdlGetPathInfo path =
   withCString path $ \pathPtr ->
   alloca $ \infoPtr -> do
     success <- sdlGetPathInfo_ pathPtr infoPtr
@@ -225,7 +218,6 @@ sdlGlobDirectory path pat (SDLGlobFlags flags) =
         count <- peek countPtr
         paths <- peekArray (fromIntegral count) results
         strings <- mapM peekCString paths
-        free results
         return $ Just strings
 
 -- | Get the current working directory
@@ -234,7 +226,4 @@ sdlGetCurrentDirectory = do
   path <- sdlGetCurrentDirectory_
   if path == nullPtr
     then return Nothing
-    else do
-      result <- peekCString path
-      free path
-      return $ Just result
+    else Just <$> peekCString path

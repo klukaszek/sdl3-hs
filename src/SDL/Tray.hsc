@@ -68,7 +68,7 @@ import Foreign.Marshal.Array (peekArray) -- Use peekArray instead of peekArray0 
 import Foreign.Storable (Storable, peek)
 import Foreign.Marshal.Utils (maybeWith, with, toBool) -- Added toBool
 import Data.Bits (Bits, (.|.), zeroBits) -- Added zeroBits
-import SDL.Surface (SDLSurface(..)) -- Assuming this is defined as newtype SDLSurface (Ptr SDL_Surface)
+import SDL.Surface (SDLSurface(..)) -- SDLSurface is the data type, we need Ptr SDLSurface
 
 -- Opaque C struct types
 data SDL_Tray
@@ -113,15 +113,14 @@ cIntToBool _ = True
 foreign import ccall unsafe "SDL_CreateTray"
   c_sdlCreateTray :: Ptr SDL_Surface -> CString -> IO (Ptr SDL_Tray)
 
-sdlCreateTray :: Maybe SDLSurface -> Maybe String -> IO (Maybe SDLTray)
+sdlCreateTray :: Maybe (Ptr SDLSurface) -> Maybe String -> IO (Maybe SDLTray)
 sdlCreateTray mIcon mTooltip = do
   ptr <- case mIcon of
            Nothing -> maybeWith withCString mTooltip $ \cTooltip ->
                         c_sdlCreateTray nullPtr cTooltip
-           Just iconRec -> with iconRec $ \iconRecPtr -> -- This pointer is Ptr SDLSurface
-                             maybeWith withCString mTooltip $ \cTooltip ->
-                               -- Cast the Ptr SDLSurface to Ptr SDL_Surface for C function
-                               c_sdlCreateTray (castPtr iconRecPtr) cTooltip
+           Just iconPtr -> maybeWith withCString mTooltip $ \cTooltip ->
+                             -- Cast the Ptr SDLSurface to Ptr SDL_Surface for C function
+                             c_sdlCreateTray (castPtr iconPtr) cTooltip
   pure $ if ptr == nullPtr then Nothing else Just (SDLTray ptr)
 
 
@@ -129,13 +128,12 @@ sdlCreateTray mIcon mTooltip = do
 foreign import ccall unsafe "SDL_SetTrayIcon"
   c_sdlSetTrayIcon :: Ptr SDL_Tray -> Ptr SDL_Surface -> IO ()
 
-sdlSetTrayIcon :: SDLTray -> Maybe SDLSurface -> IO ()
+sdlSetTrayIcon :: SDLTray -> Maybe (Ptr SDLSurface) -> IO ()
 sdlSetTrayIcon (SDLTray trayPtr) mIcon =
   case mIcon of
     Nothing -> c_sdlSetTrayIcon trayPtr nullPtr
-    Just iconRec -> with iconRec $ \iconRecPtr -> -- This pointer is Ptr SDLSurface
-                      -- Cast the Ptr SDLSurface to Ptr SDL_Surface for C function
-                      c_sdlSetTrayIcon trayPtr (castPtr iconRecPtr)
+    Just iconPtr -> -- Cast the Ptr SDLSurface to Ptr SDL_Surface for C function
+                    c_sdlSetTrayIcon trayPtr (castPtr iconPtr)
 
 -- | Sets the tooltip (hover text) for a system tray icon. Pass Nothing to remove tooltip.
 foreign import ccall unsafe "SDL_SetTrayTooltip"

@@ -1,9 +1,10 @@
-name: Build and Deploy Readme
+name: Build and Deploy Readme with Binding Status
 
 on:
   push:
     branches:
       - main
+      - cleanup-github-workflow
 
 permissions:
   contents: write # Needed to push to gh-pages branch
@@ -14,6 +15,185 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up Haskell
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: "9.8.4"
+          cabal-version: "latest"
+
+      - name: Clone SDL3 headers for binding validation
+        run: |
+          echo "Cloning SDL3 headers for binding checker..."
+
+          # Clone SDL3 source to get headers (using specific commit cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b for SDL3 3.3.0 pre-release)
+          git clone https://github.com/libsdl-org/SDL.git /tmp/SDL3-headers
+          cd /tmp/SDL3-headers
+          git checkout cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b
+          cd -
+
+          # Create include directory structure that binding checker expects
+          sudo mkdir -p /usr/local/include/SDL3
+
+          # Copy all SDL3 headers
+          sudo cp /tmp/SDL3-headers/include/SDL3/*.h /usr/local/include/SDL3/
+
+          # Verify headers are available
+          echo "Verifying SDL3 headers..."
+          header_count=$(find /usr/local/include/SDL3 -name "SDL_*.h" | wc -l)
+          echo "✅ Found $header_count SDL3 headers in /usr/local/include/SDL3"
+
+          # List first few headers for verification
+          ls /usr/local/include/SDL3/SDL_*.h | head -5
+
+      - name: Cache Cabal packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal/packages
+            ~/.cabal/store
+            dist-newstyle
+          key: ${{ runner.os }}-cabal-v3-${{ hashFiles('**/*.cabal', 'cabal.project') }}
+          restore-keys: |
+            ${{ runner.os }}-cabal-v3-
+
+      - name: Update Cabal package index
+        run: cabal update
+
+      - name: Clean build artifacts
+        run: |
+          echo "Cleaning build artifacts to ensure fresh build..."
+          rm -rf dist-newstyle
+          cabal clean
+
+      - name: Install dependencies
+        run: cabal build --dependencies-only exe:binding-checker -f-pkgconfig
+
+      - name: Verify binding checker with SDL3 headers
+        run: |
+          echo "Testing binding checker with SDL3 headers..."
+
+          # Build binding checker (only the executable, not the full library)
+          cabal build exe:binding-checker -f-pkgconfig
+
+          # Verify headers are accessible
+          if [ -d "/usr/local/include/SDL3" ]; then
+            header_count=$(find /usr/local/include/SDL3 -name "SDL_*.h" | wc -l)
+            echo "✅ Found $header_count SDL3 headers"
+          else
+            echo "❌ SDL3 headers not found"
+            exit 1
+          fi
+
+          # Debug: Show SDL3 version and commit info
+          echo "SDL3 commit used: cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b"
+          if [ -f "/usr/local/include/SDL3/SDL_version.h" ]; then
+            echo "SDL3 version header content:"
+            grep -E "SDL_MAJOR_VERSION|SDL_MINOR_VERSION|SDL_MICRO_VERSION" /usr/local/include/SDL3/SDL_version.h || true
+          fi
+
+          # Debug: Show some key headers we expect to have bindings for
+          echo "Checking key headers:"
+          for header in SDL_asyncio SDL_blendmode SDL_cpuinfo SDL_gpu SDL_guid SDL_iostream SDL_loadso SDL_messagebox; do
+            if [ -f "/usr/local/include/SDL3/${header}.h" ]; then
+              echo "✅ Found ${header}.h"
+              # Quick function count
+              func_count=$(grep -c "SDL_DECLSPEC.*SDLCALL" "/usr/local/include/SDL3/${header}.h" || echo "0")
+              echo "  - Contains $func_count SDL functions"
+            else
+              echo "❌ Missing ${header}.h"
+            fi
+          done
+
+          # Test binding checker with a known header
+          if [ -f "/usr/local/include/SDL3/SDL_init.h" ]; then
+            echo "Testing binding checker with SDL_init.h..."
+            if ! echo "/usr/local/include/SDL3/SDL_init.h" | cabal exec -f-pkgconfig binding-checker; then
+              echo "❌ Binding checker test failed"
+              exit 1
+            fi
+            echo "✅ Binding checker test passed"
+          else
+            echo "❌ SDL_init.h not found"
+            exit 1
+          fi
+
+          # Test binding checker with SDL_asyncio.h (should show as complete)
+          if [ -f "/usr/local/include/SDL3/SDL_asyncio.h" ]; then
+            echo "Testing binding checker with SDL_asyncio.h..."
+            echo "/usr/local/include/SDL3/SDL_asyncio.h" | cabal exec -f-pkgconfig binding-checker
+          fi
+
+          echo "✅ Binding checker verification complete"
+
+      - name: Configure git user
+        run: |
+          git config --global user.name "${{ github.event.head_commit.author.name }}"
+          git config --global user.email "${{ github.event.head_commit.author.email }}"
+
+      - name: Generate binding status
+        run: |
+          echo "Generating SDL3 binding status..."
+          chmod +x .github/generate-binding-status.sh
+          chmod +x .github/update-readme.sh
+
+          # Debug: Show current git status
+          echo "Current git commit:"
+          git log --oneline -n 3
+
+          # Debug: Show binding checker executable info
+          echo "Binding checker executable:"
+          ls -la dist-newstyle/build/*/ghc-*/sdl3-*/x/binding-checker/build/binding-checker/ || echo "Build directory not found"
+
+          # Debug: Show working directory and absolute paths
+          echo "=== Current working directory ==="
+          pwd
+          echo "=== Absolute path to project ==="
+          realpath .
+          echo "=== Environment variables ==="
+          echo "HOME: $HOME"
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+
+          # Debug: Show project file structure
+          echo "Project file structure:"
+          echo "=== Root directory ==="
+          ls -la
+          echo "=== src/ directory ==="
+          ls -la src/
+          echo "=== src/SDL/ directory ==="
+          ls -la src/SDL/
+          echo "=== First 10 files in src/SDL/ ==="
+          ls src/SDL/ | head -10
+
+          # Debug: Test specific binding file paths
+          echo "=== Testing specific binding file paths ==="
+          for module in AsyncIO BlendMode CPUInfo GPU GUID IOStream LoadSO MessageBox; do
+            for ext in hs hsc; do
+              if [ -f "src/SDL/${module}.${ext}" ]; then
+                echo "✅ Found src/SDL/${module}.${ext}"
+              else
+                echo "❌ Missing src/SDL/${module}.${ext}"
+              fi
+            done
+          done
+
+          # Debug: Test binding checker with key modules that should be complete
+          echo "Testing binding checker with key modules:"
+          for module in SDL_asyncio SDL_blendmode SDL_cpuinfo SDL_gpu SDL_guid SDL_iostream SDL_loadso SDL_messagebox; do
+            if [ -f "/usr/local/include/SDL3/${module}.h" ]; then
+              echo "=== Testing ${module}.h ==="
+              echo "/usr/local/include/SDL3/${module}.h" | cabal exec -f-pkgconfig binding-checker
+              echo ""
+            fi
+          done
+
+          # Generate binding status - fail if this doesn't work
+          if ! ./.github/update-readme.sh; then
+            echo "❌ Failed to update binding status"
+            exit 1
+          fi
+
+          echo "✅ Binding status updated successfully"
 
       - name: Set up Pandoc
         uses: r-lib/actions/setup-pandoc@v2 # A reliable action to install Pandoc
@@ -29,12 +209,22 @@ jobs:
                  README.md
           echo "HTML generation complete. index.html created."
 
+      - name: Check README status
+        run: |
+          echo "README.md status:"
+          if ! git diff --quiet README.md; then
+            echo "⚠️  README.md has changes but will not be committed automatically"
+            echo "💡 Use pre-commit hook locally to update README before committing"
+          else
+            echo "✅ README.md is up to date"
+          fi
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: . # Directory containing index.html
           publish_branch: gh-pages # Branch to deploy to
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
-          commit_message: 'Deploy docs: ${{ github.event.head_commit.message }}'
+          user_name: ${{ github.event.head_commit.author.name }}
+          user_email: ${{ github.event.head_commit.author.email }}
+          commit_message: "Deploy docs with binding status: ${{ github.event.head_commit.message }}"

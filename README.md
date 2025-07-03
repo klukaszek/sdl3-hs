@@ -35,7 +35,7 @@ sudo cmake --install . --config Release
 ```
 This will install SDL3 to your system so that cabal can find and build the sdl3 package.
 
-Find your way back to this project's directory and run `cabal build` to build the package with examples, or `cabal build sdl3` to build just the package.  
+Find your way back to this project's directory and run `cabal build` to build the package with examples, or `cabal build sdl3` to build just the package.
 
 ### Windows
 
@@ -80,67 +80,6 @@ package *
 ```
 
 Once all of this is done, you can find your way into this directory and run `cabal build sdl3`. If you would like to install the examples, run `cabal build` instead.
-
-## SDL.h Header File Support Checklist
-
-🟧 means that the related header file should be implemented for the most part. Some things might be missing or non-functioning, though I have tried to be careful.
-
-| Header File | Status | Notes |
-|-------------|--------|-------|
-| SDL3/SDL_stdinc.h | 🟧 | |
-| SDL3/SDL_assert.h | 🟧 | |
-| SDL3/SDL_asyncio.h | 🟧 | |
-| SDL3/SDL_atomic.h | 🟧 | |
-| SDL3/SDL_audio.h | 🟧 | |
-| SDL3/SDL_bits.h | 🟧 | |
-| SDL3/SDL_blendmode.h | 🟧 | |
-| SDL3/SDL_camera.h | 🟧 | |
-| SDL3/SDL_clipboard.h | 🟧 | |
-| SDL3/SDL_cpuinfo.h | 🟧 | |
-| SDL3/SDL_dialog.h | 🟧 | |
-| SDL3/SDL_endian.h | 🟧 | |
-| SDL3/SDL_error.h | 🟧 | |
-| SDL3/SDL_events.h | 🟧 | |
-| SDL3/SDL_filesystem.h | 🟧 | |
-| SDL3/SDL_gamepad.h | 🟧 | |
-| SDL3/SDL_gpu.h | 🟧 | |
-| SDL3/SDL_guid.h | 🟧 | |
-| SDL3/SDL_haptic.h | 🟧 | |
-| SDL3/SDL_hidapi.h | 🟧 | |
-| SDL3/SDL_hints.h | 🟧 | |
-| SDL3/SDL_init.h | 🟧 | |
-| SDL3/SDL_iostream.h | 🟧 | |
-| SDL3/SDL_joystick.h | 🟧 | |
-| SDL3/SDL_keyboard.h | 🟧 | |
-| SDL3/SDL_keycode.h | 🟧 | |
-| SDL3/SDL_loadso.h | 🟧 | |
-| SDL3/SDL_locale.h | 🟧 | |
-| SDL3/SDL_log.h | 🟧 | |
-| SDL3/SDL_messagebox.h | 🟧 | |
-| SDL3/SDL_metal.h | 🟧 | |
-| SDL3/SDL_misc.h | 🟧 | |
-| SDL3/SDL_mouse.h | 🟧 | |
-| SDL3/SDL_mutex.h | 🟧 | |
-| SDL3/SDL_pen.h | 🟧 | |
-| SDL3/SDL_pixels.h | 🟧 | |
-| SDL3/SDL_platform.h | 🟧 | |
-| SDL3/SDL_power.h | 🟧 | |
-| SDL3/SDL_process.h | 🟧 | |
-| SDL3/SDL_properties.h | 🟧 | |
-| SDL3/SDL_rect.h | 🟧 | |
-| SDL3/SDL_render.h | 🟧 | |
-| SDL3/SDL_scancode.h | 🟧 | |
-| SDL3/SDL_sensor.h | 🟧 | |
-| SDL3/SDL_storage.h | 🟧 | |
-| SDL3/SDL_surface.h | 🟧 | |
-| SDL3/SDL_system.h | 🟧 | |
-| SDL3/SDL_thread.h | 🟧 | |
-| SDL3/SDL_time.h | 🟧 | |
-| SDL3/SDL_timer.h | 🟧 | |
-| SDL3/SDL_tray.h | 🟧 | |
-| SDL3/SDL_touch.h | 🟧 | |
-| SDL3/SDL_version.h | 🟧 | |
-| SDL3/SDL_video.h | 🟧 | |
 
 # Working Examples
 
@@ -200,7 +139,7 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 - [WAV](examples/WAVExample.hs) - WAV file handling
 
 ### Camera
-- [Camera](examples/CameraExample.hs) - Camera device access (Can't test properly but compiles.)
+- [Camera](examples/CameraExample.hs) - Camera device access (tested on macOS)
 
 ## System Integration
 ### File & Data
@@ -222,3 +161,86 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 ## Sensors
 ### Hardware
 - [Sensor](examples/SensorExample.hs) - Hardware sensor access (Can't test properly but compiles.)
+
+## 📊 Binding Status
+
+*Last updated: 2025-07-03 09:07 UTC*
+
+*SDL3 commit: `cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b`*
+### Summary
+- **Total Modules**: 54
+- **Modules with Bindings**: 54
+- **Complete Bindings**: 45
+- **Missing Functions**: 137
+- **Completion Rate**: 83%
+
+### Status by Module
+
+| Module | Status |
+|--------|--------|
+| `SDL_assert` | ✅ Complete |
+| `SDL_asyncio` | ✅ Complete |
+| `SDL_atomic` | ✅ Complete |
+| `SDL_audio` | ⚠️ 3 missing |
+| `SDL_bits` | ✅ Complete |
+| `SDL_blendmode` | ✅ Complete |
+| `SDL_camera` | ✅ Complete |
+| `SDL_clipboard` | ✅ Complete |
+| `SDL_cpuinfo` | ✅ Complete |
+| `SDL_dialog` | ✅ Complete |
+| `SDL_endian` | ✅ Complete |
+| `SDL_error` | ✅ Complete |
+| `SDL_events` | ⚠️ 1 missing |
+| `SDL_filesystem` | ✅ Complete |
+| `SDL_gamepad` | ✅ Complete |
+| `SDL_gpu` | ✅ Complete |
+| `SDL_guid` | ⚠️ 2 missing |
+| `SDL_haptic` | ✅ Complete |
+| `SDL_hidapi` | ✅ Complete |
+| `SDL_hints` | ✅ Complete |
+| `SDL_init` | ✅ Complete |
+| `SDL_iostream` | ⚠️ 2 missing |
+| `SDL_joystick` | ✅ Complete |
+| `SDL_keyboard` | ✅ Complete |
+| `SDL_keycode` | ✅ Complete |
+| `SDL_loadso` | ✅ Complete |
+| `SDL_locale` | ✅ Complete |
+| `SDL_log` | ✅ Complete |
+| `SDL_messagebox` | ✅ Complete |
+| `SDL_metal` | ✅ Complete |
+| `SDL_misc` | ✅ Complete |
+| `SDL_mouse` | ✅ Complete |
+| `SDL_mutex` | ✅ Complete |
+| `SDL_pen` | ✅ Complete |
+| `SDL_pixels` | ✅ Complete |
+| `SDL_platform` | ✅ Complete |
+| `SDL_power` | ✅ Complete |
+| `SDL_process` | ✅ Complete |
+| `SDL_properties` | ✅ Complete |
+| `SDL_rect` | ✅ Complete |
+| `SDL_render` | ⚠️ 1 missing |
+| `SDL_scancode` | ✅ Complete |
+| `SDL_sensor` | ✅ Complete |
+| `SDL_stdinc` | ⚠️ 2 missing |
+| `SDL_storage` | ✅ Complete |
+| `SDL_surface` | ⚠️ 35 missing |
+| `SDL_system` | ✅ Complete |
+| `SDL_thread` | ⚠️ 2 missing |
+| `SDL_time` | ✅ Complete |
+| `SDL_timer` | ✅ Complete |
+| `SDL_touch` | ✅ Complete |
+| `SDL_tray` | ✅ Complete |
+| `SDL_version` | ✅ Complete |
+| `SDL_video` | ⚠️ 89 missing |
+
+### Legend
+- ✅ **Complete**: All functions from the header are bound
+- ⚠️ **X missing**: Header has bindings but X functions are missing
+- ❌ **No bindings**: No Haskell bindings exist for this header
+- ❓ **Unknown**: Status could not be determined
+
+### Notes
+- Status reflects core SDL3 headers (test/internal headers excluded)
+- Missing function details are available in the `broken/` directory after running the binding checker
+- Use `./check-sdl-bindings -i` for interactive binding status checking
+- Some modules may intentionally have no bindings if not applicable to Haskell
