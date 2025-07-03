@@ -164,48 +164,48 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 
 ## 📊 Binding Status
 
-*Last updated: 2025-07-03 04:11 UTC*
+*Last updated: 2025-07-03 04:52 UTC*
 
 ### Summary
 - **Total Modules**: 54
-- **Modules with Bindings**: 54
-- **Complete Bindings**: 45
-- **Missing Functions**: 137
-- **Completion Rate**: 83%
+- **Modules with Bindings**: 46
+- **Complete Bindings**: 39
+- **Missing Functions**: 133
+- **Completion Rate**: 84%
 
 ### Status by Module
 
 | Module | Status |
 |--------|--------|
 | `SDL_assert` | ✅ Complete |
-| `SDL_asyncio` | ✅ Complete |
+| `SDL_asyncio` | ❌ No bindings |
 | `SDL_atomic` | ✅ Complete |
 | `SDL_audio` | ⚠️ 3 missing |
 | `SDL_bits` | ✅ Complete |
-| `SDL_blendmode` | ✅ Complete |
+| `SDL_blendmode` | ❌ No bindings |
 | `SDL_camera` | ✅ Complete |
 | `SDL_clipboard` | ✅ Complete |
-| `SDL_cpuinfo` | ✅ Complete |
+| `SDL_cpuinfo` | ❌ No bindings |
 | `SDL_dialog` | ✅ Complete |
 | `SDL_endian` | ✅ Complete |
 | `SDL_error` | ✅ Complete |
 | `SDL_events` | ⚠️ 1 missing |
 | `SDL_filesystem` | ✅ Complete |
 | `SDL_gamepad` | ✅ Complete |
-| `SDL_gpu` | ✅ Complete |
-| `SDL_guid` | ⚠️ 2 missing |
+| `SDL_gpu` | ❌ No bindings |
+| `SDL_guid` | ❌ No bindings |
 | `SDL_haptic` | ✅ Complete |
 | `SDL_hidapi` | ✅ Complete |
 | `SDL_hints` | ✅ Complete |
 | `SDL_init` | ✅ Complete |
-| `SDL_iostream` | ⚠️ 2 missing |
+| `SDL_iostream` | ❌ No bindings |
 | `SDL_joystick` | ✅ Complete |
 | `SDL_keyboard` | ✅ Complete |
 | `SDL_keycode` | ✅ Complete |
-| `SDL_loadso` | ✅ Complete |
+| `SDL_loadso` | ❌ No bindings |
 | `SDL_locale` | ✅ Complete |
 | `SDL_log` | ✅ Complete |
-| `SDL_messagebox` | ✅ Complete |
+| `SDL_messagebox` | ❌ No bindings |
 | `SDL_metal` | ✅ Complete |
 | `SDL_misc` | ✅ Complete |
 | `SDL_mouse` | ✅ Complete |
