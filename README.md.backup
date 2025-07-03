@@ -164,7 +164,7 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 
 ## 📊 Binding Status
 
-*Last updated: 2025-07-03 04:52 UTC*
+*Last updated: 2025-07-03 05:15 UTC*
 
 ### Summary
 - **Total Modules**: 54
