@@ -114,7 +114,10 @@ runAppGPU context@Context {..} = do
       Just resources -> do
         sdlLog "Resources created successfully."
         sdlLog "Press Left/Right to switch between modes"
-        sdlLog $ "Initial Mode: " ++ head modeNames
+        sdlLog $
+          "Initial Mode: " ++ case modeNames of
+            [] -> "No modes available"
+            (mode : _) -> mode
 
         -- Create mutable state refs
         state <- AppState <$> newIORef 0 -- Start at mode 0
@@ -378,7 +381,9 @@ runAppGPU context@Context {..} = do
 -- | Helper to calculate sizes and log them (same as before)
 calculateVertexDataSize :: [PositionColorVertex] -> IO (Int, CSize, Word32)
 calculateVertexDataSize dataList = do
-  let vertexSize = sizeOf (head dataList) -- Size of one vertex
+  let vertexSize = case dataList of
+        [] -> 0
+        (vertex : _) -> sizeOf vertex -- Size of one vertex
   let numVertices = length dataList
   let totalBytes = numVertices * vertexSize
   let totalCSize = fromIntegral totalBytes :: CSize

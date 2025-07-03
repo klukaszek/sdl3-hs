@@ -53,6 +53,7 @@ extra-source-files:
     ChangeLog.md,
     cbits/sdlhelper.c,
     include/helper.h,
+    examples/GPUCommon.hs
 
 data-dir:
     examples
@@ -129,9 +130,11 @@ library
         SDL.Tray
         SDL.Version
         SDL.Video
+        GPUCommon
 
     -- Modules included in this library but not exported.
-    -- other-modules:
+    other-modules:
+        Paths_sdl3
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -167,6 +170,8 @@ library
 
     -- Base language which the package is written in.
     default-language: Haskell2010
+
+
 
 -- ** Examples:
 
@@ -237,6 +242,7 @@ executable gamepad
 
 executable gpu-basiccompute
     main-is: GPUBasicComputeExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -248,6 +254,7 @@ executable gpu-basiccompute
 
 executable gpu-clear
     main-is: GPUClearExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -259,6 +266,7 @@ executable gpu-clear
 
 executable gpu-clear3dslice
     main-is: GPUClear3DSliceExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -270,6 +278,7 @@ executable gpu-clear3dslice
 
 executable gpu-computeuniforms
     main-is: GPUComputeUniformsExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -281,6 +290,7 @@ executable gpu-computeuniforms
 
 executable gpu-copyconsistency
     main-is: GPUCopyConsistencyExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -293,6 +303,7 @@ executable gpu-copyconsistency
 
 executable gpu-copyreadback
     main-is: GPUCopyAndReadbackExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -305,6 +316,7 @@ executable gpu-copyreadback
 
 executable gpu-cull
     main-is: GPUCullExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -316,6 +328,7 @@ executable gpu-cull
 
 executable gpu-computesampler
     main-is: GPUComputeSamplerExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -327,6 +340,7 @@ executable gpu-computesampler
 
 executable gpu-customsampling
     main-is: GPUCustomSamplingExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -338,6 +352,7 @@ executable gpu-customsampling
 
 executable gpu-drawindirect
     main-is: GPUDrawIndirectExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -349,6 +364,7 @@ executable gpu-drawindirect
 
 executable gpu-instanced
     main-is: GPUInstancedExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -360,6 +376,7 @@ executable gpu-instanced
 
 executable gpu-multiwindow
     main-is: GPUMultiWindowExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -370,6 +387,7 @@ executable gpu-multiwindow
 
 executable gpu-stencil
     main-is: GPUStencilExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -381,6 +399,7 @@ executable gpu-stencil
 
 executable gpu-animatedquad
     main-is: GPUAnimatedQuadExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         linear,
@@ -394,6 +413,7 @@ executable gpu-animatedquad
 
 executable gpu-texturedquad
     main-is: GPUTexturedQuadExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -405,6 +425,7 @@ executable gpu-texturedquad
 
 executable gpu-tonemapping
     main-is: GPUTonemappingExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -415,6 +436,7 @@ executable gpu-tonemapping
 
 executable gpu-triangle
     main-is: GPURawTriangleExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
@@ -425,6 +447,7 @@ executable gpu-triangle
 
 executable gpu-vbuf
     main-is: GPUVertexBufferExample.hs
+    other-modules: Paths_sdl3
     build-depends:
         base,
         sdl3,
