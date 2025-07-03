@@ -251,6 +251,13 @@ splitOn c s = case break (== c) s of
 findBindingFile :: String -> IO (Maybe String)
 findBindingFile headerPath = do
   let baseName = takeBaseName headerPath
+
+      -- Special case for SDL.h -> src/SDL.hs
+      specialCases =
+        if baseName == "SDL"
+          then ["src/SDL.hs"]
+          else []
+
       -- Remove "SDL_" prefix if present
       moduleName = case stripPrefix "SDL_" baseName of
         Just name -> name
@@ -265,13 +272,14 @@ findBindingFile headerPath = do
       camelCaseName = toCamelCase moduleName
 
       possiblePaths =
-        [ "src/SDL/" ++ capitalizedName ++ ".hsc",
-          "src/SDL/" ++ capitalizedName ++ ".hs",
-          "src/SDL/" ++ camelCaseName ++ ".hsc",
-          "src/SDL/" ++ camelCaseName ++ ".hs",
-          "src/SDL/" ++ baseName ++ ".hsc",
-          "src/SDL/" ++ baseName ++ ".hs"
-        ]
+        specialCases
+          ++ [ "src/SDL/" ++ capitalizedName ++ ".hsc",
+               "src/SDL/" ++ capitalizedName ++ ".hs",
+               "src/SDL/" ++ camelCaseName ++ ".hsc",
+               "src/SDL/" ++ camelCaseName ++ ".hs",
+               "src/SDL/" ++ baseName ++ ".hsc",
+               "src/SDL/" ++ baseName ++ ".hs"
+             ]
 
   existing <- filterM doesFileExist possiblePaths
   case existing of
