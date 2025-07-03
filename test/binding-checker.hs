@@ -263,18 +263,32 @@ findBindingFile headerPath = do
         Just name -> name
         Nothing -> baseName
 
-      -- Capitalize first letter for module name and handle underscores
-      capitalizedName = case moduleName of
-        (c : cs) -> toUpper c : cs
-        [] -> ""
+      -- Special mapping for modules with non-standard casing
+      specialModuleNames =
+        [ ("asyncio", "AsyncIO"),
+          ("cpuinfo", "CPUInfo"),
+          ("loadso", "LoadSO"),
+          ("messagebox", "MessageBox"),
+          ("blendmode", "BlendMode"),
+          ("iostream", "IOStream"),
+          ("guid", "GUID"),
+          ("gpu", "GPU")
+        ]
+
+      -- Get the correct module name, checking special cases first
+      correctModuleName = case lookup (map toLower moduleName) specialModuleNames of
+        Just specialName -> specialName
+        Nothing -> case moduleName of
+          (c : cs) -> toUpper c : cs
+          [] -> ""
 
       -- Also try a version with underscores removed and proper camelCase
       camelCaseName = toCamelCase moduleName
 
       possiblePaths =
         specialCases
-          ++ [ "src/SDL/" ++ capitalizedName ++ ".hsc",
-               "src/SDL/" ++ capitalizedName ++ ".hs",
+          ++ [ "src/SDL/" ++ correctModuleName ++ ".hsc",
+               "src/SDL/" ++ correctModuleName ++ ".hs",
                "src/SDL/" ++ camelCaseName ++ ".hsc",
                "src/SDL/" ++ camelCaseName ++ ".hs",
                "src/SDL/" ++ baseName ++ ".hsc",
