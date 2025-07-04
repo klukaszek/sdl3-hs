@@ -35,7 +35,7 @@ sudo cmake --install . --config Release
 ```
 This will install SDL3 to your system so that cabal can find and build the sdl3 package.
 
-Find your way back to this project's directory and run `cabal build` to build the package with examples, or `cabal build sdl3` to build just the package.
+Find your way back to this project's directory and run `cabal build sdl3` to build just the package.
 
 ### Windows
 
@@ -79,7 +79,31 @@ package *
   extra-lib-dirs: "path/to/SDL3/lib/"
 ```
 
-Once all of this is done, you can find your way into this directory and run `cabal build sdl3`. If you would like to install the examples, run `cabal build` instead.
+Once all of this is done, you can find your way into this directory and run `cabal build sdl3` to build just the package.
+
+## Building and Running Examples
+
+To build all examples:
+```bash
+cabal build --flag examples
+```
+
+To see a list of all available examples:
+```bash
+cabal run --flag examples
+```
+
+To run a specific example:
+```bash
+cabal run --flag examples EXAMPLE_NAME
+```
+
+For example, to run the init example:
+```bash
+cabal run --flag examples init
+```
+
+You can also build specific executables in a similar manner by specifying the target name.
 
 # Working Examples
 
@@ -164,7 +188,7 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 
 ## 📊 Binding Status
 
-*Last updated: 2025-07-03 09:07 UTC*
+*Last updated: 2025-07-04 20:29 UTC*
 
 *SDL3 commit: `cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b`*
 ### Summary

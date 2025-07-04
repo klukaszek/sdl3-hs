@@ -37,7 +37,6 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="
 <p>This will install SDL3 to your system so that cabal can find and
 build the sdl3 package.</p>
 <p>Find your way back to this project's directory and run
-<code>cabal build</code> to build the package with examples, or
 <code>cabal build sdl3</code> to build just the package.</p>
 <h3 id="windows">Windows</h3>
 <blockquote>
@@ -78,8 +77,23 @@ the root directory with:</p>
   extra-include-dirs: &quot;path/to/SDL3/include/&quot;
   extra-lib-dirs: &quot;path/to/SDL3/lib/&quot;</code></pre>
 <p>Once all of this is done, you can find your way into this directory
-and run <code>cabal build sdl3</code>. If you would like to install the
-examples, run <code>cabal build</code> instead.</p>
+and run <code>cabal build sdl3</code> to build just the package.</p>
+<h2 id="building-and-running-examples">Building and Running
+Examples</h2>
+<p>To build all examples:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> build <span class="at">--flag</span> examples</span></code></pre></div>
+<p>To see a list of all available examples:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> run <span class="at">--flag</span> examples</span></code></pre></div>
+<p>To run a specific example:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> run <span class="at">--flag</span> examples EXAMPLE_NAME</span></code></pre></div>
+<p>For example, to run the init example:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> run <span class="at">--flag</span> examples init</span></code></pre></div>
+<p>You can also build specific executables in a similar manner by
+specifying the target name.</p>
 <h1 id="working-examples">Working Examples</h1>
 <h2 id="core-functionality">Core Functionality</h2>
 <h3 id="initialization--system">Initialization &amp; System</h3>
@@ -220,7 +234,7 @@ management</li>
 access (Can't test properly but compiles.)</li>
 </ul>
 <h2 id="-binding-status">📊 Binding Status</h2>
-<p><em>Last updated: 2025-07-03 09:10 UTC</em></p>
+<p><em>Last updated: 2025-07-04 20:32 UTC</em></p>
 <p><em>SDL3 commit:
 <code>cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b</code></em></p>
 <h3 id="summary">Summary</h3>
@@ -518,7 +532,6 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="
 <p>This will install SDL3 to your system so that cabal can find and
 build the sdl3 package.</p>
 <p>Find your way back to this project's directory and run
-<code>cabal build</code> to build the package with examples, or
 <code>cabal build sdl3</code> to build just the package.</p>
 <h3 id="windows">Windows</h3>
 <blockquote>
@@ -559,8 +572,23 @@ the root directory with:</p>
   extra-include-dirs: &quot;path/to/SDL3/include/&quot;
   extra-lib-dirs: &quot;path/to/SDL3/lib/&quot;</code></pre>
 <p>Once all of this is done, you can find your way into this directory
-and run <code>cabal build sdl3</code>. If you would like to install the
-examples, run <code>cabal build</code> instead.</p>
+and run <code>cabal build sdl3</code> to build just the package.</p>
+<h2 id="building-and-running-examples">Building and Running
+Examples</h2>
+<p>To build all examples:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> build <span class="at">--flag</span> examples</span></code></pre></div>
+<p>To see a list of all available examples:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> run <span class="at">--flag</span> examples</span></code></pre></div>
+<p>To run a specific example:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> run <span class="at">--flag</span> examples EXAMPLE_NAME</span></code></pre></div>
+<p>For example, to run the init example:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> run <span class="at">--flag</span> examples init</span></code></pre></div>
+<p>You can also build specific executables in a similar manner by
+specifying the target name.</p>
 <h1 id="working-examples">Working Examples</h1>
 <h2 id="core-functionality">Core Functionality</h2>
 <h3 id="initialization--system">Initialization &amp; System</h3>
@@ -701,7 +729,7 @@ management</li>
 access (Can't test properly but compiles.)</li>
 </ul>
 <h2 id="-binding-status">📊 Binding Status</h2>
-<p><em>Last updated: 2025-07-03 09:10 UTC</em></p>
+<p><em>Last updated: 2025-07-04 20:32 UTC</em></p>
 <p><em>SDL3 commit:
 <code>cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b</code></em></p>
 <h3 id="summary">Summary</h3>
@@ -1134,7 +1162,6 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="
 <p>This will install SDL3 to your system so that cabal can find and
 build the sdl3 package.</p>
 <p>Find your way back to this project's directory and run
-<code>cabal build</code> to build the package with examples, or
 <code>cabal build sdl3</code> to build just the package.</p>
 <h3 id="windows">Windows</h3>
 <blockquote>
@@ -1175,8 +1202,23 @@ the root directory with:</p>
   extra-include-dirs: &quot;path/to/SDL3/include/&quot;
   extra-lib-dirs: &quot;path/to/SDL3/lib/&quot;</code></pre>
 <p>Once all of this is done, you can find your way into this directory
-and run <code>cabal build sdl3</code>. If you would like to install the
-examples, run <code>cabal build</code> instead.</p>
+and run <code>cabal build sdl3</code> to build just the package.</p>
+<h2 id="building-and-running-examples">Building and Running
+Examples</h2>
+<p>To build all examples:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> build <span class="at">--flag</span> examples</span></code></pre></div>
+<p>To see a list of all available examples:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> run <span class="at">--flag</span> examples</span></code></pre></div>
+<p>To run a specific example:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> run <span class="at">--flag</span> examples EXAMPLE_NAME</span></code></pre></div>
+<p>For example, to run the init example:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> run <span class="at">--flag</span> examples init</span></code></pre></div>
+<p>You can also build specific executables in a similar manner by
+specifying the target name.</p>
 <h1 id="working-examples">Working Examples</h1>
 <h2 id="core-functionality">Core Functionality</h2>
 <h3 id="initialization--system">Initialization &amp; System</h3>
@@ -1317,7 +1359,7 @@ management</li>
 access (Can't test properly but compiles.)</li>
 </ul>
 <h2 id="-binding-status">📊 Binding Status</h2>
-<p><em>Last updated: 2025-07-03 09:10 UTC</em></p>
+<p><em>Last updated: 2025-07-04 20:32 UTC</em></p>
 <p><em>SDL3 commit:
 <code>cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b</code></em></p>
 <h3 id="summary">Summary</h3>
