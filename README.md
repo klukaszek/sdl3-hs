@@ -105,6 +105,52 @@ cabal run --flag examples init
 
 You can also build specific executables in a similar manner by specifying the target name.
 
+## Build Options
+
+The bindings support two main build configurations:
+
+### Dynamic Linking (Default)
+```bash
+cabal build sdl3                    # Build library only
+cabal build --flag examples        # Build with examples
+```
+
+This is the default and recommended approach for development. Your executable will depend on SDL3 shared libraries.
+
+### Static Linking
+```bash
+cabal build --flag static-linking  # Build with static SDL3 (Linux only)
+```
+
+Creates self-contained executables with SDL3 compiled in. Requires SDL3 to be built with static libraries enabled.
+
+**⚠️ macOS Limitation:** Static linking is not supported on macOS due to Apple's linking restrictions. The `static-linking` flag is ignored on macOS. Use dynamic linking with bundled libraries instead (see [DISTRIBUTION.md](DISTRIBUTION.md)).
+
+**Note:** Static linking requires SDL3 built with `-DBUILD_SHARED_LIBS=OFF`. See [DISTRIBUTION.md](DISTRIBUTION.md) for details.
+
+### Cabal Project Configuration
+Add to `cabal.project.local`:
+```
+package sdl3
+  flags: +static-linking  # Enable static linking
+```
+
+## Distribution
+
+For distributing applications to end users, see our comprehensive [**Distribution Guide**](DISTRIBUTION.md) which covers:
+
+- Bundling official SDL3 releases (recommended)
+- Static linking strategies
+- Platform-specific distribution
+- Testing and optimization
+- Production considerations
+
+**Quick Summary:**
+- **Development**: Use dynamic linking (default)
+- **Distribution**: Bundle SDL3 libraries with your executable
+- **Self-contained**: Use static linking for single-file distribution (Linux only)
+- **macOS**: Use dynamic linking with bundled libraries
+
 # Working Examples
 
 ## Core Functionality
@@ -188,16 +234,16 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 
 ## 📊 Binding Status
 
-*Last updated: 2025-07-04 20:32 UTC*
+*Last updated: 2025-08-03 06:59 UTC*
 
-*SDL3 commit: `cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b`*
+*SDL3 commit: `e1a623f129e75ad532315852d656fb26c80382a6`*
 
 ### Summary
 - **Total Modules**: 54
 - **Modules with Bindings**: 54
-- **Complete Bindings**: 45
-- **Missing Functions**: 137
-- **Completion Rate**: 83%
+- **Complete Bindings**: 54
+- **Missing Functions**: 0
+- **Completion Rate**: 100%
 
 ### Status by Module
 
@@ -206,7 +252,7 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 | `SDL_assert` | ✅ Complete |
 | `SDL_asyncio` | ✅ Complete |
 | `SDL_atomic` | ✅ Complete |
-| `SDL_audio` | ⚠️ 3 missing |
+| `SDL_audio` | ✅ Complete |
 | `SDL_bits` | ✅ Complete |
 | `SDL_blendmode` | ✅ Complete |
 | `SDL_camera` | ✅ Complete |
@@ -215,16 +261,16 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 | `SDL_dialog` | ✅ Complete |
 | `SDL_endian` | ✅ Complete |
 | `SDL_error` | ✅ Complete |
-| `SDL_events` | ⚠️ 1 missing |
+| `SDL_events` | ✅ Complete |
 | `SDL_filesystem` | ✅ Complete |
 | `SDL_gamepad` | ✅ Complete |
 | `SDL_gpu` | ✅ Complete |
-| `SDL_guid` | ⚠️ 2 missing |
+| `SDL_guid` | ✅ Complete |
 | `SDL_haptic` | ✅ Complete |
 | `SDL_hidapi` | ✅ Complete |
 | `SDL_hints` | ✅ Complete |
 | `SDL_init` | ✅ Complete |
-| `SDL_iostream` | ⚠️ 2 missing |
+| `SDL_iostream` | ✅ Complete |
 | `SDL_joystick` | ✅ Complete |
 | `SDL_keyboard` | ✅ Complete |
 | `SDL_keycode` | ✅ Complete |
@@ -243,20 +289,20 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 | `SDL_process` | ✅ Complete |
 | `SDL_properties` | ✅ Complete |
 | `SDL_rect` | ✅ Complete |
-| `SDL_render` | ⚠️ 1 missing |
+| `SDL_render` | ✅ Complete |
 | `SDL_scancode` | ✅ Complete |
 | `SDL_sensor` | ✅ Complete |
-| `SDL_stdinc` | ⚠️ 2 missing |
+| `SDL_stdinc` | ✅ Complete |
 | `SDL_storage` | ✅ Complete |
-| `SDL_surface` | ⚠️ 35 missing |
+| `SDL_surface` | ✅ Complete |
 | `SDL_system` | ✅ Complete |
-| `SDL_thread` | ⚠️ 2 missing |
+| `SDL_thread` | ✅ Complete |
 | `SDL_time` | ✅ Complete |
 | `SDL_timer` | ✅ Complete |
 | `SDL_touch` | ✅ Complete |
 | `SDL_tray` | ✅ Complete |
 | `SDL_version` | ✅ Complete |
-| `SDL_video` | ⚠️ 89 missing |
+| `SDL_video` | ✅ Complete |
 
 ### Legend
 - ✅ **Complete**: All functions from the header are bound

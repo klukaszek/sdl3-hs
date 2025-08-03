@@ -94,6 +94,52 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> run <span class="at">--flag</span> examples init</span></code></pre></div>
 <p>You can also build specific executables in a similar manner by
 specifying the target name.</p>
+<h2 id="build-options">Build Options</h2>
+<p>The bindings support two main build configurations:</p>
+<h3 id="dynamic-linking-default">Dynamic Linking (Default)</h3>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> build sdl3                    <span class="co"># Build library only</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> build <span class="at">--flag</span> examples        <span class="co"># Build with examples</span></span></code></pre></div>
+<p>This is the default and recommended approach for development. Your
+executable will depend on SDL3 shared libraries.</p>
+<h3 id="static-linking">Static Linking</h3>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> build <span class="at">--flag</span> static-linking  <span class="co"># Build with static SDL3 (Linux only)</span></span></code></pre></div>
+<p>Creates self-contained executables with SDL3 compiled in. Requires
+SDL3 to be built with static libraries enabled.</p>
+<p><strong>⚠️ macOS Limitation:</strong> Static linking is not supported
+on macOS due to Apple's linking restrictions. The
+<code>static-linking</code> flag is ignored on macOS. Use dynamic
+linking with bundled libraries instead (see <a
+href="DISTRIBUTION.md">DISTRIBUTION.md</a>).</p>
+<p><strong>Note:</strong> Static linking requires SDL3 built with
+<code>-DBUILD_SHARED_LIBS=OFF</code>. See <a
+href="DISTRIBUTION.md">DISTRIBUTION.md</a> for details.</p>
+<h3 id="cabal-project-configuration">Cabal Project Configuration</h3>
+<p>Add to <code>cabal.project.local</code>:</p>
+<pre><code>package sdl3
+  flags: +static-linking  # Enable static linking</code></pre>
+<h2 id="distribution">Distribution</h2>
+<p>For distributing applications to end users, see our comprehensive <a
+href="DISTRIBUTION.md"><strong>Distribution Guide</strong></a> which
+covers:</p>
+<ul>
+<li>Bundling official SDL3 releases (recommended)</li>
+<li>Static linking strategies</li>
+<li>Platform-specific distribution</li>
+<li>Testing and optimization</li>
+<li>Production considerations</li>
+</ul>
+<p><strong>Quick Summary:</strong></p>
+<ul>
+<li><strong>Development</strong>: Use dynamic linking (default)</li>
+<li><strong>Distribution</strong>: Bundle SDL3 libraries with your
+executable</li>
+<li><strong>Self-contained</strong>: Use static linking for single-file
+distribution (Linux only)</li>
+<li><strong>macOS</strong>: Use dynamic linking with bundled
+libraries</li>
+</ul>
 <h1 id="working-examples">Working Examples</h1>
 <h2 id="core-functionality">Core Functionality</h2>
 <h3 id="initialization--system">Initialization &amp; System</h3>
@@ -234,16 +280,16 @@ management</li>
 access (Can't test properly but compiles.)</li>
 </ul>
 <h2 id="-binding-status">📊 Binding Status</h2>
-<p><em>Last updated: 2025-07-04 20:32 UTC</em></p>
+<p><em>Last updated: 2025-08-03 06:59 UTC</em></p>
 <p><em>SDL3 commit:
-<code>cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b</code></em></p>
+<code>e1a623f129e75ad532315852d656fb26c80382a6</code></em></p>
 <h3 id="summary">Summary</h3>
 <ul>
 <li><strong>Total Modules</strong>: 54</li>
 <li><strong>Modules with Bindings</strong>: 54</li>
-<li><strong>Complete Bindings</strong>: 45</li>
-<li><strong>Missing Functions</strong>: 137</li>
-<li><strong>Completion Rate</strong>: 83%</li>
+<li><strong>Complete Bindings</strong>: 54</li>
+<li><strong>Missing Functions</strong>: 0</li>
+<li><strong>Completion Rate</strong>: 100%</li>
 </ul>
 <h3 id="status-by-module">Status by Module</h3>
 <table>
@@ -268,7 +314,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_audio</code></td>
-<td>⚠️ 3 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_bits</code></td>
@@ -304,7 +350,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="odd">
 <td><code>SDL_events</code></td>
-<td>⚠️ 1 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="even">
 <td><code>SDL_filesystem</code></td>
@@ -320,7 +366,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="odd">
 <td><code>SDL_guid</code></td>
-<td>⚠️ 2 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="even">
 <td><code>SDL_haptic</code></td>
@@ -340,7 +386,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_iostream</code></td>
-<td>⚠️ 2 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_joystick</code></td>
@@ -416,7 +462,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="odd">
 <td><code>SDL_render</code></td>
-<td>⚠️ 1 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="even">
 <td><code>SDL_scancode</code></td>
@@ -428,7 +474,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_stdinc</code></td>
-<td>⚠️ 2 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_storage</code></td>
@@ -436,7 +482,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_surface</code></td>
-<td>⚠️ 35 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_system</code></td>
@@ -444,7 +490,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_thread</code></td>
-<td>⚠️ 2 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_time</code></td>
@@ -468,7 +514,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_video</code></td>
-<td>⚠️ 89 missing</td>
+<td>✅ Complete</td>
 </tr>
 </tbody>
 </table>
@@ -589,6 +635,52 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> run <span class="at">--flag</span> examples init</span></code></pre></div>
 <p>You can also build specific executables in a similar manner by
 specifying the target name.</p>
+<h2 id="build-options">Build Options</h2>
+<p>The bindings support two main build configurations:</p>
+<h3 id="dynamic-linking-default">Dynamic Linking (Default)</h3>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> build sdl3                    <span class="co"># Build library only</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> build <span class="at">--flag</span> examples        <span class="co"># Build with examples</span></span></code></pre></div>
+<p>This is the default and recommended approach for development. Your
+executable will depend on SDL3 shared libraries.</p>
+<h3 id="static-linking">Static Linking</h3>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> build <span class="at">--flag</span> static-linking  <span class="co"># Build with static SDL3 (Linux only)</span></span></code></pre></div>
+<p>Creates self-contained executables with SDL3 compiled in. Requires
+SDL3 to be built with static libraries enabled.</p>
+<p><strong>⚠️ macOS Limitation:</strong> Static linking is not supported
+on macOS due to Apple's linking restrictions. The
+<code>static-linking</code> flag is ignored on macOS. Use dynamic
+linking with bundled libraries instead (see <a
+href="DISTRIBUTION.md">DISTRIBUTION.md</a>).</p>
+<p><strong>Note:</strong> Static linking requires SDL3 built with
+<code>-DBUILD_SHARED_LIBS=OFF</code>. See <a
+href="DISTRIBUTION.md">DISTRIBUTION.md</a> for details.</p>
+<h3 id="cabal-project-configuration">Cabal Project Configuration</h3>
+<p>Add to <code>cabal.project.local</code>:</p>
+<pre><code>package sdl3
+  flags: +static-linking  # Enable static linking</code></pre>
+<h2 id="distribution">Distribution</h2>
+<p>For distributing applications to end users, see our comprehensive <a
+href="DISTRIBUTION.md"><strong>Distribution Guide</strong></a> which
+covers:</p>
+<ul>
+<li>Bundling official SDL3 releases (recommended)</li>
+<li>Static linking strategies</li>
+<li>Platform-specific distribution</li>
+<li>Testing and optimization</li>
+<li>Production considerations</li>
+</ul>
+<p><strong>Quick Summary:</strong></p>
+<ul>
+<li><strong>Development</strong>: Use dynamic linking (default)</li>
+<li><strong>Distribution</strong>: Bundle SDL3 libraries with your
+executable</li>
+<li><strong>Self-contained</strong>: Use static linking for single-file
+distribution (Linux only)</li>
+<li><strong>macOS</strong>: Use dynamic linking with bundled
+libraries</li>
+</ul>
 <h1 id="working-examples">Working Examples</h1>
 <h2 id="core-functionality">Core Functionality</h2>
 <h3 id="initialization--system">Initialization &amp; System</h3>
@@ -729,16 +821,16 @@ management</li>
 access (Can't test properly but compiles.)</li>
 </ul>
 <h2 id="-binding-status">📊 Binding Status</h2>
-<p><em>Last updated: 2025-07-04 20:32 UTC</em></p>
+<p><em>Last updated: 2025-08-03 06:59 UTC</em></p>
 <p><em>SDL3 commit:
-<code>cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b</code></em></p>
+<code>e1a623f129e75ad532315852d656fb26c80382a6</code></em></p>
 <h3 id="summary">Summary</h3>
 <ul>
 <li><strong>Total Modules</strong>: 54</li>
 <li><strong>Modules with Bindings</strong>: 54</li>
-<li><strong>Complete Bindings</strong>: 45</li>
-<li><strong>Missing Functions</strong>: 137</li>
-<li><strong>Completion Rate</strong>: 83%</li>
+<li><strong>Complete Bindings</strong>: 54</li>
+<li><strong>Missing Functions</strong>: 0</li>
+<li><strong>Completion Rate</strong>: 100%</li>
 </ul>
 <h3 id="status-by-module">Status by Module</h3>
 <table>
@@ -763,7 +855,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_audio</code></td>
-<td>⚠️ 3 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_bits</code></td>
@@ -799,7 +891,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="odd">
 <td><code>SDL_events</code></td>
-<td>⚠️ 1 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="even">
 <td><code>SDL_filesystem</code></td>
@@ -815,7 +907,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="odd">
 <td><code>SDL_guid</code></td>
-<td>⚠️ 2 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="even">
 <td><code>SDL_haptic</code></td>
@@ -835,7 +927,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_iostream</code></td>
-<td>⚠️ 2 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_joystick</code></td>
@@ -911,7 +1003,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="odd">
 <td><code>SDL_render</code></td>
-<td>⚠️ 1 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="even">
 <td><code>SDL_scancode</code></td>
@@ -923,7 +1015,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_stdinc</code></td>
-<td>⚠️ 2 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_storage</code></td>
@@ -931,7 +1023,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_surface</code></td>
-<td>⚠️ 35 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_system</code></td>
@@ -939,7 +1031,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_thread</code></td>
-<td>⚠️ 2 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_time</code></td>
@@ -963,7 +1055,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_video</code></td>
-<td>⚠️ 89 missing</td>
+<td>✅ Complete</td>
 </tr>
 </tbody>
 </table>
@@ -1219,6 +1311,52 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> run <span class="at">--flag</span> examples init</span></code></pre></div>
 <p>You can also build specific executables in a similar manner by
 specifying the target name.</p>
+<h2 id="build-options">Build Options</h2>
+<p>The bindings support two main build configurations:</p>
+<h3 id="dynamic-linking-default">Dynamic Linking (Default)</h3>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> build sdl3                    <span class="co"># Build library only</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> build <span class="at">--flag</span> examples        <span class="co"># Build with examples</span></span></code></pre></div>
+<p>This is the default and recommended approach for development. Your
+executable will depend on SDL3 shared libraries.</p>
+<h3 id="static-linking">Static Linking</h3>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cabal</span> build <span class="at">--flag</span> static-linking  <span class="co"># Build with static SDL3 (Linux only)</span></span></code></pre></div>
+<p>Creates self-contained executables with SDL3 compiled in. Requires
+SDL3 to be built with static libraries enabled.</p>
+<p><strong>⚠️ macOS Limitation:</strong> Static linking is not supported
+on macOS due to Apple's linking restrictions. The
+<code>static-linking</code> flag is ignored on macOS. Use dynamic
+linking with bundled libraries instead (see <a
+href="DISTRIBUTION.md">DISTRIBUTION.md</a>).</p>
+<p><strong>Note:</strong> Static linking requires SDL3 built with
+<code>-DBUILD_SHARED_LIBS=OFF</code>. See <a
+href="DISTRIBUTION.md">DISTRIBUTION.md</a> for details.</p>
+<h3 id="cabal-project-configuration">Cabal Project Configuration</h3>
+<p>Add to <code>cabal.project.local</code>:</p>
+<pre><code>package sdl3
+  flags: +static-linking  # Enable static linking</code></pre>
+<h2 id="distribution">Distribution</h2>
+<p>For distributing applications to end users, see our comprehensive <a
+href="DISTRIBUTION.md"><strong>Distribution Guide</strong></a> which
+covers:</p>
+<ul>
+<li>Bundling official SDL3 releases (recommended)</li>
+<li>Static linking strategies</li>
+<li>Platform-specific distribution</li>
+<li>Testing and optimization</li>
+<li>Production considerations</li>
+</ul>
+<p><strong>Quick Summary:</strong></p>
+<ul>
+<li><strong>Development</strong>: Use dynamic linking (default)</li>
+<li><strong>Distribution</strong>: Bundle SDL3 libraries with your
+executable</li>
+<li><strong>Self-contained</strong>: Use static linking for single-file
+distribution (Linux only)</li>
+<li><strong>macOS</strong>: Use dynamic linking with bundled
+libraries</li>
+</ul>
 <h1 id="working-examples">Working Examples</h1>
 <h2 id="core-functionality">Core Functionality</h2>
 <h3 id="initialization--system">Initialization &amp; System</h3>
@@ -1359,16 +1497,16 @@ management</li>
 access (Can't test properly but compiles.)</li>
 </ul>
 <h2 id="-binding-status">📊 Binding Status</h2>
-<p><em>Last updated: 2025-07-04 20:32 UTC</em></p>
+<p><em>Last updated: 2025-08-03 06:59 UTC</em></p>
 <p><em>SDL3 commit:
-<code>cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b</code></em></p>
+<code>e1a623f129e75ad532315852d656fb26c80382a6</code></em></p>
 <h3 id="summary">Summary</h3>
 <ul>
 <li><strong>Total Modules</strong>: 54</li>
 <li><strong>Modules with Bindings</strong>: 54</li>
-<li><strong>Complete Bindings</strong>: 45</li>
-<li><strong>Missing Functions</strong>: 137</li>
-<li><strong>Completion Rate</strong>: 83%</li>
+<li><strong>Complete Bindings</strong>: 54</li>
+<li><strong>Missing Functions</strong>: 0</li>
+<li><strong>Completion Rate</strong>: 100%</li>
 </ul>
 <h3 id="status-by-module">Status by Module</h3>
 <table>
@@ -1393,7 +1531,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_audio</code></td>
-<td>⚠️ 3 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_bits</code></td>
@@ -1429,7 +1567,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="odd">
 <td><code>SDL_events</code></td>
-<td>⚠️ 1 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="even">
 <td><code>SDL_filesystem</code></td>
@@ -1445,7 +1583,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="odd">
 <td><code>SDL_guid</code></td>
-<td>⚠️ 2 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="even">
 <td><code>SDL_haptic</code></td>
@@ -1465,7 +1603,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_iostream</code></td>
-<td>⚠️ 2 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_joystick</code></td>
@@ -1541,7 +1679,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="odd">
 <td><code>SDL_render</code></td>
-<td>⚠️ 1 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="even">
 <td><code>SDL_scancode</code></td>
@@ -1553,7 +1691,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_stdinc</code></td>
-<td>⚠️ 2 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_storage</code></td>
@@ -1561,7 +1699,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_surface</code></td>
-<td>⚠️ 35 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_system</code></td>
@@ -1569,7 +1707,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_thread</code></td>
-<td>⚠️ 2 missing</td>
+<td>✅ Complete</td>
 </tr>
 <tr class="odd">
 <td><code>SDL_time</code></td>
@@ -1593,7 +1731,7 @@ access (Can't test properly but compiles.)</li>
 </tr>
 <tr class="even">
 <td><code>SDL_video</code></td>
-<td>⚠️ 89 missing</td>
+<td>✅ Complete</td>
 </tr>
 </tbody>
 </table>

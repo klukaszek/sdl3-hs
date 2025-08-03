@@ -1,5 +1,6 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-|
 Module      : SDL.Events
@@ -121,7 +122,7 @@ import Foreign (fromBool, toBool, FunPtr, nullFunPtr, with)
 import Foreign.C.Types (CInt(..), CUInt(..), CBool(..), CFloat(..))
 import Foreign.C.String (CString, peekCString)
 import Foreign.Ptr (Ptr, nullPtr, castPtr)
-import Foreign.Marshal.Alloc (alloca)
+import Foreign.Marshal.Alloc (alloca, allocaBytes)
 import Foreign.Marshal.Array (peekArray, withArray)
 import Foreign.Storable (Storable(..), peek)
 import Data.Word
@@ -454,16 +455,16 @@ peekWindowEvent ptr = do
   return $ SDLWindowEvent t ts wid d1 d2
 
 peekKeyboardEvent ptr = do
-  t <- peek (castPtr ptr :: Ptr Word32)             
-  ts <- peekByteOff ptr 8                            
-  wid <- peekByteOff ptr 16                          
-  which <- peekByteOff ptr 20                        
-  scancode <- peekByteOff ptr 24                     
-  key <- peekByteOff ptr 28                          
-  mod <- peekByteOff ptr 32                          
-  raw <- peekByteOff ptr 34                          
+  t <- peek (castPtr ptr :: Ptr Word32)
+  ts <- peekByteOff ptr 8
+  wid <- peekByteOff ptr 16
+  which <- peekByteOff ptr 20
+  scancode <- peekByteOff ptr 24
+  key <- peekByteOff ptr 28
+  mod <- peekByteOff ptr 32
+  raw <- peekByteOff ptr 34
   down <- peekByteOff ptr 36
-  repeat <- peekByteOff ptr 37            
+  repeat <- peekByteOff ptr 37
   return $ SDLKeyboardEvent t ts wid which scancode key mod raw (toBool (down :: CBool)) (toBool (repeat :: CBool))
 
 peekTextInputEvent :: Ptr SDLEvent -> IO SDLTextInputEvent
@@ -664,4 +665,16 @@ sdlGetWindowFromEvent event = with event $ \ptr -> do
 
 -- Helper to wrap Haskell event filter into C-compatible FunPtr
 foreign import ccall "wrapper"
-  wrapEventFilter :: SDLEventFilter -> IO (FunPtr SDLEventFilter)
+ wrapEventFilter :: SDLEventFilter -> IO (FunPtr SDLEventFilter)
+
+-- | Foreign import for SDL_GetEventDescription
+foreign import ccall unsafe "SDL_GetEventDescription"
+ c_sdlGetEventDescription :: Ptr SDLEvent -> CString -> CInt -> IO ()
+
+-- | Get a human-readable description of an SDL_Event.
+getEventDescription :: SDLEvent -> IO String
+getEventDescription event =
+ allocaBytes 256 $ \(buf :: CString) ->
+   with event $ \eventPtr -> do
+     c_sdlGetEventDescription eventPtr buf 256
+     peekCString buf

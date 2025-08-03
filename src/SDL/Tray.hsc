@@ -56,6 +56,8 @@ module SDL.Tray
   , sdlGetTrayEntryEnabled
   , sdlSetTrayEntryCallback
   , sdlClickTrayEntry
+  , sdlIsTraySupported
+
   ) where
 
 #include <SDL3/SDL_tray.h>
@@ -108,6 +110,13 @@ cIntToBool 0 = False
 cIntToBool _ = True
 
 -- * Tray Management
+
+-- | Returns True if system tray is supported on this platform.
+foreign import ccall unsafe "SDL_IsTraySupported"
+  c_sdlIsTraySupported :: IO CBool
+
+sdlIsTraySupported :: IO Bool
+sdlIsTraySupported = toBool <$> c_sdlIsTraySupported
 
 -- | Creates a new system tray icon instance.
 foreign import ccall unsafe "SDL_CreateTray"

@@ -39,10 +39,10 @@ module SDL.Surface
     -- ** Structs (Simple/Storable)
   , SDLSurface(..) -- Export the data constructor and fields
     -- * Enum Patterns
-  , pattern SDL_PROP_SURFACE_SDR_WHITE_POINT_FLOAT 
-  , pattern SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT 
-  , pattern SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING 
-  , pattern SDL_PROP_SURFACE_HOTSPOT_X_NUMBER 
+  , pattern SDL_PROP_SURFACE_SDR_WHITE_POINT_FLOAT
+  , pattern SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT
+  , pattern SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING
+  , pattern SDL_PROP_SURFACE_HOTSPOT_X_NUMBER
   , pattern SDL_PROP_SURFACE_HOTSPOT_Y_NUMBER
 
   , pattern SDL_SCALEMODE_NEAREST
@@ -102,6 +102,42 @@ module SDL.Surface
   , sdlReadSurfacePixel     -- Takes Ptr SDLSurface
   , sdlWriteSurfacePixel    -- Takes Ptr SDLSurface
   , sdlConvertSurface       -- Takes Ptr SDLSurface
+  -- ** SDL3.2+ Extended Surface API (STUBS, TODO: Implement)
+  , sdlAddSurfaceAlternateImage
+  , sdlSurfaceHasAlternateImages
+  , sdlGetSurfaceImages
+  , sdlRemoveSurfaceAlternateImages
+  , sdlLoadBMPIo
+  , sdlSaveBMPIo
+  , sdlSetSurfaceRLE
+  , sdlSurfaceHasRLE
+  , sdlSetSurfaceColorKey
+  , sdlSurfaceHasColorKey
+  , sdlGetSurfaceColorKey
+  , sdlSetSurfaceColorMod
+  , sdlGetSurfaceColorMod
+  , sdlSetSurfaceAlphaMod
+  , sdlGetSurfaceAlphaMod
+  , sdlSetSurfaceBlendMode
+  , sdlGetSurfaceBlendMode
+  , sdlSetSurfaceClipRect
+  , sdlGetSurfaceClipRect
+  , sdlConvertSurfaceAndColorspace
+  , sdlConvertPixels
+  , sdlConvertPixelsAndColorspace
+  , sdlPremultiplyAlpha
+  , sdlPremultiplySurfaceAlpha
+  , sdlClearSurface
+  , sdlFillSurfaceRect
+  , sdlFillSurfaceRects
+  , sdlBlitSurfaceUnchecked
+  , sdlBlitSurfaceUncheckedScaled
+  , sdlStretchSurface
+  , sdlBlitSurfaceTiled
+  , sdlBlitSurfaceTiledWithScale
+  , sdlBlitSurface9Grid
+  , sdlReadSurfacePixelFloat
+  , sdlWriteSurfacePixelFloat
   ) where
 
 import Foreign.C.Types
@@ -110,9 +146,11 @@ import Foreign.Storable (Storable(..))
 import Foreign.Marshal.Utils (with, maybeWith, toBool, fromBool)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.C.String (CString, withCString)
+import Foreign.Marshal.Array (peekArray)
 import Control.Monad (when)
 import Data.Word
 import Data.Bits (Bits, (.|.), (.&.))
+import SDL.IOStream (SDLIOStream(..))
 
 -- Assuming these imports provide the necessary types
 import SDL.Pixels (SDLColorspace(..), SDLPixelFormat, SDLPalette, pixelFormatToCUInt, cUIntToPixelFormat, cUIntToColorspace)
@@ -281,7 +319,7 @@ foreign import ccall unsafe "SDL_GetSurfaceColorspace"
 sdlGetSurfaceColorspace :: Ptr SDLSurface -> IO SDLColorspace
 sdlGetSurfaceColorspace surfacePtr =
         cUIntToColorspace . fromIntegral <$> c_sdlGetSurfaceColorspace surfacePtr
-        
+
 -- | Create a palette and associate it with a surface.
 foreign import ccall unsafe "SDL_CreateSurfacePalette"
   sdlCreateSurfacePalette :: Ptr SDLSurface -> IO (Ptr SDLPalette) -- Returns pointer, check for null
@@ -416,3 +454,341 @@ sdlConvertSurface surfacePtr formatEnum = do
   let format = pixelFormatToCUInt formatEnum
   newSurfacePtr <- c_sdlConvertSurface surfacePtr format
   return $ if newSurfacePtr == nullPtr then Nothing else Just newSurfacePtr
+
+--------------------------------------------------------------------------------
+-- SDL3.2+ Extended Surface API (STUBS)
+--------------------------------------------------------------------------------
+
+-- | Add an alternate image to a surface.
+foreign import ccall unsafe "SDL_AddSurfaceAlternateImage"
+  c_sdlAddSurfaceAlternateImage :: Ptr SDLSurface -> Ptr SDLSurface -> IO CBool
+
+sdlAddSurfaceAlternateImage :: Ptr SDLSurface -> Ptr SDLSurface -> IO Bool
+sdlAddSurfaceAlternateImage surface image =
+  fromCBool <$> c_sdlAddSurfaceAlternateImage surface image
+
+-- | Query if a surface has alternate images.
+foreign import ccall unsafe "SDL_SurfaceHasAlternateImages"
+  c_sdlSurfaceHasAlternateImages :: Ptr SDLSurface -> IO CBool
+
+sdlSurfaceHasAlternateImages :: Ptr SDLSurface -> IO Bool
+sdlSurfaceHasAlternateImages surface =
+  fromCBool <$> c_sdlSurfaceHasAlternateImages surface
+
+-- | Get all alternate images for a surface.
+foreign import ccall unsafe "SDL_GetSurfaceImages"
+  c_sdlGetSurfaceImages :: Ptr SDLSurface -> Ptr CInt -> IO (Ptr (Ptr SDLSurface))
+
+
+
+-- | Returns a list of alternate image surface pointers for the given surface.
+--
+-- This function marshals the C array of surface pointers into a Haskell list.
+-- The returned pointers are not owned by Haskell and must not be freed.
+sdlGetSurfaceImages :: Ptr SDLSurface -> IO [Ptr SDLSurface]
+sdlGetSurfaceImages surface =
+  alloca $ \countPtr -> do
+    arrPtr <- c_sdlGetSurfaceImages surface countPtr
+    count <- fromIntegral <$> peek countPtr
+    if arrPtr == nullPtr || count == 0
+      then return []
+      else peekArray count arrPtr
+
+-- | Remove all alternate images from a surface.
+foreign import ccall unsafe "SDL_RemoveSurfaceAlternateImages"
+  c_sdlRemoveSurfaceAlternateImages :: Ptr SDLSurface -> IO ()
+
+sdlRemoveSurfaceAlternateImages :: Ptr SDLSurface -> IO ()
+sdlRemoveSurfaceAlternateImages = c_sdlRemoveSurfaceAlternateImages
+
+-- | Load a BMP from an SDL_IOStream.
+--
+-- The stream must be a valid SDLIOStream (see "SDL.IOStream"). If @closeio@ is True,
+-- the stream will be closed after loading.
+foreign import ccall unsafe "SDL_LoadBMP_IO"
+  c_sdlLoadBMPIo :: Ptr SDLIOStream -> CBool -> IO (Ptr SDLSurface)
+
+-- | Load a BMP from an SDLIOStream.
+--
+-- Returns @Nothing@ on failure. The stream is closed if @closeio@ is True.
+sdlLoadBMPIo :: SDLIOStream -> Bool -> IO (Maybe (Ptr SDLSurface))
+sdlLoadBMPIo (SDLIOStream streamPtr) closeio = do
+  ptr <- c_sdlLoadBMPIo streamPtr (fromBool closeio)
+  return $ if ptr == nullPtr then Nothing else Just ptr
+
+-- | Save a surface to a BMP via SDLIOStream.
+--
+-- The stream must be a valid SDLIOStream (see "SDL.IOStream"). If @closeio@ is True,
+-- the stream will be closed after saving.
+foreign import ccall unsafe "SDL_SaveBMP_IO"
+  c_sdlSaveBMPIo :: Ptr SDLSurface -> Ptr SDLIOStream -> CBool -> IO CBool
+
+-- | Save a surface to a BMP via SDLIOStream.
+--
+-- Returns True on success. The stream is closed if @closeio@ is True.
+sdlSaveBMPIo :: Ptr SDLSurface -> SDLIOStream -> Bool -> IO Bool
+sdlSaveBMPIo surface (SDLIOStream dstPtr) closeio =
+  fromCBool <$> c_sdlSaveBMPIo surface dstPtr (fromBool closeio)
+
+-- | Enable or disable RLE acceleration for a surface.
+foreign import ccall unsafe "SDL_SetSurfaceRLE"
+  c_sdlSetSurfaceRLE :: Ptr SDLSurface -> CBool -> IO CBool
+
+sdlSetSurfaceRLE :: Ptr SDLSurface -> Bool -> IO Bool
+sdlSetSurfaceRLE surface enabled =
+  fromCBool <$> c_sdlSetSurfaceRLE surface (fromBool enabled)
+
+foreign import ccall unsafe "SDL_SurfaceHasRLE"
+  c_sdlSurfaceHasRLE :: Ptr SDLSurface -> IO CBool
+
+sdlSurfaceHasRLE :: Ptr SDLSurface -> IO Bool
+sdlSurfaceHasRLE surface =
+  fromCBool <$> c_sdlSurfaceHasRLE surface
+
+foreign import ccall unsafe "SDL_SetSurfaceColorKey"
+  c_sdlSetSurfaceColorKey :: Ptr SDLSurface -> CBool -> Word32 -> IO CBool
+
+sdlSetSurfaceColorKey :: Ptr SDLSurface -> Bool -> Word32 -> IO Bool
+sdlSetSurfaceColorKey surface enabled key =
+  fromCBool <$> c_sdlSetSurfaceColorKey surface (fromBool enabled) key
+
+foreign import ccall unsafe "SDL_SurfaceHasColorKey"
+  c_sdlSurfaceHasColorKey :: Ptr SDLSurface -> IO CBool
+
+sdlSurfaceHasColorKey :: Ptr SDLSurface -> IO Bool
+sdlSurfaceHasColorKey surface =
+  fromCBool <$> c_sdlSurfaceHasColorKey surface
+
+foreign import ccall unsafe "SDL_GetSurfaceColorKey"
+  c_sdlGetSurfaceColorKey :: Ptr SDLSurface -> Ptr Word32 -> IO CBool
+
+sdlGetSurfaceColorKey :: Ptr SDLSurface -> IO (Maybe Word32)
+sdlGetSurfaceColorKey surface =
+  alloca $ \keyPtr -> do
+    ok <- c_sdlGetSurfaceColorKey surface keyPtr
+    if fromCBool ok
+      then Just <$> peek keyPtr
+      else return Nothing
+
+foreign import ccall unsafe "SDL_SetSurfaceColorMod"
+  c_sdlSetSurfaceColorMod :: Ptr SDLSurface -> Word8 -> Word8 -> Word8 -> IO CBool
+
+sdlSetSurfaceColorMod :: Ptr SDLSurface -> Word8 -> Word8 -> Word8 -> IO Bool
+sdlSetSurfaceColorMod surface r g b =
+  fromCBool <$> c_sdlSetSurfaceColorMod surface r g b
+
+foreign import ccall unsafe "SDL_GetSurfaceColorMod"
+  c_sdlGetSurfaceColorMod :: Ptr SDLSurface -> Ptr Word8 -> Ptr Word8 -> Ptr Word8 -> IO CBool
+
+sdlGetSurfaceColorMod :: Ptr SDLSurface -> IO (Maybe (Word8, Word8, Word8))
+sdlGetSurfaceColorMod surface =
+  alloca $ \rPtr ->
+  alloca $ \gPtr ->
+  alloca $ \bPtr -> do
+    ok <- c_sdlGetSurfaceColorMod surface rPtr gPtr bPtr
+    if fromCBool ok
+      then do
+        r <- peek rPtr
+        g <- peek gPtr
+        b <- peek bPtr
+        return $ Just (r, g, b)
+      else return Nothing
+
+foreign import ccall unsafe "SDL_SetSurfaceAlphaMod"
+  c_sdlSetSurfaceAlphaMod :: Ptr SDLSurface -> Word8 -> IO CBool
+
+sdlSetSurfaceAlphaMod :: Ptr SDLSurface -> Word8 -> IO Bool
+sdlSetSurfaceAlphaMod surface alpha =
+  fromCBool <$> c_sdlSetSurfaceAlphaMod surface alpha
+
+foreign import ccall unsafe "SDL_GetSurfaceAlphaMod"
+  c_sdlGetSurfaceAlphaMod :: Ptr SDLSurface -> Ptr Word8 -> IO CBool
+
+sdlGetSurfaceAlphaMod :: Ptr SDLSurface -> IO (Maybe Word8)
+sdlGetSurfaceAlphaMod surface =
+  alloca $ \aPtr -> do
+    ok <- c_sdlGetSurfaceAlphaMod surface aPtr
+    if fromCBool ok
+      then Just <$> peek aPtr
+      else return Nothing
+
+foreign import ccall unsafe "SDL_SetSurfaceBlendMode"
+  c_sdlSetSurfaceBlendMode :: Ptr SDLSurface -> CInt -> IO CBool
+
+sdlSetSurfaceBlendMode :: Ptr SDLSurface -> CInt -> IO Bool
+sdlSetSurfaceBlendMode surface blendMode =
+  fromCBool <$> c_sdlSetSurfaceBlendMode surface blendMode
+
+foreign import ccall unsafe "SDL_GetSurfaceBlendMode"
+  c_sdlGetSurfaceBlendMode :: Ptr SDLSurface -> Ptr CInt -> IO CBool
+
+sdlGetSurfaceBlendMode :: Ptr SDLSurface -> IO (Maybe CInt)
+sdlGetSurfaceBlendMode surface =
+  alloca $ \modePtr -> do
+    ok <- c_sdlGetSurfaceBlendMode surface modePtr
+    if fromCBool ok
+      then Just <$> peek modePtr
+      else return Nothing
+
+foreign import ccall unsafe "SDL_SetSurfaceClipRect"
+  c_sdlSetSurfaceClipRect :: Ptr SDLSurface -> Ptr SDLRect -> IO CBool
+
+sdlSetSurfaceClipRect :: Ptr SDLSurface -> Ptr SDLRect -> IO Bool
+sdlSetSurfaceClipRect surface rectPtr =
+  fromCBool <$> c_sdlSetSurfaceClipRect surface rectPtr
+
+foreign import ccall unsafe "SDL_GetSurfaceClipRect"
+  c_sdlGetSurfaceClipRect :: Ptr SDLSurface -> Ptr SDLRect -> IO CBool
+
+sdlGetSurfaceClipRect :: Ptr SDLSurface -> Ptr SDLRect -> IO Bool
+sdlGetSurfaceClipRect surface rectPtr =
+  fromCBool <$> c_sdlGetSurfaceClipRect surface rectPtr
+
+-- | Convert a surface and colorspace.
+-- | Convert a surface to a new format, palette, and colorspace.
+--
+-- This is a low-level wrapper. The @palette@ argument should be a pointer to an SDL_Palette,
+-- @colorspace@ and @props@ are advanced options. Returns @Nothing@ on failure.
+foreign import ccall unsafe "SDL_ConvertSurfaceAndColorspace"
+  c_sdlConvertSurfaceAndColorspace :: Ptr SDLSurface -> CUInt -> Ptr () -> CInt -> CUInt -> IO (Ptr SDLSurface)
+
+sdlConvertSurfaceAndColorspace :: Ptr SDLSurface -> CUInt -> Ptr () -> CInt -> CUInt -> IO (Maybe (Ptr SDLSurface))
+sdlConvertSurfaceAndColorspace surface format palette colorspace props = do
+  ptr <- c_sdlConvertSurfaceAndColorspace surface format palette colorspace props
+  return $ if ptr == nullPtr then Nothing else Just ptr
+
+-- | Convert pixels between formats.
+foreign import ccall unsafe "SDL_ConvertPixels"
+  c_sdlConvertPixels :: CInt -> CInt -> CUInt -> Ptr () -> CInt -> CUInt -> Ptr () -> CInt -> IO CBool
+
+sdlConvertPixels :: CInt -> CInt -> CUInt -> Ptr () -> CInt -> CUInt -> Ptr () -> CInt -> IO Bool
+sdlConvertPixels w h srcFmt src srcPitch dstFmt dst dstPitch =
+  fromCBool <$> c_sdlConvertPixels w h srcFmt src srcPitch dstFmt dst dstPitch
+
+-- | Convert pixels and colorspace.
+-- | Convert pixels between formats and colorspaces.
+--
+-- This is a low-level wrapper. All pointers and enums must be correct for the underlying C API.
+-- Returns True on success.
+foreign import ccall unsafe "SDL_ConvertPixelsAndColorspace"
+  c_sdlConvertPixelsAndColorspace :: CInt -> CInt -> CUInt -> CInt -> CUInt -> Ptr () -> CInt -> CUInt -> CInt -> CUInt -> Ptr () -> CInt -> IO CBool
+
+sdlConvertPixelsAndColorspace :: CInt -> CInt -> CUInt -> CInt -> CUInt -> Ptr () -> CInt -> CUInt -> CInt -> CUInt -> Ptr () -> CInt -> IO Bool
+sdlConvertPixelsAndColorspace a b c d e f g h i j k l =
+  fromCBool <$> c_sdlConvertPixelsAndColorspace a b c d e f g h i j k l
+
+-- | Premultiply alpha for pixel data.
+foreign import ccall unsafe "SDL_PremultiplyAlpha"
+  c_sdlPremultiplyAlpha :: CInt -> CInt -> CUInt -> Ptr () -> CInt -> CUInt -> Ptr () -> CInt -> CBool -> IO CBool
+
+sdlPremultiplyAlpha :: CInt -> CInt -> CUInt -> Ptr () -> CInt -> CUInt -> Ptr () -> CInt -> Bool -> IO Bool
+sdlPremultiplyAlpha w h srcFmt src srcPitch dstFmt dst dstPitch linear =
+  fromCBool <$> c_sdlPremultiplyAlpha w h srcFmt src srcPitch dstFmt dst dstPitch (fromBool linear)
+
+-- | Premultiply alpha for a surface.
+foreign import ccall unsafe "SDL_PremultiplySurfaceAlpha"
+  c_sdlPremultiplySurfaceAlpha :: Ptr SDLSurface -> CBool -> IO CBool
+
+sdlPremultiplySurfaceAlpha :: Ptr SDLSurface -> Bool -> IO Bool
+sdlPremultiplySurfaceAlpha surface linear =
+  fromCBool <$> c_sdlPremultiplySurfaceAlpha surface (fromBool linear)
+
+-- | Clear a surface to a color.
+foreign import ccall unsafe "SDL_ClearSurface"
+  c_sdlClearSurface :: Ptr SDLSurface -> CFloat -> CFloat -> CFloat -> CFloat -> IO CBool
+
+sdlClearSurface :: Ptr SDLSurface -> Float -> Float -> Float -> Float -> IO Bool
+sdlClearSurface surface r g b a =
+  fromCBool <$> c_sdlClearSurface surface (realToFrac r) (realToFrac g) (realToFrac b) (realToFrac a)
+
+-- | Fill a rectangle on a surface.
+foreign import ccall unsafe "SDL_FillSurfaceRect"
+  c_sdlFillSurfaceRect :: Ptr SDLSurface -> Ptr SDLRect -> Word32 -> IO CBool
+
+sdlFillSurfaceRect :: Ptr SDLSurface -> Ptr SDLRect -> Word32 -> IO Bool
+sdlFillSurfaceRect surface rect color =
+  fromCBool <$> c_sdlFillSurfaceRect surface rect color
+
+-- | Fill multiple rectangles on a surface.
+foreign import ccall unsafe "SDL_FillSurfaceRects"
+  c_sdlFillSurfaceRects :: Ptr SDLSurface -> Ptr SDLRect -> CInt -> Word32 -> IO CBool
+
+sdlFillSurfaceRects :: Ptr SDLSurface -> Ptr SDLRect -> CInt -> Word32 -> IO Bool
+sdlFillSurfaceRects surface rects count color =
+  fromCBool <$> c_sdlFillSurfaceRects surface rects count color
+
+-- | Unchecked blit between surfaces.
+foreign import ccall unsafe "SDL_BlitSurfaceUnchecked"
+  c_sdlBlitSurfaceUnchecked :: Ptr SDLSurface -> Ptr SDLRect -> Ptr SDLSurface -> Ptr SDLRect -> IO CBool
+
+sdlBlitSurfaceUnchecked :: Ptr SDLSurface -> Ptr SDLRect -> Ptr SDLSurface -> Ptr SDLRect -> IO Bool
+sdlBlitSurfaceUnchecked src srcRect dst dstRect =
+  fromCBool <$> c_sdlBlitSurfaceUnchecked src srcRect dst dstRect
+
+-- | Unchecked scaled blit between surfaces.
+foreign import ccall unsafe "SDL_BlitSurfaceUncheckedScaled"
+  c_sdlBlitSurfaceUncheckedScaled :: Ptr SDLSurface -> Ptr SDLRect -> Ptr SDLSurface -> Ptr SDLRect -> CInt -> IO CBool
+
+sdlBlitSurfaceUncheckedScaled :: Ptr SDLSurface -> Ptr SDLRect -> Ptr SDLSurface -> Ptr SDLRect -> CInt -> IO Bool
+sdlBlitSurfaceUncheckedScaled src srcRect dst dstRect scaleMode =
+  fromCBool <$> c_sdlBlitSurfaceUncheckedScaled src srcRect dst dstRect scaleMode
+
+-- | Stretch a surface.
+foreign import ccall unsafe "SDL_StretchSurface"
+  c_sdlStretchSurface :: Ptr SDLSurface -> Ptr SDLRect -> Ptr SDLSurface -> Ptr SDLRect -> CInt -> IO CBool
+
+sdlStretchSurface :: Ptr SDLSurface -> Ptr SDLRect -> Ptr SDLSurface -> Ptr SDLRect -> CInt -> IO Bool
+sdlStretchSurface src srcRect dst dstRect scaleMode =
+  fromCBool <$> c_sdlStretchSurface src srcRect dst dstRect scaleMode
+
+-- | Tiled blit between surfaces.
+foreign import ccall unsafe "SDL_BlitSurfaceTiled"
+  c_sdlBlitSurfaceTiled :: Ptr SDLSurface -> Ptr SDLRect -> Ptr SDLSurface -> Ptr SDLRect -> IO CBool
+
+sdlBlitSurfaceTiled :: Ptr SDLSurface -> Ptr SDLRect -> Ptr SDLSurface -> Ptr SDLRect -> IO Bool
+sdlBlitSurfaceTiled src srcRect dst dstRect =
+  fromCBool <$> c_sdlBlitSurfaceTiled src srcRect dst dstRect
+
+-- | Tiled blit with scale between surfaces.
+foreign import ccall unsafe "SDL_BlitSurfaceTiledWithScale"
+  c_sdlBlitSurfaceTiledWithScale :: Ptr SDLSurface -> Ptr SDLRect -> CFloat -> CInt -> Ptr SDLSurface -> Ptr SDLRect -> IO CBool
+
+sdlBlitSurfaceTiledWithScale :: Ptr SDLSurface -> Ptr SDLRect -> Float -> CInt -> Ptr SDLSurface -> Ptr SDLRect -> IO Bool
+sdlBlitSurfaceTiledWithScale src srcRect scale scaleMode dst dstRect =
+  fromCBool <$> c_sdlBlitSurfaceTiledWithScale src srcRect (realToFrac scale) scaleMode dst dstRect
+
+-- | 9-grid blit between surfaces.
+foreign import ccall unsafe "SDL_BlitSurface9Grid"
+  c_sdlBlitSurface9Grid :: Ptr SDLSurface -> Ptr SDLRect -> CInt -> CInt -> CInt -> CInt -> CFloat -> CInt -> Ptr SDLSurface -> Ptr SDLRect -> IO CBool
+
+sdlBlitSurface9Grid :: Ptr SDLSurface -> Ptr SDLRect -> CInt -> CInt -> CInt -> CInt -> Float -> CInt -> Ptr SDLSurface -> Ptr SDLRect -> IO Bool
+sdlBlitSurface9Grid src srcRect leftW rightW topH bottomH scale scaleMode dst dstRect =
+  fromCBool <$> c_sdlBlitSurface9Grid src srcRect leftW rightW topH bottomH (realToFrac scale) scaleMode dst dstRect
+
+-- | Read a pixel as floats.
+foreign import ccall unsafe "SDL_ReadSurfacePixelFloat"
+  c_sdlReadSurfacePixelFloat :: Ptr SDLSurface -> CInt -> CInt -> Ptr CFloat -> Ptr CFloat -> Ptr CFloat -> Ptr CFloat -> IO CBool
+
+sdlReadSurfacePixelFloat :: Ptr SDLSurface -> CInt -> CInt -> IO (Maybe (Float, Float, Float, Float))
+sdlReadSurfacePixelFloat surface x y =
+  alloca $ \rPtr ->
+  alloca $ \gPtr ->
+  alloca $ \bPtr ->
+  alloca $ \aPtr -> do
+    ok <- c_sdlReadSurfacePixelFloat surface x y rPtr gPtr bPtr aPtr
+    if fromCBool ok
+      then do
+        r <- realToFrac <$> peek rPtr
+        g <- realToFrac <$> peek gPtr
+        b <- realToFrac <$> peek bPtr
+        a <- realToFrac <$> peek aPtr
+        return $ Just (r, g, b, a)
+      else return Nothing
+
+-- | Write a pixel as floats.
+foreign import ccall unsafe "SDL_WriteSurfacePixelFloat"
+  c_sdlWriteSurfacePixelFloat :: Ptr SDLSurface -> CInt -> CInt -> CFloat -> CFloat -> CFloat -> CFloat -> IO CBool
+
+sdlWriteSurfacePixelFloat :: Ptr SDLSurface -> CInt -> CInt -> Float -> Float -> Float -> Float -> IO Bool
+sdlWriteSurfacePixelFloat surface x y r g b a =
+  fromCBool <$> c_sdlWriteSurfacePixelFloat surface x y (realToFrac r) (realToFrac g) (realToFrac b) (realToFrac a)

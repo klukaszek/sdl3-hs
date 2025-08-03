@@ -1,18 +1,10 @@
-{-|
-Example     : SDL.Events
-Description : SDL Window and Keyboard Event Example
-Copyright   : (c) Kyle Lukaszek, 2025
-License     : BSD3
-|-}
-
 module Main where
 
-import SDL
 import Control.Monad (unless, when)
-import System.Exit (exitFailure, exitSuccess)
-import Foreign.Ptr (nullPtr)
 import Data.IORef
-import Data.Word (Word32, Word64)
+import Data.Word (Word64)
+import SDL
+import System.Exit (exitFailure, exitSuccess)
 import Text.Printf (printf)
 
 main :: IO ()
@@ -69,7 +61,7 @@ eventLoop window lastTime freq deltaTimeRef = do
 
   -- Store the new deltaTime
   writeIORef deltaTimeRef deltaTime
-  
+
   -- Event handling
   sdlPumpEvents
   maybeEvent <- sdlPollEvent
@@ -86,25 +78,51 @@ handleEvent event deltaTimeRef = case event of
     sdlLog "Quit event received."
     return True
   SDLEventKeyboard (SDLKeyboardEvent _ _ _ _ scancode _ _ _ down _) | down -> do
-    deltaTime <- readIORef deltaTimeRef  -- Read delta time
+    deltaTime <- readIORef deltaTimeRef -- Read delta time
     sdlLog $ printf "Key event received. Delta Time: %.3f ms" deltaTime
     return $ scancode == SDL_SCANCODE_Q
+  SDLEventMouseButton mouseEvent -> do
+    deltaTime <- readIORef deltaTimeRef -- Read delta time
+    let button = sdlMouseButtonButton mouseEvent
+    let x = sdlMouseButtonX mouseEvent
+    let y = sdlMouseButtonY mouseEvent
+    let clicks = sdlMouseButtonClicks mouseEvent
+    let down = sdlMouseButtonDown mouseEvent
+    let buttonName = case fromIntegral button of
+          SDL_BUTTON_LEFT -> "Left"
+          SDL_BUTTON_MIDDLE -> "Middle"
+          SDL_BUTTON_RIGHT -> "Right"
+          SDL_BUTTON_X1 -> "X1"
+          SDL_BUTTON_X2 -> "X2"
+          _ -> "Unknown"
+    let action = if down then "pressed" else "released"
+    sdlLog $
+      printf
+        "Mouse %s button %s at (%.1f, %.1f), clicks: %d. Delta Time: %.3f ms"
+        buttonName
+        action
+        x
+        y
+        clicks
+        deltaTime
+    return False
   _ -> return False
 
 -- Helper function to print subsystem names
 printSubsystem :: SDLInitFlags -> IO ()
-printSubsystem flag = sdlLog $ "  - " ++ case flag of
-  SDL_INIT_AUDIO    -> "Audio"
-  SDL_INIT_VIDEO    -> "Video"
-  SDL_INIT_JOYSTICK -> "Joystick"
-  SDL_INIT_HAPTIC   -> "Haptic"
-  SDL_INIT_GAMEPAD  -> "Gamepad"
-  SDL_INIT_EVENTS   -> "Events"
-  SDL_INIT_SENSOR   -> "Sensor"
-  SDL_INIT_CAMERA   -> "Camera"
-  _            -> "Unknown subsystem"
+printSubsystem flag =
+  sdlLog $
+    "  - " ++ case flag of
+      SDL_INIT_AUDIO -> "Audio"
+      SDL_INIT_VIDEO -> "Video"
+      SDL_INIT_JOYSTICK -> "Joystick"
+      SDL_INIT_HAPTIC -> "Haptic"
+      SDL_INIT_GAMEPAD -> "Gamepad"
+      SDL_INIT_EVENTS -> "Events"
+      SDL_INIT_SENSOR -> "Sensor"
+      SDL_INIT_CAMERA -> "Camera"
+      _ -> "Unknown subsystem"
 
 -- Function to log the frame time in milliseconds with decimal precision
 logFrameTime :: Double -> IO ()
 logFrameTime frameTime = sdlLog $ printf "Frame time: %.4f ms" frameTime
-

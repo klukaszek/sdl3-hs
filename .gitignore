@@ -28,6 +28,7 @@ broken/
 
 # Custom directories
 sdl/
+sample-project/
 
 # Zed
 AGENTS.MD
