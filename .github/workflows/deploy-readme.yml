@@ -26,10 +26,10 @@ jobs:
         run: |
           echo "Cloning SDL3 headers for binding checker..."
 
-          # Clone SDL3 source to get headers (using specific commit cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b for SDL3 3.3.0 pre-release)
+          # Clone SDL3 source to get headers (using specific commit e1a623f129e75ad532315852d656fb26c80382a6 for SDL3 3.3.0 pre-release)
           git clone https://github.com/libsdl-org/SDL.git /tmp/SDL3-headers
           cd /tmp/SDL3-headers
-          git checkout cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b
+          git checkout e1a623f129e75ad532315852d656fb26c80382a6
           cd -
 
           # Create include directory structure that binding checker expects

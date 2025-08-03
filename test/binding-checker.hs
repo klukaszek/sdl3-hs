@@ -331,47 +331,32 @@ extractHsFunctions haskellFile = do
 parseHsFunction :: String -> Maybe HsFunction
 parseHsFunction block
   | "foreign import ccall" `isInfixOf` block =
-      case parseHsDeclaration block of
-        Just (cName, hsName) -> Just $ HsFunction hsName cName "" block
-        Nothing -> Nothing
-  | otherwise = Nothing
-  where
-    parseHsDeclaration :: String -> Maybe (String, String)
-    parseHsDeclaration l =
-      case findQuotedString l of
-        Just cName ->
-          case findHsName l of
-            Just hsName -> Just (cName, hsName)
-            Nothing -> Nothing
-        Nothing -> Nothing
-
-    findQuotedString :: String -> Maybe String
-    findQuotedString l =
-      case dropWhile (/= '"') l of
-        ('"' : rest) ->
-          case break (== '"') rest of
-            (quoted, '"' : _) -> Just quoted
-            _ -> Nothing
-        _ -> Nothing
-
-    findHsName :: String -> Maybe String
-    findHsName l =
-      -- Look for the function name after the quoted string and before ::
-      let afterQuote = dropWhile (/= '"') l
-          afterSecondQuote = case afterQuote of
-            ('"' : rest) -> case dropWhile (/= '"') rest of
-              ('"' : final) -> final
+      let tokens = words block
+          -- Find the quoted C name
+          cName = case dropWhile (not . isPrefixOf "\"") tokens of
+            (q : _) -> filter (/= '"') q
+            _ -> ""
+          -- Find the Haskell name (first identifier after the quoted C name)
+          hsName = case dropWhile (not . isPrefixOf "\"") tokens of
+            (_ : rest) -> case rest of
+              (n : _) -> n
               _ -> ""
             _ -> ""
-          trimmed = dropWhile (`elem` (" \t\n\r" :: String)) afterSecondQuote
-          name = takeWhile (\c -> c /= ' ' && c /= '\t' && c /= '\n' && c /= ':') trimmed
-       in if null name then Nothing else Just name
+       in if null cName || null hsName
+            then Nothing
+            else Just $ HsFunction hsName cName "" block
+  | otherwise = Nothing
 
 findBrokenBindings :: [CFunction] -> [HsFunction] -> [String]
 findBrokenBindings cFunctions hsFunctions =
   let cNames = map cfName cFunctions
       hsNames = map hfCName hsFunctions
-      missing = filter (`notElem` hsNames) cNames
+      -- DEBUG: Print the C function names and Haskell FFI C names being compared
+      _ = putStrLn $ "DEBUG: cNames = " ++ show cNames
+      _ = putStrLn $ "DEBUG: hsNames = " ++ show hsNames
+      -- Also consider wrapper_SDL_* as a valid binding for SDL_*
+      isBound name = name `elem` hsNames || ("wrapper_" ++ name) `elem` hsNames
+      missing = filter (not . isBound) cNames
    in map formatBrokenBinding missing
   where
     formatBrokenBinding name =

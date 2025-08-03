@@ -89,6 +89,12 @@ flag examples
   default:           False
   manual:            True
 
+flag static-linking
+  description:       Enable static linking (produces larger but self-contained executables)
+                     NOTE: Not supported on macOS due to Apple's linking restrictions
+  default:           False
+  manual:            True
+
 library
     -- Modules exported by the library.
     exposed-modules:
@@ -185,9 +191,17 @@ library
     extra-libraries:
         SDL3
 
+    if flag(static-linking) && !os(darwin)
+      ghc-options: -optl=-pthread
+
     if flag(pkgconfig)
       pkgconfig-depends:
         sdl3 >= 3.3.0
+
+    if flag(static-linking) && os(darwin)
+      -- Static linking not supported on macOS
+      -- Use bundling strategy instead (see DISTRIBUTION.md)
+      cpp-options: -DSTATIC_LINKING_NOT_SUPPORTED_ON_MACOS
 
     -- Base language which the package is written in.
     default-language: Haskell2010

@@ -154,12 +154,6 @@ Monitor the workflow execution:
 - **Transparent**: Clear status reporting and error handling
 - **Simplified Testing**: Single validation script replaces multiple test scripts
 
-## 📚 Advanced Usage
-
-For detailed technical information, see:
-- [`../BINDING-CHECKER.md`](../BINDING-CHECKER.md) - Binding checker documentation
-- [`../IMPLEMENTATION-SUMMARY.md`](../IMPLEMENTATION-SUMMARY.md) - Technical implementation details
-
 ## 🤝 Contributing
 
 When contributing to SDL3 bindings:

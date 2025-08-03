@@ -2,7 +2,7 @@ module Main where
 
 import Control.Monad
 import Foreign.C.String (CString, peekCString, withCString)
-import Foreign.C.Types (CBool(..), CInt(..))
+import Foreign.C.Types (CBool (..), CInt (..))
 import Foreign.Marshal.Array (peekArray0, withArrayLen)
 import Foreign.Ptr (FunPtr, Ptr, castPtr, nullPtr)
 import Foreign.StablePtr (freeStablePtr, newStablePtr)
@@ -18,11 +18,12 @@ main = do
     exitFailure
 
   -- Create a window for our dialog
-  maybeWindow <- sdlCreateWindow      
-    "SDL Dialog Example"
-    800 
-    600 
-    [SDL_WINDOW_RESIZABLE]
+  maybeWindow <-
+    sdlCreateWindow
+      "SDL Dialog Example"
+      800
+      600
+      [SDL_WINDOW_RESIZABLE]
 
   case maybeWindow of
     Nothing -> do
@@ -31,21 +32,21 @@ main = do
       exitFailure
     Just window -> do
       -- Define some file filters
-      let filters = 
-            [ SDLDialogFileFilter 
-                { filterName = "Text Files"
-                , filterPattern = "txt;doc;md"
-                }
-            , SDLDialogFileFilter
-                { filterName = "All Files"
-                , filterPattern = "*"
+      let filters =
+            [ SDLDialogFileFilter
+                { filterName = "Text Files",
+                  filterPattern = "txt;doc;md"
+                },
+              SDLDialogFileFilter
+                { filterName = "All Files",
+                  filterPattern = "*"
                 }
             ]
 
       -- Create our callback function
       let dialogCallback :: Ptr () -> Ptr CString -> CInt -> IO ()
           dialogCallback userdata filelist filterIndex = do
-            if filelist == nullPtr 
+            if filelist == nullPtr
               then sdlLog "Dialog was cancelled or error occurred"
               else do
                 -- Get the list of files
@@ -60,12 +61,12 @@ main = do
       -- Show different types of dialogs
       sdlLog "\nShowing Open File Dialog..."
       withFilters filters $ \filtersPtr nfilters ->
-        sdlShowOpenFileDialog 
+        sdlShowOpenFileDialog
           callbackPtr
-          nullPtr       
+          nullPtr
           (Just window)
-          filtersPtr    
-          (fromIntegral nfilters)      
+          filtersPtr
+          (fromIntegral nfilters)
           Nothing
           True
 
@@ -73,30 +74,30 @@ main = do
       withFilters filters $ \filtersPtr nfilters ->
         sdlShowSaveFileDialog
           callbackPtr
-          nullPtr       
+          nullPtr
           (Just window)
-          filtersPtr    
-          (fromIntegral nfilters)      
-          Nothing       
+          filtersPtr
+          (fromIntegral nfilters)
+          Nothing
 
       sdlLog "\nShowing Folder Dialog..."
       sdlShowOpenFolderDialog
         callbackPtr
-        nullPtr        
+        nullPtr
         (Just window)
         Nothing
-        False 
+        False
 
       -- Show a dialog with custom properties
       sdlLog "\nShowing Custom Dialog..."
       props <- sdlCreateProperties
-      
+
       -- Set some custom properties
       sdlSetStringProperty props sdlPropFileDialogTitleString "Select a File"
       sdlSetStringProperty props sdlPropFileDialogAcceptString "Choose"
       sdlSetStringProperty props sdlPropFileDialogCancelString "Never Mind"
 
-      sdlShowFileDialogWithProperties 
+      sdlShowFileDialogWithProperties
         SDL_FILEDIALOG_OPENFILE
         callbackPtr
         nullPtr

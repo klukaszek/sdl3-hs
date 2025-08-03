@@ -140,26 +140,38 @@ pattern SDL_PROP_THREAD_CREATE_STACKSIZE :: String
 pattern SDL_PROP_THREAD_CREATE_STACKSIZE = "SDL.thread.create.stacksize"
 
 -- Internal FFI interface to the actual SDL runtime function
+-- FFI import for wrapper_SDL_CreateThread (direct SDL_CreateThread binding)
+foreign import ccall unsafe "wrapper_SDL_CreateThread"
+  c_sdlCreateThread :: SDLThreadFunction -> CString -> Ptr () -> IO (Ptr SDL_Thread)
+
 foreign import ccall unsafe "SDL_CreateThreadRuntime"
   c_sdlCreateThreadRuntime :: SDLThreadFunction -> CString -> Ptr () -> SDLCall -> SDLCall -> IO (Ptr SDL_Thread)
 
 -- | Create a new thread with a default stack size.
 -- Returns Nothing on failure.
+-- | Create a new thread with a default stack size (direct wrapper binding).
+-- Returns Nothing on failure.
 sdlCreateThread :: SDLThreadFunction -> String -> Ptr () -> IO (Maybe SDLThread)
 sdlCreateThread fn name userData = do
   withCString name $ \cname -> do
-    ptr <- c_sdlCreateThreadRuntime fn cname userData nullPtr nullPtr
+    ptr <- c_sdlCreateThread fn cname userData
     pure $ if ptr == nullPtr then Nothing else Just (SDLThread ptr)
 
 -- Internal FFI interface to the actual SDL runtime function
+-- FFI import for wrapper_SDL_CreateThreadWithProperties (direct SDL_CreateThreadWithProperties binding)
+foreign import ccall unsafe "wrapper_SDL_CreateThreadWithProperties"
+  c_sdlCreateThreadWithProperties :: SDLPropertiesID -> IO (Ptr SDL_Thread)
+
 foreign import ccall unsafe "SDL_CreateThreadWithPropertiesRuntime"
   c_sdlCreateThreadWithPropertiesRuntime :: SDLPropertiesID -> SDLCall -> SDLCall -> IO (Ptr SDL_Thread)
 
 -- | Create a new thread with the specified properties.
 -- Returns Nothing on failure.
+-- | Create a new thread with the specified properties (direct wrapper binding).
+-- Returns Nothing on failure.
 sdlCreateThreadWithProperties :: SDLPropertiesID -> IO (Maybe SDLThread)
 sdlCreateThreadWithProperties props = do
-    ptr <- c_sdlCreateThreadWithPropertiesRuntime props nullPtr nullPtr
+    ptr <- c_sdlCreateThreadWithProperties props
     pure $ if ptr == nullPtr then Nothing else Just (SDLThread ptr)
 
 -- | Get the thread name as it was specified in 'sdlCreateThread'.

@@ -294,6 +294,17 @@ foreign import ccall unsafe "SDL_GetAudioFormatName" c_sdlGetAudioFormatName :: 
 foreign import ccall unsafe "SDL_GetSilenceValueForFormat" c_sdlGetSilenceValueForFormat :: SDLAudioFormat -> IO CInt
 foreign import ccall "string.h memset" memset :: Ptr a -> CInt -> CSize -> IO ()
 
+-- | Foreign imports for missing SDL3 audio stream functions
+
+foreign import ccall unsafe "SDL_PutAudioStreamDataNoCopy"
+  c_sdlPutAudioStreamDataNoCopy :: Ptr SDLAudioStream -> Ptr () -> CInt -> FunPtr (Ptr () -> IO ()) -> Ptr () -> IO CBool
+
+foreign import ccall unsafe "SDL_PutAudioStreamPlanarData"
+  c_sdlPutAudioStreamPlanarData :: Ptr SDLAudioStream -> Ptr (Ptr ()) -> CInt -> CInt -> IO CBool
+
+foreign import ccall unsafe "SDL_SetAudioIterationCallbacks"
+  c_sdlSetAudioIterationCallbacks :: SDLAudioDeviceID -> FunPtr (IO ()) -> FunPtr (IO ()) -> Ptr () -> IO ()
+
 -- | Get the number of built-in audio drivers.
 --
 -- Returns the number of drivers compiled into SDL. Never negative; returns 0 if no drivers
@@ -635,6 +646,49 @@ sdlSetAudioStreamOutputChannelMap (SDLAudioStream stream) maybeChmap =
         fromCBool <$> c_sdlSetAudioStreamOutputChannelMap stream chmapPtr (fromIntegral len)
 
 -- | Add audio data to the stream.
+
+type NoCopyCallback = Ptr () -> IO ()
+foreign import ccall "wrapper"
+  wrapNoCopyCallback :: NoCopyCallback -> IO (FunPtr NoCopyCallback)
+
+type IterationCallback = IO ()
+foreign import ccall "wrapper"
+  wrapIterationCallback :: IterationCallback -> IO (FunPtr IterationCallback)
+
+-- | Add audio data to the stream without copying. The buffer must remain valid until the callback is called.
+sdlPutAudioStreamDataNoCopy
+  :: SDLAudioStream
+  -> Ptr ()
+  -> Int
+  -> (Ptr () -> IO ()) -- ^ Completion callback
+  -> Ptr ()            -- ^ Userdata
+  -> IO Bool
+sdlPutAudioStreamDataNoCopy (SDLAudioStream stream) buf len callback userdata = do
+  cbPtr <- wrapNoCopyCallback callback
+  fromCBool <$> c_sdlPutAudioStreamDataNoCopy stream buf (fromIntegral len) cbPtr userdata
+
+-- | Add planar audio data to the stream.
+sdlPutAudioStreamPlanarData
+  :: SDLAudioStream
+  -> Ptr (Ptr ())
+  -> Int
+  -> Int
+  -> IO Bool
+sdlPutAudioStreamPlanarData (SDLAudioStream stream) channelBuffers numChannels numSamples =
+  fromCBool <$> c_sdlPutAudioStreamPlanarData stream channelBuffers (fromIntegral numChannels) (fromIntegral numSamples)
+
+-- | Set iteration callbacks for an audio device.
+sdlSetAudioIterationCallbacks
+  :: SDLAudioDeviceID
+  -> IO () -- ^ Start callback
+  -> IO () -- ^ End callback
+  -> Ptr () -- ^ Userdata
+  -> IO ()
+sdlSetAudioIterationCallbacks devid startCb endCb userdata = do
+  startPtr <- wrapIterationCallback startCb
+  endPtr <- wrapIterationCallback endCb
+  c_sdlSetAudioIterationCallbacks devid startPtr endPtr userdata
+
 --
 -- Data must match the current input format. Returns 'False' on failure.
 sdlPutAudioStreamData :: SDLAudioStream -> ByteString -> IO Bool

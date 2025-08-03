@@ -1,5 +1,6 @@
 -- SDL/Render.hsc
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE CApiFFI #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE DerivingStrategies #-}
@@ -538,7 +539,7 @@ sdlGetCurrentRenderOutputSize (SDLRenderer renderer) =
 -- ** Texture Creation / Destruction **
 foreign import ccall unsafe "SDL_CreateTexture"
   c_sdlCreateTexture :: Ptr SDLRenderer -> CUInt -> SDLTextureAccess -> CInt -> CInt -> IO (Ptr SDLTexture)
-  
+
 sdlCreateTexture :: SDLRenderer -> SDLPixelFormat -> SDLTextureAccess -> Int -> Int -> IO (Maybe SDLTexture)
 sdlCreateTexture (SDLRenderer renderer) format access w h = do
   ptr <- c_sdlCreateTexture renderer (pixelFormatToCUInt format) access (fromIntegral w) (fromIntegral h)
@@ -711,7 +712,16 @@ sdlSetTextureScaleMode (SDLTexture tex) mode =
     fromCBool <$> c_sdlSetTextureScaleMode tex (fromIntegral $ fromEnum mode)
 
 foreign import ccall unsafe "SDL_GetTextureScaleMode"
-  c_sdlGetTextureScaleMode :: Ptr SDLTexture -> Ptr CInt -> IO CBool 
+  c_sdlGetTextureScaleMode :: Ptr SDLTexture -> Ptr CInt -> IO CBool
+
+-- | Haskell-friendly wrapper for SDL_RenderDebugTextFormat
+foreign import ccall unsafe "wrapper_SDL_RenderDebugTextFormat"
+  c_sdlRenderDebugTextFormat :: Ptr SDLRenderer -> CFloat -> CFloat -> CString -> IO ()
+
+sdlRenderDebugTextFormat :: Ptr SDLRenderer -> Float -> Float -> String -> IO ()
+sdlRenderDebugTextFormat renderer x y str =
+  withCString str $ \cstr ->
+    c_sdlRenderDebugTextFormat renderer (realToFrac x) (realToFrac y) cstr
 
 sdlGetTextureScaleMode :: SDLTexture -> IO (Maybe SDLScaleMode)
 sdlGetTextureScaleMode (SDLTexture tex) =
@@ -1301,15 +1311,6 @@ sdlRenderDebugText :: SDLRenderer -> Float -> Float -> String -> IO Bool
 sdlRenderDebugText (SDLRenderer renderer) x y str =
   withCString str $ \cStr ->
     toBool <$> c_sdlRenderDebugText renderer (realToFrac x) (realToFrac y) cStr
-
--- Note: Using simplified wrapper for varargs function
-foreign import ccall unsafe "SDL_RenderDebugText" -- Re-use the non-format version's C name
-  c_sdlRenderDebugTextFormat :: Ptr SDLRenderer -> CFloat -> CFloat -> CString -> IO CBool
-
--- Simplified wrapper: Takes pre-formatted string
-sdlRenderDebugTextFormat :: SDLRenderer -> Float -> Float -> String -> IO Bool
-sdlRenderDebugTextFormat renderer x y formattedStr = sdlRenderDebugText renderer x y formattedStr
--- Proper varargs would require GHC specific extensions or libraries like printf
 
 -- ** Texture Defaults **
 foreign import ccall unsafe "SDL_SetDefaultTextureScaleMode"
