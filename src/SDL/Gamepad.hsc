@@ -41,7 +41,7 @@ module SDL.Gamepad
   ( -- * Types
     SDLGamepad(..)
   , SDLGamepadType(..)
-  
+
   , SDLGamepadButton(..)
   , pattern SDL_GAMEPAD_BUTTON_INVALID
   , pattern SDL_GAMEPAD_BUTTON_SOUTH
@@ -71,7 +71,7 @@ module SDL.Gamepad
   , pattern SDL_GAMEPAD_BUTTON_MISC5
   , pattern SDL_GAMEPAD_BUTTON_MISC6
   , pattern SDL_GAMEPAD_BUTTON_COUNT
-  
+
   , SDLGamepadButtonLabel(..)
   , SDLGamepadAxis(..)
   , pattern SDL_GAMEPAD_AXIS_INVALID
@@ -83,7 +83,7 @@ module SDL.Gamepad
   , pattern SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
   , pattern SDL_GAMEPAD_AXIS_COUNT
 
-  
+
   , SDLGamepadBindingType(..)
   , SDLGamepadBinding(..)
 
@@ -173,7 +173,7 @@ module SDL.Gamepad
 #include <SDL3/SDL_gamepad.h>
 
 import Foreign (Ptr, nullPtr, FunPtr, castPtr, peekArray, pokeArray, withArray, peek, poke, toBool, plusPtr, with, fromBool)
-import Foreign.C.Types (CBool(..), CInt(..), CFloat(..), CUInt(..), CULLong(..))
+import Foreign.C.Types (CBool(..), CInt(..), CChar(..), CFloat(..), CUInt(..), CULLong(..))
 import Foreign.C.String (CString, peekCString, withCString)
 import Foreign.Storable (Storable(..))
 import Foreign.Marshal.Alloc (alloca, free)
@@ -210,7 +210,7 @@ data SDLGamepadType
 
 -- | Gamepad buttons
 -- | The SDL gamepad buttons.
-newtype SDLGamepadButton = SDLGamepadButton CInt
+newtype SDLGamepadButton = SDLGamepadButton CChar
   deriving newtype (Show, Eq, Ord, Num, Storable) -- Cannot reliably derive Enum
 
 pattern SDL_GAMEPAD_BUTTON_INVALID :: SDLGamepadButton
@@ -377,7 +377,7 @@ instance Storable SDLGamepadBinding where
         (#poke SDL_GamepadBinding, input.hat.hat_mask) ptr mask
       BindingInputNone -> return ()
     case o of
-      BindingOutputButton (SDLGamepadButton btn) -> (#poke SDL_GamepadBinding, output.button) ptr ((fromIntegral btn) :: CInt)
+      BindingOutputButton (SDLGamepadButton btn) -> (#poke SDL_GamepadBinding, output.button) ptr ((fromIntegral btn) :: CChar)
       BindingOutputAxis (SDLGamepadAxis ax) min' max' -> do
         (#poke SDL_GamepadBinding, output.axis.axis) ptr ax
         (#poke SDL_GamepadBinding, output.axis.axis_min) ptr min'
@@ -508,7 +508,7 @@ foreign import ccall "SDL_GetGamepadPlayerIndexForID"
 sdlGetGamepadPlayerIndexForID :: SDLJoystickID -> IO Int
 sdlGetGamepadPlayerIndexForID (SDLJoystickID jid) = do
   fromIntegral <$> sdlGetGamepadPlayerIndexForID_ jid
-  
+
 -- | Get GUID by ID
 foreign import ccall "SDL_GetGamepadGUIDForID"
   sdlGetGamepadGUIDForID :: Word32 -> IO (Ptr SDLGUID)
@@ -786,7 +786,7 @@ sdlGetGamepadButtonFromString str = withCString str $ \cstr ->
 
 -- | Convert gamepad button to string
 foreign import ccall "SDL_GetGamepadStringForButton"
-  sdlGetGamepadStringForButtonRaw :: CInt -> IO CString
+  sdlGetGamepadStringForButtonRaw :: CChar -> IO CString
 
 sdlGetGamepadStringForButton :: SDLGamepadButton -> IO (Maybe String)
 sdlGetGamepadStringForButton (SDLGamepadButton btn) = do
@@ -795,21 +795,21 @@ sdlGetGamepadStringForButton (SDLGamepadButton btn) = do
 
 -- | Check if gamepad has button
 foreign import ccall "SDL_GamepadHasButton"
-  sdlGamepadHasButton_ :: Ptr SDLGamepad -> CInt -> IO CBool
+  sdlGamepadHasButton_ :: Ptr SDLGamepad -> CChar -> IO CBool
 
 sdlGamepadHasButton :: SDLGamepad -> SDLGamepadButton -> IO Bool
 sdlGamepadHasButton (SDLGamepad ptr) (SDLGamepadButton btn) = toBool <$> sdlGamepadHasButton_ ptr btn
 
 -- | Get button state
 foreign import ccall "SDL_GetGamepadButton"
-  sdlGetGamepadButton_ :: Ptr SDLGamepad -> CInt -> IO CBool
+  sdlGetGamepadButton_ :: Ptr SDLGamepad -> CChar -> IO CBool
 
 sdlGetGamepadButton :: SDLGamepad -> SDLGamepadButton -> IO Bool
 sdlGetGamepadButton (SDLGamepad ptr) (SDLGamepadButton btn) = toBool <$> sdlGetGamepadButton_ ptr btn
 
 -- | Get button label for type
 foreign import ccall "SDL_GetGamepadButtonLabelForType"
-  sdlGetGamepadButtonLabelForType_ :: CInt -> CInt -> IO CInt
+  sdlGetGamepadButtonLabelForType_ :: CInt -> CChar -> IO CInt
 
 sdlGetGamepadButtonLabelForType :: SDLGamepadType -> SDLGamepadButton -> IO SDLGamepadButtonLabel
 sdlGetGamepadButtonLabelForType typ (SDLGamepadButton btn) =
@@ -817,7 +817,7 @@ sdlGetGamepadButtonLabelForType typ (SDLGamepadButton btn) =
 
 -- | Get button label
 foreign import ccall "SDL_GetGamepadButtonLabel"
-  sdlGetGamepadButtonLabel_ :: Ptr SDLGamepad -> CInt -> IO CInt
+  sdlGetGamepadButtonLabel_ :: Ptr SDLGamepad -> CChar -> IO CInt
 
 sdlGetGamepadButtonLabel :: SDLGamepad -> SDLGamepadButton -> IO SDLGamepadButtonLabel
 sdlGetGamepadButtonLabel (SDLGamepad ptr) (SDLGamepadButton btn) =
@@ -925,11 +925,11 @@ foreign import ccall "SDL_CloseGamepad"
   sdlCloseGamepad_ :: Ptr SDLGamepad -> IO ()
 
 sdlCloseGamepad :: SDLGamepad -> IO ()
-sdlCloseGamepad (SDLGamepad ptr) = sdlCloseGamepad_ ptr   
+sdlCloseGamepad (SDLGamepad ptr) = sdlCloseGamepad_ ptr
 
 -- | Get Apple SF Symbols name for button
 foreign import ccall "SDL_GetGamepadAppleSFSymbolsNameForButton"
-  sdlGetGamepadAppleSFSymbolsNameForButtonRaw :: Ptr SDLGamepad -> CInt -> IO CString
+  sdlGetGamepadAppleSFSymbolsNameForButtonRaw :: Ptr SDLGamepad -> CChar -> IO CString
 
 sdlGetGamepadAppleSFSymbolsNameForButton :: SDLGamepad -> SDLGamepadButton -> IO (Maybe String)
 sdlGetGamepadAppleSFSymbolsNameForButton (SDLGamepad ptr) (SDLGamepadButton btn) = do

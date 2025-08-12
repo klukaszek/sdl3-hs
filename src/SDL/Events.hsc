@@ -26,6 +26,10 @@ module SDL.Events
   ( -- * Types
     SDLEventType
   , SDLEventAction
+  , pattern SDL_ADDEVENT
+  , pattern SDL_PEEKEVENT
+  , pattern SDL_GETEVENT
+  , pattern SDL_EVENT_FIRST
   , pattern SDL_EVENT_QUIT
   , pattern SDL_EVENT_TERMINATING
   , pattern SDL_EVENT_LOW_MEMORY
@@ -56,6 +60,7 @@ module SDL.Events
   , pattern SDL_EVENT_WINDOW_FOCUS_GAINED
   , pattern SDL_EVENT_WINDOW_FOCUS_LOST
   , pattern SDL_EVENT_WINDOW_CLOSE_REQUESTED
+  , pattern SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED
   , pattern SDL_EVENT_WINDOW_DESTROYED
   , pattern SDL_EVENT_KEY_DOWN
   , pattern SDL_EVENT_KEY_UP
@@ -75,12 +80,25 @@ module SDL.Events
   , pattern SDL_EVENT_JOYSTICK_BUTTON_UP
   , pattern SDL_EVENT_JOYSTICK_ADDED
   , pattern SDL_EVENT_JOYSTICK_REMOVED
+  , pattern SDL_EVENT_GAMEPAD_AXIS_MOTION
+  , pattern SDL_EVENT_GAMEPAD_BUTTON_DOWN
+  , pattern SDL_EVENT_GAMEPAD_BUTTON_UP
+  , pattern SDL_EVENT_GAMEPAD_ADDED
+  , pattern SDL_EVENT_GAMEPAD_REMOVED
+  , pattern SDL_EVENT_GAMEPAD_REMAPPED
+  , pattern SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN
+  , pattern SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION
+  , pattern SDL_EVENT_GAMEPAD_TOUCHPAD_UP
+  , pattern SDL_EVENT_GAMEPAD_SENSOR_UPDATE
+  , pattern SDL_EVENT_GAMEPAD_UPDATE_COMPLETE
+  , pattern SDL_EVENT_GAMEPAD_STEAM_HANDLE_UPDATED
   , pattern SDL_EVENT_CLIPBOARD_UPDATE
   , pattern SDL_EVENT_DROP_FILE
   , pattern SDL_EVENT_DROP_TEXT
   , pattern SDL_EVENT_DROP_BEGIN
   , pattern SDL_EVENT_DROP_COMPLETE
   , pattern SDL_EVENT_USER
+  , pattern SDL_EVENT_LAST
   , SDLEvent(..)
   , SDLCommonEvent(..)
   , SDLDisplayEvent(..)
@@ -90,6 +108,8 @@ module SDL.Events
   , SDLMouseMotionEvent(..)
   , SDLMouseButtonEvent(..)
   , SDLMouseWheelEvent(..)
+  , SDLGamepadDeviceEvent(..)
+  , SDLGamepadButtonEvent(..)
   , SDLQuitEvent(..)
   , SDLUserEvent(..)
   , SDLEventFilter
@@ -97,6 +117,7 @@ module SDL.Events
     -- * Event Functions
   , sdlPumpEvents
   , sdlPeepEvents
+  , sdlPeepEventsRaw
   , sdlHasEvent
   , sdlHasEvents
   , sdlFlushEvent
@@ -130,6 +151,7 @@ import Data.Int (Int32)
 import SDL.Video (SDLWindow(..), SDLWindowID)
 import SDL.Mouse (SDLMouseID, SDLMouseButtonFlags)
 import SDL.Joystick (SDLJoystickID)
+import SDL.Gamepad (SDLGamepadButton)
 import SDL.Touch (SDLTouchID, SDLFingerID)
 import SDL.Pen (SDLPenID)
 import SDL.Keyboard (SDLKeyboardID)
@@ -141,7 +163,20 @@ type SDLEventType = Word32
 
 type SDLEventAction = CInt
 
+-- Pattern synonyms for SDLEventAction
+pattern SDL_ADDEVENT :: SDLEventAction
+pattern SDL_ADDEVENT = (#const SDL_ADDEVENT)
+
+pattern SDL_PEEKEVENT :: SDLEventAction
+pattern SDL_PEEKEVENT = (#const SDL_PEEKEVENT)
+
+pattern SDL_GETEVENT :: SDLEventAction
+pattern SDL_GETEVENT = (#const SDL_GETEVENT)
+
 -- Pattern synonyms for SDLEventType, mapping to C constants
+pattern SDL_EVENT_FIRST                   :: SDLEventType
+pattern SDL_EVENT_FIRST                   = (#const SDL_EVENT_FIRST)
+
 pattern SDL_EVENT_QUIT                    :: SDLEventType
 pattern SDL_EVENT_QUIT                    = (#const SDL_EVENT_QUIT)
 
@@ -232,6 +267,9 @@ pattern SDL_EVENT_WINDOW_FOCUS_LOST       = (#const SDL_EVENT_WINDOW_FOCUS_LOST)
 pattern SDL_EVENT_WINDOW_CLOSE_REQUESTED  :: SDLEventType
 pattern SDL_EVENT_WINDOW_CLOSE_REQUESTED  = (#const SDL_EVENT_WINDOW_CLOSE_REQUESTED)
 
+pattern SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED :: SDLEventType
+pattern SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED = (#const SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED)
+
 pattern SDL_EVENT_WINDOW_DESTROYED        :: SDLEventType
 pattern SDL_EVENT_WINDOW_DESTROYED        = (#const SDL_EVENT_WINDOW_DESTROYED)
 
@@ -289,6 +327,42 @@ pattern SDL_EVENT_JOYSTICK_ADDED          = (#const SDL_EVENT_JOYSTICK_ADDED)
 pattern SDL_EVENT_JOYSTICK_REMOVED        :: SDLEventType
 pattern SDL_EVENT_JOYSTICK_REMOVED        = (#const SDL_EVENT_JOYSTICK_REMOVED)
 
+pattern SDL_EVENT_GAMEPAD_AXIS_MOTION :: SDLEventType
+pattern SDL_EVENT_GAMEPAD_AXIS_MOTION = (#const SDL_EVENT_GAMEPAD_AXIS_MOTION)
+
+pattern SDL_EVENT_GAMEPAD_BUTTON_DOWN :: SDLEventType
+pattern SDL_EVENT_GAMEPAD_BUTTON_DOWN = (#const SDL_EVENT_GAMEPAD_BUTTON_DOWN)
+
+pattern SDL_EVENT_GAMEPAD_BUTTON_UP :: SDLEventType
+pattern SDL_EVENT_GAMEPAD_BUTTON_UP = (#const SDL_EVENT_GAMEPAD_BUTTON_UP)
+
+pattern SDL_EVENT_GAMEPAD_ADDED :: SDLEventType
+pattern SDL_EVENT_GAMEPAD_ADDED = (#const SDL_EVENT_GAMEPAD_ADDED)
+
+pattern SDL_EVENT_GAMEPAD_REMOVED :: SDLEventType
+pattern SDL_EVENT_GAMEPAD_REMOVED = (#const SDL_EVENT_GAMEPAD_REMOVED)
+
+pattern SDL_EVENT_GAMEPAD_REMAPPED :: SDLEventType
+pattern SDL_EVENT_GAMEPAD_REMAPPED = (#const SDL_EVENT_GAMEPAD_REMAPPED)
+
+pattern SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN :: SDLEventType
+pattern SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN = (#const SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN)
+
+pattern SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION :: SDLEventType
+pattern SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION = (#const SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION)
+
+pattern SDL_EVENT_GAMEPAD_TOUCHPAD_UP :: SDLEventType
+pattern SDL_EVENT_GAMEPAD_TOUCHPAD_UP = (#const SDL_EVENT_GAMEPAD_TOUCHPAD_UP)
+
+pattern SDL_EVENT_GAMEPAD_SENSOR_UPDATE :: SDLEventType
+pattern SDL_EVENT_GAMEPAD_SENSOR_UPDATE = (#const SDL_EVENT_GAMEPAD_SENSOR_UPDATE)
+
+pattern SDL_EVENT_GAMEPAD_UPDATE_COMPLETE :: SDLEventType
+pattern SDL_EVENT_GAMEPAD_UPDATE_COMPLETE = (#const SDL_EVENT_GAMEPAD_UPDATE_COMPLETE)
+
+pattern SDL_EVENT_GAMEPAD_STEAM_HANDLE_UPDATED :: SDLEventType
+pattern SDL_EVENT_GAMEPAD_STEAM_HANDLE_UPDATED = (#const SDL_EVENT_GAMEPAD_STEAM_HANDLE_UPDATED)
+
 pattern SDL_EVENT_CLIPBOARD_UPDATE        :: SDLEventType
 pattern SDL_EVENT_CLIPBOARD_UPDATE        = (#const SDL_EVENT_CLIPBOARD_UPDATE)
 
@@ -306,6 +380,9 @@ pattern SDL_EVENT_DROP_COMPLETE           = (#const SDL_EVENT_DROP_COMPLETE)
 
 pattern SDL_EVENT_USER                    :: SDLEventType
 pattern SDL_EVENT_USER                    = (#const SDL_EVENT_USER)
+
+pattern SDL_EVENT_LAST                    :: SDLEventType
+pattern SDL_EVENT_LAST                    = (#const SDL_EVENT_LAST)
 
 -- | Common event data structure
 data SDLCommonEvent = SDLCommonEvent
@@ -391,6 +468,22 @@ data SDLMouseWheelEvent = SDLMouseWheelEvent
   , sdlMouseWheelMouseY    :: Float
   } deriving (Eq, Show)
 
+-- | Gamepad device event data structure
+data SDLGamepadDeviceEvent = SDLGamepadDeviceEvent
+  { sdlGamepadDeviceType      :: SDLEventType
+  , sdlGamepadDeviceTimestamp :: Word64
+  , sdlGamepadDeviceWhich     :: SDLJoystickID
+  } deriving (Eq, Show)
+
+-- | Gamepad button event data structure
+data SDLGamepadButtonEvent = SDLGamepadButtonEvent
+  { sdlGamepadButtonType      :: SDLEventType
+  , sdlGamepadButtonTimestamp :: Word64
+  , sdlGamepadButtonWhich     :: SDLJoystickID
+  , sdlGamepadButtonButton    :: SDLGamepadButton
+  , sdlGamepadButtonDown      :: Bool
+  } deriving (Eq, Show)
+
 -- | Quit event data structure
 data SDLQuitEvent = SDLQuitEvent
   { sdlQuitType      :: SDLEventType
@@ -417,6 +510,8 @@ data SDLEvent
   | SDLEventMouseMotion SDLMouseMotionEvent
   | SDLEventMouseButton SDLMouseButtonEvent
   | SDLEventMouseWheel SDLMouseWheelEvent
+  | SDLEventGamepadDevice SDLGamepadDeviceEvent
+  | SDLEventGamepadButton SDLGamepadButtonEvent
   | SDLEventQuit SDLQuitEvent
   | SDLEventUser SDLUserEvent
   deriving (Eq, Show)
@@ -435,6 +530,14 @@ instance Storable SDLEvent where
       t | t == SDL_EVENT_MOUSE_MOTION -> SDLEventMouseMotion <$> peekMouseMotionEvent ptr
       t | t == SDL_EVENT_MOUSE_BUTTON_DOWN || t == SDL_EVENT_MOUSE_BUTTON_UP -> SDLEventMouseButton <$> peekMouseButtonEvent ptr
       t | t == SDL_EVENT_MOUSE_WHEEL -> SDLEventMouseWheel <$> peekMouseWheelEvent ptr
+      t | t == SDL_EVENT_GAMEPAD_ADDED
+       || t == SDL_EVENT_GAMEPAD_REMOVED
+       || t == SDL_EVENT_GAMEPAD_REMAPPED
+       || t == SDL_EVENT_GAMEPAD_UPDATE_COMPLETE
+       || t == SDL_EVENT_GAMEPAD_STEAM_HANDLE_UPDATED
+        -> SDLEventGamepadDevice <$> peekGamepadDeviceEvent ptr
+      t | t == SDL_EVENT_GAMEPAD_BUTTON_DOWN || t == SDL_EVENT_GAMEPAD_BUTTON_UP
+        -> SDLEventGamepadButton <$> peekGamepadButtonEvent ptr
       t | t >= SDL_EVENT_USER -> SDLEventUser <$> peekUserEvent ptr
       _ -> SDLEventCommon <$> peekCommonEvent ptr
   poke = error "poke not implemented for SDLEvent"
@@ -513,6 +616,22 @@ peekMouseWheelEvent ptr = do
   mouseX <- peekByteOff ptr 36
   mouseY <- peekByteOff ptr 40
   return $ SDLMouseWheelEvent t ts wid which x y mouseX mouseY
+
+peekGamepadDeviceEvent :: Ptr SDLEvent -> IO SDLGamepadDeviceEvent
+peekGamepadDeviceEvent ptr = do
+  t <- peek (castPtr ptr :: Ptr Word32)
+  ts <- peekByteOff ptr 8
+  which <- peekByteOff ptr 16
+  return $ SDLGamepadDeviceEvent t ts which
+
+peekGamepadButtonEvent :: Ptr SDLEvent -> IO SDLGamepadButtonEvent
+peekGamepadButtonEvent ptr = do
+  t <- peek (castPtr ptr :: Ptr Word32)
+  ts <- peekByteOff ptr 8
+  which <- peekByteOff ptr 16
+  button <- peekByteOff ptr 20
+  down <- peekByteOff ptr 21
+  return $ SDLGamepadButtonEvent t ts which button (toBool (down :: CBool))
 
 peekQuitEvent :: Ptr SDLEvent -> IO SDLQuitEvent
 peekQuitEvent ptr = do
