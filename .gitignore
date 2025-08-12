@@ -27,7 +27,7 @@ cabal.project.local~
 broken/
 
 # Custom directories
-sdl/
+/sdl/
 sample-project/
 
 # Zed
