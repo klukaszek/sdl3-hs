@@ -498,8 +498,8 @@ peekMouseButtonEvent ptr = do
   button <- peekByteOff ptr 24
   down <- peekByteOff ptr 25
   clicks <- peekByteOff ptr 26
-  x <- peekByteOff ptr 32
-  y <- peekByteOff ptr 36
+  x <- peekByteOff ptr 28
+  y <- peekByteOff ptr 32
   return $ SDLMouseButtonEvent t ts wid which button (toBool (down :: CBool)) clicks x y
 
 peekMouseWheelEvent :: Ptr SDLEvent -> IO SDLMouseWheelEvent
