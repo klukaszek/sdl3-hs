@@ -98,7 +98,7 @@ foreign import ccall unsafe "SDL_ResetAssertionReport"
   sdlResetAssertionReport :: IO ()
 
 -- | Attempt to tell an attached debugger to pause
-foreign import ccall unsafe "SDL_TriggerBreakpoint"
+foreign import ccall unsafe "wrapper_SDL_TriggerBreakpoint"
   sdlTriggerBreakpoint :: IO ()
 
 -- | Implementation for SDL_assert as a Haskell function
