@@ -8,7 +8,6 @@ import Control.Exception (bracket, bracketOnError, finally)
 import Control.Monad (unless, void, when)
 import Data.Bits ((.|.))
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
-import Data.Maybe (fromJust, fromMaybe, isJust, isNothing)
 import Foreign.C.Types (CFloat)
 import Foreign.Storable (sizeOf)
 import GPUCommon
@@ -54,7 +53,7 @@ main = do
 
 -- runAppGPU
 runAppGPU :: Context -> IO ()
-runAppGPU context@Context {..} = do
+runAppGPU context@Context {} = do
   sdlLog "Base context initialized."
   bracket
     (createResources context)
@@ -98,8 +97,8 @@ createResources Context {contextDevice = dev, contextWindow = win} = do
       case maybeDims of
         Nothing -> sdlLog "Failed to get window size." >> return Nothing
         Just (wInt, hInt) -> do
-          let w = fromIntegral wInt :: Int
-          let h = fromIntegral hInt :: Int
+          let w = wInt
+          let h = hInt
 
           -- Create the Graphics Pipeline
           maybeDrawPipeline <- createDrawPipeline dev win gfxVert gfxFrag
@@ -144,7 +143,7 @@ createResources Context {contextDevice = dev, contextWindow = win} = do
                             Just cp -> do
                               sdlLog "Copy pass begun for VB."
                               let vbSrc = SDLGPUTransferBufferLocation vbTransfer 0
-                              let vbDst = SDLGPUBufferRegion vb 0 (fromIntegral vertexDataSize)
+                              let vbDst = SDLGPUBufferRegion vb 0 vertexDataSize
                               sdlUploadToGPUBuffer cp vbSrc vbDst False
                               sdlEndGPUCopyPass cp
                               sdlLog "VB upload commands recorded and copy pass ended."

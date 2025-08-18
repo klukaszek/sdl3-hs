@@ -1,11 +1,10 @@
 module Main where
 
 import Control.Monad
-import Foreign.C.String (CString, peekCString, withCString)
-import Foreign.C.Types (CBool (..), CInt (..))
+import Foreign.C.String (CString, peekCString)
+import Foreign.C.Types (CInt (..))
 import Foreign.Marshal.Array (peekArray0, withArrayLen)
-import Foreign.Ptr (FunPtr, Ptr, castPtr, nullPtr)
-import Foreign.StablePtr (freeStablePtr, newStablePtr)
+import Foreign.Ptr (FunPtr, Ptr, nullPtr)
 import SDL
 import System.Exit (exitFailure, exitSuccess)
 
@@ -45,7 +44,7 @@ main = do
 
       -- Create our callback function
       let dialogCallback :: Ptr () -> Ptr CString -> CInt -> IO ()
-          dialogCallback userdata filelist filterIndex = do
+          dialogCallback _ filelist filterIndex = do
             if filelist == nullPtr
               then sdlLog "Dialog was cancelled or error occurred"
               else do
@@ -93,9 +92,9 @@ main = do
       props <- sdlCreateProperties
 
       -- Set some custom properties
-      sdlSetStringProperty props sdlPropFileDialogTitleString "Select a File"
-      sdlSetStringProperty props sdlPropFileDialogAcceptString "Choose"
-      sdlSetStringProperty props sdlPropFileDialogCancelString "Never Mind"
+      _ <- sdlSetStringProperty props sdlPropFileDialogTitleString "Select a File"
+      _ <- sdlSetStringProperty props sdlPropFileDialogAcceptString "Choose"
+      _ <- sdlSetStringProperty props sdlPropFileDialogCancelString "Never Mind"
 
       sdlShowFileDialogWithProperties
         SDL_FILEDIALOG_OPENFILE

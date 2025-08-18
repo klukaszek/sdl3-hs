@@ -49,7 +49,6 @@ module SDL.Dialog
 import Foreign
 import Foreign.C.Types
 import Foreign.C.String
-import Foreign.Marshal.Utils (maybeWith, fromBool) -- Added fromBool
 import SDL.Video (SDLWindow(..)) -- Import the newtype
 import SDL.Properties (SDLPropertiesID)
 

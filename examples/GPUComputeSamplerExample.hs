@@ -20,11 +20,11 @@
 -- |
 module Main where
 
-import Control.Exception (SomeException, bracket, bracketOnError, finally, try)
+import Control.Exception (bracket, bracketOnError, finally)
 import Control.Monad (forM, forM_, unless, void, when)
 import Data.Bits ((.|.))
 import Data.IORef
-import Data.Maybe (catMaybes, fromJust, isJust, isNothing)
+import Data.Maybe (fromJust, isJust)
 import Data.Word (Word32)
 import Foreign.C.Types (CFloat)
 import Foreign.Storable (peek)
@@ -32,7 +32,6 @@ import GPUCommon
 import SDL
 import System.Exit (exitFailure, exitSuccess)
 import System.FilePath ((</>))
-import Text.Printf (printf) -- For sampler names output
 
 samplerCount :: Int
 samplerCount = 6
@@ -117,7 +116,7 @@ runAppGPU context = do
 
 -- createResources
 createResources :: Context -> IO (Maybe AppResources)
-createResources context@Context {..} = do
+createResources Context {..} = do
   sdlLog "--- Beginning Resource Creation ---"
 
   -- 1. Load Source Image ("ravioli.bmp")
@@ -132,8 +131,8 @@ createResources context@Context {..} = do
     Just surfacePtr ->
       bracketOnError (pure surfacePtr) (\_ -> sdlDestroySurface surfacePtr) $ \surf -> do
         surfaceData <- peek surf
-        let imgW = fromIntegral (surfaceW surfaceData) :: Int
-        let imgH = fromIntegral (surfaceH surfaceData) :: Int
+        let imgW = surfaceW surfaceData :: Int
+        let imgH = surfaceH surfaceData :: Int
 
         -- 2. Create Source Texture (for compute shader to read)
         let srcTextureCI =
@@ -231,7 +230,7 @@ releaseResources Context {..} (Just AppResources {..}) = do
 
 -- eventLoopGPU
 eventLoopGPU :: Context -> AppResources -> IO ()
-eventLoopGPU context resources@AppResources {..} = do
+eventLoopGPU context resources@AppResources {} = do
   sdlPumpEvents
   shouldQuitRef <- newIORef False
   processEventsGPU context resources shouldQuitRef

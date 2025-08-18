@@ -1,12 +1,11 @@
 import SDL
-import Foreign.Ptr (nullPtr)
 
 main :: IO ()
 main = do
   devices <- sdlGetTouchDevices
   sdlLog $ "Touch Devices: " ++ show devices
   case devices of
-    (touchID:_) -> do
+    (touchID : _) -> do
       name <- sdlGetTouchDeviceName touchID
       sdlLog $ "Device Name: " ++ show name
       devType <- sdlGetTouchDeviceType touchID

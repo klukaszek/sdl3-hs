@@ -1,30 +1,24 @@
-{-|
-Example     : WAV Example
-Copyright   : (c) Kyle Lukaszek, 2025
-License     : BSD3
+-- \|
+-- Example     : WAV Example
+-- Copyright   : (c) Kyle Lukaszek, 2025
+-- License     : BSD3
+--
+-- Streams audio on a loop until you quit with 'q'.
+-- Events print delta time to show that the audio does not block.
+--
+-- Tested on Linux with Pulse AND Alsa.
+-- Tested on Windows.
+--
+-- For more details, refer to the official SDL3 documentation:
+-- https://wiki.libsdl.org/SDL3/CategoryAudio
 
-Streams audio on a loop until you quit with 'q'.
-Events print delta time to show that the audio does not block.
-
-Tested on Linux with Pulse AND Alsa.
-Tested on Windows.
-
-For more details, refer to the official SDL3 documentation:
-https://wiki.libsdl.org/SDL3/CategoryAudio
--}
-
-import Foreign
-import Foreign.C
+import Control.Monad (unless, when)
 import qualified Data.ByteString as BS
-import Data.ByteString.Unsafe (unsafePackCStringLen)
-import SDL hiding (sin, round)
-import Control.Monad (when, unless)
-import Control.Concurrent (threadDelay)
-import Foreign.Marshal.Array (withArray)
-import Foreign.Storable (sizeOf)
-import Data.IORef (newIORef, readIORef, writeIORef, IORef)
-import Text.Printf (printf)
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
+import Foreign
+import SDL hiding (round, sin)
 import System.Exit (exitFailure, exitSuccess)
+import Text.Printf (printf)
 
 -- | Main function to stream WAV audio with an event loop
 main :: IO ()
@@ -78,24 +72,24 @@ main = do
                   sdlQuit
                   exitFailure
                 else do
-                    window <- sdlCreateWindow "SDL3 Haskell Audio Queue Loop" 640 480 [SDL_WINDOW_RESIZABLE]
-                    case window of
-                      Nothing -> do
-                        sdlLog "Failed to create window!"
-                        sdlQuit
-                        exitFailure
-                      Just win -> do
-                        sdlLog "Window created successfully!"
+                  window <- sdlCreateWindow "SDL3 Haskell Audio Queue Loop" 640 480 [SDL_WINDOW_RESIZABLE]
+                  case window of
+                    Nothing -> do
+                      sdlLog "Failed to create window!"
+                      sdlQuit
+                      exitFailure
+                    Just win -> do
+                      sdlLog "Window created successfully!"
 
-                        -- Start event loop with initial time
-                        startTime <- sdlGetPerformanceCounter
-                        freq <- sdlGetPerformanceFrequency
-                        deltaTimeRef <- newIORef 0.0
-                        eventLoop stream wavData wavDataLen startTime freq deltaTimeRef
+                      -- Start event loop with initial time
+                      startTime <- sdlGetPerformanceCounter
+                      freq <- sdlGetPerformanceFrequency
+                      deltaTimeRef <- newIORef 0.0
+                      eventLoop stream wavData wavDataLen startTime freq deltaTimeRef
 
-                        -- Cleanup
-                        sdlDestroyWindow win
-                        sdlLog "Window destroyed."
+                      -- Cleanup
+                      sdlDestroyWindow win
+                      sdlLog "Window destroyed."
 
           -- Cleanup
           sdlDestroyAudioStream stream
@@ -122,7 +116,7 @@ eventLoop stream wavData wavDataLen lastTime freq deltaTimeRef = do
       return False
     Just q -> do
       -- sdlLog $ printf "Bytes queued: %d" q
-      when (q < fromIntegral wavDataLen) $ do
+      when (q < wavDataLen) $ do
         successPut <- sdlPutAudioStreamData stream wavData
         if not successPut
           then sdlLog "Failed to put additional audio data into stream"
@@ -153,13 +147,15 @@ handleEvent event deltaTimeRef = case event of
 
 -- Helper function to print subsystem names
 printSubsystem :: SDLInitFlags -> IO ()
-printSubsystem flag = sdlLog $ "  - " ++ case flag of
-  SDL_INIT_AUDIO    -> "Audio"
-  SDL_INIT_VIDEO    -> "Video"
-  SDL_INIT_JOYSTICK -> "Joystick"
-  SDL_INIT_HAPTIC   -> "Haptic"
-  SDL_INIT_GAMEPAD  -> "Gamepad"
-  SDL_INIT_EVENTS   -> "Events"
-  SDL_INIT_SENSOR   -> "Sensor"
-  SDL_INIT_CAMERA   -> "Camera"
-  _            -> "Unknown subsystem"
+printSubsystem flag =
+  sdlLog $
+    "  - " ++ case flag of
+      SDL_INIT_AUDIO -> "Audio"
+      SDL_INIT_VIDEO -> "Video"
+      SDL_INIT_JOYSTICK -> "Joystick"
+      SDL_INIT_HAPTIC -> "Haptic"
+      SDL_INIT_GAMEPAD -> "Gamepad"
+      SDL_INIT_EVENTS -> "Events"
+      SDL_INIT_SENSOR -> "Sensor"
+      SDL_INIT_CAMERA -> "Camera"
+      _ -> "Unknown subsystem"

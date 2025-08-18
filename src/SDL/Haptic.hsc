@@ -20,7 +20,7 @@ Basic usage:
 module SDL.Haptic
   ( -- * Types
     SDLHaptic(..)
-  , SDLHapticID(..)
+  , SDLHapticID()
   , SDLHapticDirection(..)
   , SDLHapticConstant(..)
   , SDLHapticPeriodic(..)
@@ -90,9 +90,9 @@ module SDL.Haptic
 
 #include <SDL3/SDL_haptic.h>
 
-import Foreign (Ptr, nullPtr, FunPtr, castPtr, peekArray, pokeArray, withArray, peek, poke, plusPtr, toBool)
-import Foreign.C.Types (CBool(..), CInt(..), CFloat(..), CUInt(..))
-import Foreign.C.String (CString, peekCString)
+import Foreign (Ptr, nullPtr, castPtr, peekArray, pokeArray, plusPtr, toBool)
+import Foreign.C.Types (CBool(..), CInt(..), CFloat(..))
+import Foreign.C.String (CString)
 import Foreign.Storable (Storable(..))
 import Foreign.Marshal.Alloc (alloca, free)
 import Data.Word (Word32, Word16, Word8)
@@ -501,8 +501,8 @@ foreign import ccall "SDL_OpenHaptic"
   sdlOpenHapticRaw :: Word32 -> IO (Ptr SDLHaptic)
 
 sdlOpenHaptic :: SDLHapticID -> IO (Maybe (Ptr SDLHaptic))
-sdlOpenHaptic id = do
-  ptr <- sdlOpenHapticRaw id
+sdlOpenHaptic hid = do
+  ptr <- sdlOpenHapticRaw hid
   return $ if ptr == nullPtr then Nothing else Just ptr
 
 -- | Get haptic from ID
@@ -666,7 +666,7 @@ foreign import ccall "SDL_PlayHapticRumble"
   sdlPlayHapticRumble_ :: Ptr SDLHaptic -> CFloat -> Word32 -> IO CBool
 
 sdlPlayHapticRumble :: Ptr SDLHaptic -> CFloat -> Word32 -> IO Bool
-sdlPlayHapticRumble haptic strength length = toBool <$> sdlPlayHapticRumble_ haptic strength length
+sdlPlayHapticRumble haptic strength rumLen = toBool <$> sdlPlayHapticRumble_ haptic strength rumLen
 
 -- | Stop haptic rumble
 foreign import ccall "SDL_StopHapticRumble"

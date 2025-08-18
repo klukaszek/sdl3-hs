@@ -141,22 +141,20 @@ module SDL.Surface
   ) where
 
 import Foreign.C.Types
-import Foreign.Ptr (Ptr, nullPtr, FunPtr, castPtr) -- Added castPtr
+import Foreign.Ptr (Ptr, nullPtr)
 import Foreign.Storable (Storable(..))
 import Foreign.Marshal.Utils (with, maybeWith, toBool, fromBool)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.C.String (CString, withCString)
 import Foreign.Marshal.Array (peekArray)
-import Control.Monad (when)
 import Data.Word
-import Data.Bits (Bits, (.|.), (.&.))
+import Data.Bits (Bits, (.&.))
 import SDL.IOStream (SDLIOStream(..))
 
 -- Assuming these imports provide the necessary types
 import SDL.Pixels (SDLColorspace(..), SDLPixelFormat, SDLPalette, pixelFormatToCUInt, cUIntToPixelFormat, cUIntToColorspace)
-import SDL.Properties (SDLPropertiesID(..))
+import SDL.Properties (SDLPropertiesID)
 import SDL.Rect (SDLRect)
-import SDL.Stdinc (SDLBool) -- Use CBool from Stdinc
 
 -- Helper Functions
 fromCBool :: CBool -> Bool

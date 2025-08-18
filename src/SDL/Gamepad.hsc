@@ -41,7 +41,7 @@ module SDL.Gamepad
   ( -- * Types
     SDLGamepad(..)
   , SDLGamepadType(..)
-  
+
   , SDLGamepadButton(..)
   , pattern SDL_GAMEPAD_BUTTON_INVALID
   , pattern SDL_GAMEPAD_BUTTON_SOUTH
@@ -71,7 +71,7 @@ module SDL.Gamepad
   , pattern SDL_GAMEPAD_BUTTON_MISC5
   , pattern SDL_GAMEPAD_BUTTON_MISC6
   , pattern SDL_GAMEPAD_BUTTON_COUNT
-  
+
   , SDLGamepadButtonLabel(..)
   , SDLGamepadAxis(..)
   , pattern SDL_GAMEPAD_AXIS_INVALID
@@ -83,7 +83,7 @@ module SDL.Gamepad
   , pattern SDL_GAMEPAD_AXIS_RIGHT_TRIGGER
   , pattern SDL_GAMEPAD_AXIS_COUNT
 
-  
+
   , SDLGamepadBindingType(..)
   , SDLGamepadBinding(..)
 
@@ -172,17 +172,17 @@ module SDL.Gamepad
 
 #include <SDL3/SDL_gamepad.h>
 
-import Foreign (Ptr, nullPtr, FunPtr, castPtr, peekArray, pokeArray, withArray, peek, poke, toBool, plusPtr, with, fromBool)
-import Foreign.C.Types (CBool(..), CInt(..), CFloat(..), CUInt(..), CULLong(..))
+import Foreign (Ptr, nullPtr, peekArray, withArray, toBool, with, fromBool)
+import Foreign.C.Types (CBool(..), CInt(..), CFloat(..), CULLong(..))
 import Foreign.C.String (CString, peekCString, withCString)
 import Foreign.Storable (Storable(..))
 import Foreign.Marshal.Alloc (alloca, free)
 import Data.Word (Word32, Word16, Word8)
-import Data.Int (Int32, Int16)
+import Data.Int (Int16)
 import SDL.GUID (SDLGUID(..))
 import SDL.Joystick (SDLJoystick(..), SDLJoystickID(..), SDLJoystickConnectionState(..))
 import SDL.Power (SDLPowerState(..))
-import SDL.Properties (SDLPropertiesID(..))
+import SDL.Properties (SDLPropertiesID)
 import SDL.Sensor (SDLSensorType(..))
 import SDL.IOStream (SDLIOStream)
 
@@ -377,7 +377,7 @@ instance Storable SDLGamepadBinding where
         (#poke SDL_GamepadBinding, input.hat.hat_mask) ptr mask
       BindingInputNone -> return ()
     case o of
-      BindingOutputButton (SDLGamepadButton btn) -> (#poke SDL_GamepadBinding, output.button) ptr ((fromIntegral btn) :: CInt)
+      BindingOutputButton (SDLGamepadButton btn) -> (#poke SDL_GamepadBinding, output.button) ptr btn
       BindingOutputAxis (SDLGamepadAxis ax) min' max' -> do
         (#poke SDL_GamepadBinding, output.axis.axis) ptr ax
         (#poke SDL_GamepadBinding, output.axis.axis_min) ptr min'
@@ -508,7 +508,7 @@ foreign import ccall "SDL_GetGamepadPlayerIndexForID"
 sdlGetGamepadPlayerIndexForID :: SDLJoystickID -> IO Int
 sdlGetGamepadPlayerIndexForID (SDLJoystickID jid) = do
   fromIntegral <$> sdlGetGamepadPlayerIndexForID_ jid
-  
+
 -- | Get GUID by ID
 foreign import ccall "SDL_GetGamepadGUIDForID"
   sdlGetGamepadGUIDForID :: Word32 -> IO (Ptr SDLGUID)
@@ -925,7 +925,7 @@ foreign import ccall "SDL_CloseGamepad"
   sdlCloseGamepad_ :: Ptr SDLGamepad -> IO ()
 
 sdlCloseGamepad :: SDLGamepad -> IO ()
-sdlCloseGamepad (SDLGamepad ptr) = sdlCloseGamepad_ ptr   
+sdlCloseGamepad (SDLGamepad ptr) = sdlCloseGamepad_ ptr
 
 -- | Get Apple SF Symbols name for button
 foreign import ccall "SDL_GetGamepadAppleSFSymbolsNameForButton"

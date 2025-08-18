@@ -3,6 +3,7 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fno-warn-missing-pattern-synonym-signatures #-}
 
 {-|
 Module      : SDL.BlendMode
@@ -45,7 +46,7 @@ module SDL.BlendMode
   , pattern SDL_BLENDFACTOR_ONE_MINUS_DST_COLOR
   , pattern SDL_BLENDFACTOR_DST_ALPHA
   , pattern SDL_BLENDFACTOR_ONE_MINUS_DST_ALPHA
-   
+
    -- * Custom Blend Mode Functions
   , sdlComposeCustomBlendMode
   ) where
@@ -133,12 +134,12 @@ foreign import ccall "SDL_ComposeCustomBlendMode"
   sdlComposeCustomBlendModeRaw :: CInt -> CInt -> CInt -> CInt -> CInt -> CInt -> IO SDLBlendMode
 
 -- | Compose a custom blend mode for renderers
-sdlComposeCustomBlendMode :: SDLBlendFactor -> SDLBlendFactor -> SDLBlendOperation -> 
-                             SDLBlendFactor -> SDLBlendFactor -> SDLBlendOperation -> 
+sdlComposeCustomBlendMode :: SDLBlendFactor -> SDLBlendFactor -> SDLBlendOperation ->
+                             SDLBlendFactor -> SDLBlendFactor -> SDLBlendOperation ->
                              IO SDLBlendMode
-sdlComposeCustomBlendMode (SDLBlendFactor srcColorFactor) (SDLBlendFactor dstColorFactor) (SDLBlendOperation colorOperation) 
+sdlComposeCustomBlendMode (SDLBlendFactor srcColorFactor) (SDLBlendFactor dstColorFactor) (SDLBlendOperation colorOperation)
                           (SDLBlendFactor srcAlphaFactor) (SDLBlendFactor dstAlphaFactor) (SDLBlendOperation alphaOperation) =
-  sdlComposeCustomBlendModeRaw 
+  sdlComposeCustomBlendModeRaw
     srcColorFactor
     dstColorFactor
     colorOperation

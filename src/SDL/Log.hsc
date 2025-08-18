@@ -22,8 +22,6 @@
 -- You can change the log verbosity programmatically using 'sdlSetLogPriority'
 -- or with environment variables via SDL hints.
 
-#include <SDL3/SDL_log.h>
-
 module SDL.Log
   ( -- * Types
     SDLLogCategory(..)
@@ -73,13 +71,14 @@ module SDL.Log
   , sdlSetLogOutputFunction
   ) where
 
+#include <SDL3/SDL_log.h>
+
 import Foreign.C.Types (CInt(..), CUInt(..))
-import Foreign.Ptr (Ptr, FunPtr, nullPtr)
+import Foreign.Ptr (Ptr, FunPtr)
 import Foreign.C.String (CString, withCString)
 import Foreign.Storable (Storable(..), peek)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Utils (maybeWith)
-import Data.Word (Word8) -- Needed for peek/poke? (No, CUInt is okay)
 
 -- | Log categories. Use pattern synonyms for predefined categories.
 -- Custom categories start from `SDL_LOG_CATEGORY_CUSTOM`.

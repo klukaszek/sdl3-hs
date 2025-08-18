@@ -11,7 +11,7 @@ This module provides Haskell bindings to the SDL3 storage functionality.
 -}
 
 module SDL.Storage
-  ( 
+  (
     -- * Storage Interface
     SDLStorageInterface(..)
   , SDLStorage
@@ -41,7 +41,7 @@ module SDL.Storage
 import Foreign
 import Foreign.C
 import SDL.Filesystem (SDLPathInfo, SDLEnumerationResult(..), SDLGlobFlags(..))
-import SDL.Properties (SDLPropertiesID(..))
+import SDL.Properties (SDLPropertiesID)
 
 -- | An opaque handle representing a storage container.
 data SDLStorage
@@ -120,14 +120,14 @@ foreign import ccall "wrapper" mkEnumerateCallback :: (Ptr () -> CString -> CStr
 
 -- | Open a read-only container for the application's filesystem.
 sdlOpenTitleStorage :: Maybe String -> SDLPropertiesID -> IO (Maybe (Ptr SDLStorage))
-sdlOpenTitleStorage override props = 
+sdlOpenTitleStorage override props =
   maybeWith withCString override $ \overridePtr -> do
     storage <- sdlOpenTitleStorage_ overridePtr props
     return $ if storage == nullPtr then Nothing else Just storage
 
 -- | Open a container for a user's unique read/write filesystem.
 sdlOpenUserStorage :: String -> String -> SDLPropertiesID -> IO (Maybe (Ptr SDLStorage))
-sdlOpenUserStorage org app props = 
+sdlOpenUserStorage org app props =
   withCString org $ \orgPtr ->
   withCString app $ \appPtr -> do
     storage <- sdlOpenUserStorage_ orgPtr appPtr props
@@ -142,7 +142,7 @@ sdlOpenFileStorage path =
 
 -- | Open a container using a client-provided storage interface.
 sdlOpenStorage :: SDLStorageInterface -> Ptr () -> IO (Maybe (Ptr SDLStorage))
-sdlOpenStorage iface userdata = 
+sdlOpenStorage iface userdata =
   with iface $ \ifacePtr -> do
     storage <- sdlOpenStorage_ ifacePtr userdata
     return $ if storage == nullPtr then Nothing else Just storage
@@ -167,15 +167,15 @@ sdlGetStorageFileSize storage path =
 
 -- | Synchronously read a file from a storage container into a buffer.
 sdlReadStorageFile :: Ptr SDLStorage -> String -> Ptr () -> Word64 -> IO Bool
-sdlReadStorageFile storage path destination length =
+sdlReadStorageFile storage path destination len =
   withCString path $ \pathPtr ->
-    sdlReadStorageFile_ storage pathPtr destination length
+    sdlReadStorageFile_ storage pathPtr destination len
 
 -- | Synchronously write a file from memory into a storage container.
 sdlWriteStorageFile :: Ptr SDLStorage -> String -> Ptr () -> Word64 -> IO Bool
-sdlWriteStorageFile storage path source length =
+sdlWriteStorageFile storage path source len =
   withCString path $ \pathPtr ->
-    sdlWriteStorageFile_ storage pathPtr source length
+    sdlWriteStorageFile_ storage pathPtr source len
 
 -- | Create a directory in a writable storage container.
 sdlCreateStorageDirectory :: Ptr SDLStorage -> String -> IO Bool
@@ -240,4 +240,3 @@ sdlGlobStorageDirectory storage path pattern (SDLGlobFlags flags) =
         strings <- peekArray (fromIntegral count) result >>= mapM peekCString
         free result
         return $ Just strings
-

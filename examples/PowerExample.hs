@@ -1,10 +1,10 @@
 module Main where
 
-import SDL
 import Control.Monad
-import Foreign.Marshal.Alloc (alloca, mallocBytes)
-import Foreign.Storable (poke, peek)
-import System.Exit (exitFailure, exitSuccess)
+import Foreign.Marshal.Alloc (alloca)
+import Foreign.Storable (peek)
+import SDL
+import System.Exit (exitFailure)
 
 -- Check power state
 main :: IO ()
@@ -67,14 +67,15 @@ main = do
 
 -- Helper function to print subsystem names
 printSubsystem :: SDLInitFlags -> IO ()
-printSubsystem flag = sdlLog $ "  - " ++ case flag of
-  SDL_INIT_AUDIO    -> "Audio"
-  SDL_INIT_VIDEO    -> "Video"
-  SDL_INIT_JOYSTICK -> "Joystick"
-  SDL_INIT_HAPTIC   -> "Haptic"
-  SDL_INIT_GAMEPAD  -> "Gamepad"
-  SDL_INIT_EVENTS   -> "Events"
-  SDL_INIT_SENSOR   -> "Sensor"
-  SDL_INIT_CAMERA   -> "Camera"
-  _            -> "Unknown subsystem"
-
+printSubsystem flag =
+  sdlLog $
+    "  - " ++ case flag of
+      SDL_INIT_AUDIO -> "Audio"
+      SDL_INIT_VIDEO -> "Video"
+      SDL_INIT_JOYSTICK -> "Joystick"
+      SDL_INIT_HAPTIC -> "Haptic"
+      SDL_INIT_GAMEPAD -> "Gamepad"
+      SDL_INIT_EVENTS -> "Events"
+      SDL_INIT_SENSOR -> "Sensor"
+      SDL_INIT_CAMERA -> "Camera"
+      _ -> "Unknown subsystem"

@@ -44,11 +44,10 @@ module SDL.Rect
 #include <SDL3/SDL_rect.h>
 
 import Foreign.C.Types
-import Foreign.Ptr (Ptr, castPtr, nullPtr)
+import Foreign.Ptr (Ptr, nullPtr)
 import Foreign.Storable (Storable(..))
 import Foreign.Marshal.Array (withArray)
 import Foreign.Marshal.Utils (with)
-import Control.Monad (when)
 
 -- | A structure that defines a point using integers (SDL_Point).
 data SDLPoint = SDLPoint

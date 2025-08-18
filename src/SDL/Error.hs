@@ -1,35 +1,33 @@
-{-|
-Module      : SDL.Error
-Description : Simple error message routines for SDL
-Copyright   : (c) Kyle Lukaszek
-License     : BSD3
-
-Simple error message routines for SDL.
-
-Most apps will interface with these APIs in exactly one function: when almost any SDL function
-call reports failure, you can get a human-readable string of the problem from 'sdlGetError'.
-
-These strings are maintained per-thread, and apps are welcome to set their own errors, which is
-popular when building libraries on top of SDL for other apps to consume. These strings are set
-by calling 'sdlSetError'.
--}
-
+-- |
+-- Module      : SDL.Error
+-- Description : Simple error message routines for SDL
+-- Copyright   : (c) Kyle Lukaszek
+-- License     : BSD3
+--
+-- Simple error message routines for SDL.
+--
+-- Most apps will interface with these APIs in exactly one function: when almost any SDL function
+-- call reports failure, you can get a human-readable string of the problem from 'sdlGetError'.
+--
+-- These strings are maintained per-thread, and apps are welcome to set their own errors, which is
+-- popular when building libraries on top of SDL for other apps to consume. These strings are set
+-- by calling 'sdlSetError'.
 module SDL.Error
   ( -- * Error Handling Functions
-    sdlSetError
-  , sdlSetErrorV
-  , sdlOutOfMemory
-  , sdlGetError
-  , sdlClearError
-    -- * Internal Error Macros
-  , sdlUnsupported
-  , sdlInvalidParamError
-  ) where
+    sdlSetError,
+    sdlSetErrorV,
+    sdlOutOfMemory,
+    sdlGetError,
+    sdlClearError,
 
-import Foreign.C.String (CString, withCString, peekCString)
-import Foreign.C.Types (CBool(..))
-import Control.Monad (void)
-import Data.Bool (bool)
+    -- * Internal Error Macros
+    sdlUnsupported,
+    sdlInvalidParamError,
+  )
+where
+
+import Foreign.C.String (CString, peekCString, withCString)
+import Foreign.C.Types (CBool (..))
 
 -- | Set the SDL error message for the current thread.
 --
@@ -93,7 +91,7 @@ sdlClearError = fmap cboolToBool sdlClearErrorRaw
   where
     cboolToBool :: CBool -> Bool
     cboolToBool (CBool 0) = False
-    cboolToBool _         = True
+    cboolToBool _ = True
 
 -- | Raw C function for SDL_ClearError
 foreign import ccall "SDL_ClearError" sdlClearErrorRaw :: IO CBool
@@ -116,7 +114,7 @@ sdlUnsupported = withCString "That operation is not supported" $ \cstr -> do
 --
 -- @since 3.2.0
 sdlInvalidParamError :: String -> IO Bool
-sdlInvalidParamError param = 
+sdlInvalidParamError param =
   withCString ("Parameter '" ++ param ++ "' is invalid") $ \cstr -> do
     CBool val <- sdlSetError cstr
     return (val /= 0)

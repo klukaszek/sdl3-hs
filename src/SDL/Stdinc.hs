@@ -249,16 +249,13 @@ module SDL.Stdinc
   )
 where
 
-import Data.Bits
 import Data.Int
 import Data.Word
 import Foreign.C.String
 import Foreign.C.Types
-import Foreign.Marshal.Alloc hiding (calloc, free, malloc, realloc)
 import Foreign.Ptr
 import Foreign.Storable
-import Prelude hiding (abs, acos, asin, atan, atan2, ceiling, cos, exp, floor, getEnv, isAlpha, isAlphaNum, isDigit, isLower, isPrint, isSpace, isUpper, log, max, min, round, sin, sqrt, tan, truncate)
-import qualified Prelude as P
+import Prelude hiding (abs, acos, asin, atan, atan2, ceiling, cos, exp, floor, log, max, min, round, sin, sqrt, tan, truncate)
 
 -- | 8-bit signed integer
 type Sint8 = Int8
@@ -387,18 +384,6 @@ type CallocFunc = CSize -> CSize -> IO (Ptr ())
 type ReallocFunc = Ptr () -> CSize -> IO (Ptr ())
 
 type FreeFunc = Ptr () -> IO ()
-
-foreign import ccall unsafe "wrapper"
-  wrapMallocFunc :: MallocFunc -> IO (FunPtr MallocFunc)
-
-foreign import ccall unsafe "wrapper"
-  wrapCallocFunc :: CallocFunc -> IO (FunPtr CallocFunc)
-
-foreign import ccall unsafe "wrapper"
-  wrapReallocFunc :: ReallocFunc -> IO (FunPtr ReallocFunc)
-
-foreign import ccall unsafe "wrapper"
-  wrapFreeFunc :: FreeFunc -> IO (FunPtr FreeFunc)
 
 foreign import ccall unsafe "SDL_GetMemoryFunctions"
   getMemoryFunctions :: Ptr (FunPtr MallocFunc) -> Ptr (FunPtr CallocFunc) -> Ptr (FunPtr ReallocFunc) -> Ptr (FunPtr FreeFunc) -> IO ()
@@ -570,10 +555,10 @@ foreign import ccall unsafe "SDL_wcstol" wcstol :: Ptr CWchar -> Ptr (Ptr CWchar
 
 -- Wide-char formatting wrappers for Haskell FFI
 foreign import ccall unsafe "wrapper_SDL_swprintf"
-  c_sdlSwprintf :: Ptr CWchar -> CSize -> Ptr CWchar -> IO CInt
+  sdlSwprintf :: Ptr CWchar -> CSize -> Ptr CWchar -> IO CInt
 
 foreign import ccall unsafe "wrapper_SDL_vswprintf"
-  c_sdlVswprintf :: Ptr CWchar -> CSize -> Ptr CWchar -> Ptr () -> IO CInt
+  sdlVswprintf :: Ptr CWchar -> CSize -> Ptr CWchar -> Ptr () -> IO CInt
 
 -- Formatting
 foreign import ccall unsafe "SDL_sscanf" sscanf :: CString -> CString -> IO CInt

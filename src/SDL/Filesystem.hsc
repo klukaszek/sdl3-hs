@@ -1,6 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fno-warn-missing-pattern-synonym-signatures #-}
 
 -- SDL/Filesystem.hsc
 {-|
@@ -45,10 +46,7 @@ module SDL.Filesystem
 
 import Foreign hiding (free)
 import Foreign.C
-import SDL.Stdinc (SDLTime, free)
-import Data.Bits (Bits)
-import Control.Exception (bracket)
-import Control.Monad (when)
+import SDL.Stdinc (SDLTime)
 
 -- | Type of OS-provided default folder (enum).
 data SDLFolder

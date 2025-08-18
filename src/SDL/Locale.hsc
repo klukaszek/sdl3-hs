@@ -1,4 +1,6 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# OPTIONS_GHC -fno-warn-unused-top-binds#-}
+
 {-|
 Module      : SDL.Locale - SDL Locale
 Description : SDL locale services
@@ -23,7 +25,7 @@ import Foreign.Ptr (Ptr, nullPtr)
 import Foreign.C.String (peekCString)
 import Foreign.Marshal.Alloc (free, alloca)
 import Foreign.Storable (Storable(..))
-import Foreign.Marshal.Array (peekArray, advancePtr)
+import Foreign.Marshal.Array (peekArray)
 
 -- | Represents a locale with language and optional country code
 data SDLLocale = SDLLocale
@@ -37,10 +39,10 @@ instance Storable SDLLocale where
   peek ptr = do
     lang <- peekCString =<< (#peek SDL_Locale, language) ptr
     countryPtr <- (#peek SDL_Locale, country) ptr
-    country <- if countryPtr == nullPtr
+    countryVal <- if countryPtr == nullPtr
                  then return Nothing
                  else Just <$> peekCString countryPtr
-    return $ SDLLocale lang country
+    return $ SDLLocale lang countryVal
   poke _ _ = error "SDLLocale.poke not implemented" -- Not needed for this use case
 
 -- | Get the user's preferred locales

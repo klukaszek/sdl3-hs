@@ -18,7 +18,7 @@ To use these functions, SDL_Init() must have been called with the SDL_INIT_SENSO
 module SDL.Sensor
   ( -- * Types
     SDLSensor(..)
-  , SDLSensorID(..)
+  , SDLSensorID
   , SDLSensorType(..)
   , pattern SDL_SENSOR_INVALID
   , pattern SDL_SENSOR_UNKNOWN
@@ -30,7 +30,7 @@ module SDL.Sensor
   , pattern SDL_SENSOR_GYRO_R
 
   , sdlStandardGravity
-  
+
     -- * Sensor Management
   , sdlGetSensors
   , sdlGetSensorNameForID
@@ -51,11 +51,8 @@ module SDL.Sensor
 import Foreign hiding (free)
 import Foreign.C.Types
 import Foreign.C.String
-import Data.Word
-import Control.Monad
 
 import SDL.Stdinc
-import SDL.Error
 import SDL.Properties
 
 #include <SDL3/SDL_sensor.h>

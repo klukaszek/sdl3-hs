@@ -1,9 +1,7 @@
 module Main where
 
-import SDL
 import Control.Monad
-import Foreign.Marshal.Alloc (alloca)
-import Foreign.Storable (peek)
+import SDL
 import System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()
@@ -40,9 +38,13 @@ main = do
       forM_ cameras $ \camId -> do
         mName <- sdlGetCameraName camId
         pos <- sdlGetCameraPosition camId
-        sdlLog $ "  - ID: " ++ show camId ++ 
-                   ", Name: " ++ maybe "Unknown" id mName ++ 
-                   ", Position: " ++ show pos
+        sdlLog $
+          "  - ID: "
+            ++ show camId
+            ++ ", Name: "
+            ++ maybe "Unknown" id mName
+            ++ ", Position: "
+            ++ show pos
 
       -- Open the first camera
       let firstCamera = head cameras
@@ -55,14 +57,15 @@ main = do
           sdlLog $ "Error: " ++ err
         Just camera -> do
           sdlLog "Camera opened successfully."
-          
+
           -- Check permission state
           permState <- sdlGetCameraPermissionState camera
-          sdlLog $ "Permission state: " ++ 
-                     case permState of
-                       1  -> "Approved"
-                       -1 -> "Denied"
-                       _  -> "Pending"
+          sdlLog $
+            "Permission state: "
+              ++ case permState of
+                1 -> "Approved"
+                -1 -> "Denied"
+                _ -> "Pending"
 
           -- Get camera format
           mFormat <- sdlGetCameraFormat camera
@@ -81,13 +84,15 @@ main = do
 
 -- Helper function to print subsystem names
 printSubsystem :: SDLInitFlags -> IO ()
-printSubsystem flag = sdlLog $ "  - " ++ case flag of
-  SDL_INIT_AUDIO    -> "Audio"
-  SDL_INIT_VIDEO    -> "Video"
-  SDL_INIT_JOYSTICK -> "Joystick"
-  SDL_INIT_HAPTIC   -> "Haptic"
-  SDL_INIT_GAMEPAD  -> "Gamepad"
-  SDL_INIT_EVENTS   -> "Events"
-  SDL_INIT_SENSOR   -> "Sensor"
-  SDL_INIT_CAMERA   -> "Camera"
-  _            -> "Unknown subsystem"
+printSubsystem flag =
+  sdlLog $
+    "  - " ++ case flag of
+      SDL_INIT_AUDIO -> "Audio"
+      SDL_INIT_VIDEO -> "Video"
+      SDL_INIT_JOYSTICK -> "Joystick"
+      SDL_INIT_HAPTIC -> "Haptic"
+      SDL_INIT_GAMEPAD -> "Gamepad"
+      SDL_INIT_EVENTS -> "Events"
+      SDL_INIT_SENSOR -> "Sensor"
+      SDL_INIT_CAMERA -> "Camera"
+      _ -> "Unknown subsystem"

@@ -75,9 +75,8 @@ import Foreign.Ptr
 import Foreign.Storable (Storable) -- Added Storable
 import Foreign.Marshal.Utils (toBool) -- Added toBool
 import Data.Word
-import Data.Int
 import SDL.Atomic (SDLAtomicInt(..)) -- Assuming defined as newtype SDLAtomicInt (Ptr SDL_AtomicInt)
-import SDL.Properties (SDLPropertiesID(..))
+import SDL.Properties (SDLPropertiesID)
 import SDL.Stdinc (SDLCall) -- Assuming defined as Ptr () or FunPtr
 
 -- Opaque C struct type

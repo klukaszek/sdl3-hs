@@ -14,7 +14,7 @@ module SDL.Assert
     SDLAssertState(..)
   , SDLAssertData(..)
   , SDLAssertionHandler
-  
+
   -- * Functions
   , sdlReportAssertion
   , sdlSetAssertionHandler
@@ -22,14 +22,14 @@ module SDL.Assert
   , sdlGetAssertionHandler
   , sdlGetAssertionReport
   , sdlResetAssertionReport
-  
+
   -- * Assertion macros (as functions in Haskell)
   , sdlAssert
   , sdlAssertRelease
   , sdlAssertParanoid
   , sdlAssertAlways
   , sdlTriggerBreakpoint
-  
+
   -- * Constants
   , sdlAssertLevel
   ) where
@@ -38,10 +38,9 @@ import Foreign.Ptr
 import Foreign.C.Types
 import Foreign.C.String
 import Control.Monad
-import SDL.Stdinc (SDLBool)
 
 -- | Possible outcomes from a triggered assertion
-data SDLAssertState = 
+data SDLAssertState =
     SDL_ASSERTION_RETRY         -- ^ Retry the assert immediately
   | SDL_ASSERTION_BREAK         -- ^ Make the debugger trigger a breakpoint
   | SDL_ASSERTION_ABORT         -- ^ Terminate the program
@@ -131,7 +130,7 @@ sdlAssertParanoid _ = return ()
 
 -- | Implementation for SDL_assert_always as a Haskell function
 sdlAssertAlways :: Bool -> IO ()
-sdlAssertAlways condition = unless condition $ sdlAssertHelper "assertion failed"
+sdlAssertAlways cond = unless cond $ sdlAssertHelper "assertion failed"
 
 -- | Helper function for assertion implementations
 sdlAssertHelper :: String -> IO ()

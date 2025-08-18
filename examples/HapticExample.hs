@@ -1,17 +1,10 @@
 module Main where
 
-import SDL
-import SDL.GUID
-import SDL.Joystick
-import SDL.Haptic
-import Control.Monad
-import System.Exit (exitFailure, exitSuccess)
-import Foreign.Ptr (Ptr, nullPtr)
-import Foreign.C.Types (CFloat(..))
-import Foreign.C.String (peekCString)
-import Data.Word (Word8, Word32)
-import Data.Maybe (fromMaybe, isJust)
 import Control.Concurrent (threadDelay)
+import Control.Monad
+import Foreign.C.String (peekCString)
+import SDL
+import System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()
 main = do
@@ -43,7 +36,7 @@ main = do
 
   case joysticks of
     [] -> sdlLog "No joysticks available to test."
-    (jid:_) -> do
+    (jid : _) -> do
       sdlLog $ "Testing joystick with ID: " ++ show jid
 
       -- Open the joystick
@@ -87,7 +80,7 @@ main = do
 
   case haptics of
     [] -> sdlLog "No haptic devices available to test."
-    (hid:_) -> do
+    (hid : _) -> do
       sdlLog $ "Testing haptic device with ID: " ++ show hid
 
       -- Open the haptic device
@@ -115,8 +108,8 @@ main = do
           sdlLog $ "Rumble supported: " ++ show rumbleSupported
 
           when rumbleSupported $ do
-            initSuccess <- sdlInitHapticRumble haptic
-            unless initSuccess $ do
+            status <- sdlInitHapticRumble haptic
+            unless status $ do
               sdlLog "Failed to initialize rumble!"
               exitFailure
 
@@ -126,7 +119,7 @@ main = do
               sdlLog "Failed to play rumble!"
               exitFailure
 
-            threadDelay 1000000  -- Wait 1 second for effect to complete
+            threadDelay 1000000 -- Wait 1 second for effect to complete
             sdlLog "Stopping rumble..."
             stopSuccess <- sdlStopHapticRumble haptic
             unless stopSuccess $ sdlLog "Failed to stop rumble!"
@@ -135,23 +128,24 @@ main = do
           sdlCloseHaptic haptic
           sdlLog "Haptic device closed."
 
-    -- Clean up
+  -- Clean up
   sdlLog "\nShutting down SDL..."
   sdlQuit
 
   sdlLog "Application terminated successfully"
   exitSuccess
 
-
 -- Helper function to print subsystem names
 printSubsystem :: SDLInitFlags -> IO ()
-printSubsystem flag = sdlLog $ "  - " ++ case flag of
-  SDL_INIT_AUDIO    -> "Audio"
-  SDL_INIT_VIDEO    -> "Video"
-  SDL_INIT_JOYSTICK -> "Joystick"
-  SDL_INIT_HAPTIC   -> "Haptic"
-  SDL_INIT_GAMEPAD  -> "Gamepad"
-  SDL_INIT_EVENTS   -> "Events"
-  SDL_INIT_SENSOR   -> "Sensor"
-  SDL_INIT_CAMERA   -> "Camera"
-  _            -> "Unknown subsystem"
+printSubsystem flag =
+  sdlLog $
+    "  - " ++ case flag of
+      SDL_INIT_AUDIO -> "Audio"
+      SDL_INIT_VIDEO -> "Video"
+      SDL_INIT_JOYSTICK -> "Joystick"
+      SDL_INIT_HAPTIC -> "Haptic"
+      SDL_INIT_GAMEPAD -> "Gamepad"
+      SDL_INIT_EVENTS -> "Events"
+      SDL_INIT_SENSOR -> "Sensor"
+      SDL_INIT_CAMERA -> "Camera"
+      _ -> "Unknown subsystem"

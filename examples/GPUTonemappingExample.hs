@@ -53,7 +53,7 @@ import Control.Monad (forM, forM_, unless, void, when)
 import Data.Bits ((.|.))
 import Data.IORef
 import Data.Maybe (catMaybes, fromJust, isJust, isNothing)
-import Foreign.Ptr (Ptr, castPtr)
+import Foreign.Ptr (castPtr)
 import GPUCommon
 import SDL
 import System.Exit (exitFailure, exitSuccess)
@@ -130,12 +130,12 @@ runAppGPU context = do
 
 -- createResources
 createResources :: Context -> IO (Maybe AppResources)
-createResources context@Context {..} = do
+createResources Context {..} = do
   sdlLog "--- Beginning Resource Creation ---"
   let desiredChannels = 4
 
   -- Load HDR Image Data
-  (wInt, hInt) <-
+  (w, h) <-
     bracketOnError
       (loadHDRImageFromFile "memorial.hdr" desiredChannels)
       ( \case
@@ -144,15 +144,12 @@ createResources context@Context {..} = do
       )
       ( \case
           Nothing -> sdlLog "Could not load HDR image data!" >> error "HDR Load Failed" -- Force exit
-          Just (ptr, w, h, n) -> do
+          Just (_, w, h, n) -> do
             sdlLog $ "HDR Image loaded: " ++ show w ++ "x" ++ show h ++ ", channels: " ++ show n
             -- Adjust window size based on loaded HDR image
-            sdlSetWindowSize contextWindow w h
+            _ <- sdlSetWindowSize contextWindow w h
             return (w, h)
       )
-
-  let w = fromIntegral wInt :: Int
-  let h = fromIntegral hInt :: Int
 
   -- Create Textures
   let hdrFormat = SDL_GPU_TEXTUREFORMAT_R32G32B32A32_FLOAT
@@ -224,7 +221,7 @@ createResources context@Context {..} = do
             case maybeHDRTexture of
               Nothing -> sdlLog "HDR Texture not created, cannot upload." >> return False
               Just hdrTex -> do
-                let dataSizeBytes = fromIntegral (wInt * hInt * desiredChannels * 4) -- 4 bytes per pixel
+                let dataSizeBytes = fromIntegral (w * h * desiredChannels * 4) -- 4 bytes per pixel
                 bracket
                   (createTransferBuffer contextDevice dataSizeBytes SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "HDRUpload")
                   (cleanupTransferBuffer contextDevice)
@@ -247,8 +244,8 @@ createResources context@Context {..} = do
                               case mcp of
                                 Nothing -> return False
                                 Just cp -> do
-                                  let texSrc = SDLGPUTextureTransferInfo transferBuf 0 (fromIntegral wInt) (fromIntegral hInt)
-                                  let texDst = defaultTextureRegion hdrTex wInt hInt
+                                  let texSrc = SDLGPUTextureTransferInfo transferBuf 0 (fromIntegral w) (fromIntegral h)
+                                  let texDst = defaultTextureRegion hdrTex w h
                                   sdlUploadToGPUTexture cp texSrc texDst False
                                   sdlEndGPUCopyPass cp
                                   sdlSubmitGPUCommandBuffer cb >>= \s -> if s then sdlWaitForGPUIdle contextDevice >> return True else return False
@@ -293,7 +290,7 @@ createResources context@Context {..} = do
 -- releaseResources
 releaseResources :: Context -> Maybe AppResources -> IO ()
 releaseResources _ Nothing = return ()
-releaseResources context@Context {..} appResourcesMaybe =
+releaseResources Context {..} appResourcesMaybe =
   -- Use pattern match on Maybe
   case appResourcesMaybe of
     Just AppResources {..} -> do
@@ -347,7 +344,7 @@ processEventsGPU context resources quitRef = do
 
 -- handleEventGPU for UI interaction
 handleEventGPU :: Context -> AppResources -> SDLEvent -> IO Bool
-handleEventGPU context@Context {..} AppResources {..} event = case event of
+handleEventGPU context@Context {} AppResources {..} event = case event of
   SDLEventQuit _ -> sdlLog "Quit event received." >> return True
   SDLEventKeyboard (SDLKeyboardEvent _ _ _ _ scancode _ _ _ down _) | down -> do
     case scancode of

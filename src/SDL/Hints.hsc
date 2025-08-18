@@ -2,6 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# OPTIONS_GHC -fno-warn-unused-top-binds#-}
 
 -- SDL/Hints.hsc
 {-|
@@ -14,7 +15,7 @@ This module provides Haskell bindings to the SDL3 hint management functionality.
 -}
 
 module SDL.Hints
-  ( 
+  (
     -- * Hint Priorities
     SDLHintPriority(..)
   , pattern SDL_HINT_DEFAULT
