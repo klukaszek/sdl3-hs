@@ -37,6 +37,12 @@ sdlVulkanLoadLibrary :: String -> IO Bool
 sdlVulkanLoadLibrary path = withCString path \cstr ->
   fromCBool <$> c_sdlVulkanLoadLibrary cstr
 
+foreign import ccall unsafe "SDL_Vulkan_GetVkGetInstanceProcAddr"
+  c_sdlVulkanGetVkGetInstanceProcAddr :: IO SDLFunctionPointer
+
+sdlVulkanGetVkGetInstanceProcAddr :: IO SDLFunctionPointer
+sdlVulkanGetVkGetInstanceProcAddr = c_sdlVulkanGetVkGetInstanceProcAddr
+
 type VkInstance = Ptr ()
 type VkSurfaceKHR = Word64
 data VkAllocationCallbacks
