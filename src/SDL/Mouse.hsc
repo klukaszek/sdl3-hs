@@ -101,21 +101,12 @@ module SDL.Mouse
   , sdlCursorVisible
   ) where
 
-import Foreign hiding (free)
+import Foreign
 import Foreign.C.Types
 import Foreign.C.String
-import Foreign.Marshal.Alloc (alloca)
-import Foreign.Marshal.Array (peekArray)
-import Foreign.Marshal.Utils (maybeWith, with, toBool) -- Added with, toBool
-import Data.Word
-import Data.Int
-import Control.Monad
 
--- Assuming these types are defined elsewhere consistently
-import SDL.Error (sdlGetError)
-import SDL.Stdinc (free, SDLBool(..)) -- Or directly use CBool/Bool
-import SDL.Surface (SDLSurface) -- Assuming 'data SDLSurface' with Storable
-import SDL.Video (SDLWindow(..)) -- Assuming 'newtype SDLWindow (Ptr SDL_Window)'
+import SDL.Surface (SDLSurface)
+import SDL.Video (SDLWindow(..))
 
 -- Opaque C struct types for FFI clarity
 data SDL_Cursor

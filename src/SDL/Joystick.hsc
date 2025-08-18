@@ -114,18 +114,17 @@ module SDL.Joystick
 #include <SDL3/SDL_joystick.h>
 
 import Foreign (Ptr, nullPtr, FunPtr, castPtr, plusPtr, toBool)
-import Foreign.C.Types (CBool(..), CInt(..), CFloat(..), CUInt(..))
-import Foreign.C.String (CString, peekCString, newCString)
+import Foreign.C.Types (CBool(..), CInt(..), CFloat(..))
+import Foreign.C.String (CString, newCString)
 import Foreign.Storable (Storable(..))
 import Foreign.Marshal.Alloc (alloca, free)
 import Foreign.Marshal.Array (peekArray, pokeArray, newArray)
 import Data.Word
-import Data.Int (Int32, Int16)
+import Data.Int (Int16)
 import SDL.Sensor (SDLSensorType(..))
 import SDL.Power (SDLPowerState(..))
 import SDL.GUID (SDLGUID(..))
-import SDL.Properties (SDLPropertiesID(..))
-import Data.Bits
+import SDL.Properties (SDLPropertiesID)
 
 -- | Opaque type representing a joystick device
 newtype SDLJoystick = SDLJoystick { unSDLJoystick :: Ptr SDLJoystick }
@@ -354,8 +353,8 @@ foreign import ccall "SDL_OpenJoystick"
   sdlOpenJoystickRaw :: SDLJoystickID -> IO (Ptr SDLJoystick)
 
 sdlOpenJoystick :: SDLJoystickID -> IO (Maybe SDLJoystick)
-sdlOpenJoystick id = do
-  ptr <- sdlOpenJoystickRaw id
+sdlOpenJoystick joyId = do
+  ptr <- sdlOpenJoystickRaw joyId
   return $ if ptr == nullPtr then Nothing else Just (SDLJoystick ptr)
 
 -- | Get joystick from ID
@@ -403,10 +402,10 @@ foreign import ccall "SDL_SendJoystickVirtualSensorData"
   sdlSendJoystickVirtualSensorData_ :: Ptr SDLJoystick -> CInt -> Word64 -> Ptr CFloat -> CInt -> IO CBool
 
 sdlSendJoystickVirtualSensorData :: SDLJoystick -> SDLSensorType -> Word64 -> [Float] -> IO Bool
-sdlSendJoystickVirtualSensorData (SDLJoystick joy) (SDLSensorType sensorType) timestamp values = do
+sdlSendJoystickVirtualSensorData (SDLJoystick joy) (SDLSensorType t) timestamp values = do
   let numValues = length values
   valuePtr <- newArray $ map realToFrac values  -- Convert [Float] to [CFloat]
-  result <- sdlSendJoystickVirtualSensorData_ joy sensorType timestamp valuePtr (fromIntegral numValues)
+  result <- sdlSendJoystickVirtualSensorData_ joy t timestamp valuePtr (fromIntegral numValues)
   free valuePtr
   return $ toBool result
 

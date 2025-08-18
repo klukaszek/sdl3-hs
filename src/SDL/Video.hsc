@@ -16,8 +16,8 @@
 
 module SDL.Video
   ( -- * Types
-    SDLDisplayID(..),
-    SDLWindowID(..),
+    SDLDisplayID,
+    SDLWindowID,
     SDLWindow(..),
     SDLDisplayMode(..),
     SDLDisplayOrientation(..),
@@ -30,6 +30,8 @@ module SDL.Video
     SDLWindowFlags(..),
     pattern SDL_WINDOW_FULLSCREEN,
     pattern SDL_WINDOW_OPENGL,
+    pattern SDL_WINDOW_METAL,
+    pattern SDL_WINDOW_VULKAN,
     pattern SDL_WINDOW_HIDDEN,
     pattern SDL_WINDOW_BORDERLESS,
     pattern SDL_WINDOW_RESIZABLE,
@@ -123,22 +125,18 @@ module SDL.Video
 
 import Foreign.C.String (CString, withCString, peekCString)
 import Foreign.C.Types
-import Foreign.Ptr (Ptr, FunPtr, nullPtr, castPtr, plusPtr)
+import Foreign.Ptr (Ptr, FunPtr, nullPtr, castPtr)
 import Foreign.Marshal.Alloc (alloca, free)
 import Foreign.Marshal.Array (peekArray0, withArrayLen)
 import Foreign.Storable (Storable(..))
-import Control.Monad (liftM)
 import SDL.Rect (SDLRect(..), SDLPoint(..))
 import SDL.Pixels (SDLPixelFormat(..), cUIntToPixelFormat, pixelFormatToCUInt)
-import SDL.Properties (SDLPropertiesID(..))
+import SDL.Properties (SDLPropertiesID)
 import SDL.Surface (SDLSurface)
 import Data.Bits
 import Data.Word (Word8)
-import Foreign.Marshal.Array (peekArray, peekArray0)
-import Foreign.Marshal.Utils (fromBool, toBool, with, maybeWith)
-import Foreign.Marshal.Alloc (allocaBytes)
-import Foreign.C.Types (CFloat(..), CSize(..))
-import SDL.Properties (SDLPropertiesID(..))
+import Foreign.Marshal.Array (peekArray)
+import Foreign.Marshal.Utils (fromBool, with, maybeWith)
 
 -- | A unique ID for a display.
 type SDLDisplayID = CUInt
@@ -193,7 +191,7 @@ instance Storable SDLDisplayMode where
     rawDid <- (# peek SDL_DisplayMode, displayID ) ptr :: IO CUInt
     let did = rawDid
     fmtVal <- (# peek SDL_DisplayMode, format ) ptr :: IO CUInt
-    let fmt = (cUIntToPixelFormat (fromIntegral fmtVal)) :: SDLPixelFormat
+    let fmt = (cUIntToPixelFormat fmtVal) :: SDLPixelFormat
     w <- (# peek SDL_DisplayMode, w ) ptr :: IO CInt
     h <- (# peek SDL_DisplayMode, h ) ptr :: IO CInt
     pd <- (# peek SDL_DisplayMode, pixel_density ) ptr :: IO CFloat
@@ -216,6 +214,10 @@ pattern SDL_WINDOW_FULLSCREEN :: SDLWindowFlags
 pattern SDL_WINDOW_FULLSCREEN         = SDLWindowFlags #{const SDL_WINDOW_FULLSCREEN}
 pattern SDL_WINDOW_OPENGL :: SDLWindowFlags
 pattern SDL_WINDOW_OPENGL             = SDLWindowFlags #{const SDL_WINDOW_OPENGL}
+pattern SDL_WINDOW_METAL :: SDLWindowFlags
+pattern SDL_WINDOW_METAL              = SDLWindowFlags #{const SDL_WINDOW_METAL}
+pattern SDL_WINDOW_VULKAN :: SDLWindowFlags
+pattern SDL_WINDOW_VULKAN             = SDLWindowFlags #{const SDL_WINDOW_VULKAN}
 pattern SDL_WINDOW_HIDDEN :: SDLWindowFlags
 pattern SDL_WINDOW_HIDDEN             = SDLWindowFlags #{const SDL_WINDOW_HIDDEN}
 pattern SDL_WINDOW_BORDERLESS :: SDLWindowFlags
@@ -727,7 +729,7 @@ foreign import ccall "SDL_GetDisplays"
 sdlGetDisplays :: IO [SDLDisplayID]
 sdlGetDisplays = alloca $ \countPtr -> do
   ptr <- sdlGetDisplays_c countPtr
-  count <- fromIntegral <$> peek countPtr
+  count <- peek countPtr
   if ptr == nullPtr
     then return []
     else do

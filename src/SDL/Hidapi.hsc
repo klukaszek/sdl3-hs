@@ -21,16 +21,16 @@ module SDL.Hidapi
     SDLHidDevice(..)
   , SDLHidBusType(..)
   , SDLHidDeviceInfo(..)
-  
+
     -- * Initialization
   , sdlHidInit
   , sdlHidExit
-  
+
     -- * Device Discovery
   , sdlHidDeviceChangeCount
   , sdlHidEnumerate
   , sdlHidFreeEnumeration
-  
+
     -- * Device Operations
   , sdlHidOpen
   , sdlHidOpenPath
@@ -42,7 +42,7 @@ module SDL.Hidapi
   , sdlHidGetFeatureReport
   , sdlHidGetInputReport
   , sdlHidClose
-  
+
     -- * Device Information
   , sdlHidGetManufacturerString
   , sdlHidGetProductString
@@ -50,7 +50,7 @@ module SDL.Hidapi
   , sdlHidGetIndexedString
   , sdlHidGetDeviceInfo
   , sdlHidGetReportDescriptor
-  
+
     -- * Bluetooth Operations
   , sdlHidBleScan
   ) where
@@ -58,12 +58,6 @@ module SDL.Hidapi
 import Foreign
 import Foreign.C.Types
 import Foreign.C.String
-import Data.Word
-import Data.Int
-import Control.Monad
-
-import SDL.Stdinc
-import SDL.Error
 
 #include <SDL3/SDL_hidapi.h>
 
@@ -102,48 +96,48 @@ data SDLHidDeviceInfo = SDLHidDeviceInfo
 instance Storable SDLHidDeviceInfo where
   sizeOf _ = #{size SDL_hid_device_info}
   alignment _ = #{alignment SDL_hid_device_info}
-  
+
   peek ptr = do
     pathPtr <- #{peek SDL_hid_device_info, path} ptr
     path <- if pathPtr == nullPtr then return "" else peekCString pathPtr
-    
+
     vendorId <- #{peek SDL_hid_device_info, vendor_id} ptr
     productId <- #{peek SDL_hid_device_info, product_id} ptr
-    
+
     serialNumberPtr <- #{peek SDL_hid_device_info, serial_number} ptr
-    serialNumber <- if serialNumberPtr == nullPtr 
-                    then return Nothing 
+    serialNumber <- if serialNumberPtr == nullPtr
+                    then return Nothing
                     else Just <$> peekCWString serialNumberPtr
-    
+
     releaseNumber <- #{peek SDL_hid_device_info, release_number} ptr
-    
+
     manufacturerPtr <- #{peek SDL_hid_device_info, manufacturer_string} ptr
-    manufacturer <- if manufacturerPtr == nullPtr 
-                    then return Nothing 
+    manufacturer <- if manufacturerPtr == nullPtr
+                    then return Nothing
                     else Just <$> peekCWString manufacturerPtr
-    
+
     productPtr <- #{peek SDL_hid_device_info, product_string} ptr
-    product <- if productPtr == nullPtr 
-               then return Nothing 
+    productVal <- if productPtr == nullPtr
+               then return Nothing
                else Just <$> peekCWString productPtr
-    
+
     usagePage <- #{peek SDL_hid_device_info, usage_page} ptr
     usage <- #{peek SDL_hid_device_info, usage} ptr
     interfaceNumber <- #{peek SDL_hid_device_info, interface_number} ptr
     interfaceClass <- #{peek SDL_hid_device_info, interface_class} ptr
     interfaceSubclass <- #{peek SDL_hid_device_info, interface_subclass} ptr
     interfaceProtocol <- #{peek SDL_hid_device_info, interface_protocol} ptr
-    
+
     busTypeInt <- #{peek SDL_hid_device_info, bus_type} ptr :: IO CInt
     let busType = toEnum (fromIntegral busTypeInt)
-    
+
     next <- #{peek SDL_hid_device_info, next} ptr
-    
-    return $ SDLHidDeviceInfo 
-      path vendorId productId serialNumber releaseNumber manufacturer product
+
+    return $ SDLHidDeviceInfo
+      path vendorId productId serialNumber releaseNumber manufacturer productVal
       usagePage usage interfaceNumber interfaceClass interfaceSubclass
       interfaceProtocol busType next
-  
+
   poke _ _ = error "Poking SDL_hid_device_info not implemented"
   -- We typically don't need to poke since we're only reading this structure
 
@@ -187,7 +181,7 @@ foreign import ccall "SDL_hid_device_change_count" sdlHidDeviceChangeCount :: IO
 -- By default SDL will only enumerate controllers, to reduce risk of hanging
 -- or crashing on bad drivers, but SDL_HINT_HIDAPI_ENUMERATE_ONLY_CONTROLLERS
 -- can be set to "0" to enumerate all HID devices.
-foreign import ccall "SDL_hid_enumerate" sdlHidEnumerateRaw :: 
+foreign import ccall "SDL_hid_enumerate" sdlHidEnumerateRaw ::
   Word16 -> Word16 -> IO (Ptr SDLHidDeviceInfo)
 
 -- Convert the C linked list to a Haskell list, keeping original pointers
@@ -212,7 +206,7 @@ sdlHidEnumerate vendorId productId = do
 -- | Free an enumeration linked list.
 --
 -- This function frees a linked list created by sdlHidEnumerate().
-foreign import ccall "SDL_hid_free_enumeration" sdlHidFreeEnumeration :: 
+foreign import ccall "SDL_hid_free_enumeration" sdlHidFreeEnumeration ::
   Ptr SDLHidDeviceInfo -> IO ()
 
 -- | Open a HID device using a Vendor ID (VID), Product ID (PID) and optionally
@@ -220,7 +214,7 @@ foreign import ccall "SDL_hid_free_enumeration" sdlHidFreeEnumeration ::
 --
 -- If `serial_number` is Nothing, the first device with the specified VID and PID
 -- is opened.
-foreign import ccall "SDL_hid_open" sdlHidOpenRaw :: 
+foreign import ccall "SDL_hid_open" sdlHidOpenRaw ::
   Word16 -> Word16 -> Ptr CWchar -> IO (Ptr SDLHidDevice)
 
 -- Wrapper function with Haskell types
@@ -228,7 +222,7 @@ sdlHidOpen :: Word16 -> Word16 -> Maybe String -> IO (Maybe SDLHidDevice)
 sdlHidOpen vendorId productId serial = do
   device <- case serial of
               Nothing -> sdlHidOpenRaw vendorId productId nullPtr
-              Just s -> withCWString s $ \serialPtr -> 
+              Just s -> withCWString s $ \serialPtr ->
                           sdlHidOpenRaw vendorId productId serialPtr
   if device == nullPtr
     then return Nothing
@@ -238,7 +232,7 @@ sdlHidOpen vendorId productId serial = do
 --
 -- The path name be determined by calling sdlHidEnumerate(), or a
 -- platform-specific path name can be used (eg: /dev/hidraw0 on Linux).
-foreign import ccall "SDL_hid_open_path" sdlHidOpenPathRaw :: 
+foreign import ccall "SDL_hid_open_path" sdlHidOpenPathRaw ::
   CString -> IO (Ptr SDLHidDevice)
 
 sdlHidOpenPath :: String -> IO (Maybe SDLHidDevice)
@@ -254,7 +248,7 @@ sdlHidOpenPath path = do
 -- support a single report, this must be set to 0x0. The remaining bytes
 -- contain the report data. Since the Report ID is mandatory, calls to
 -- sdlHidWrite() will always contain one more byte than the report contains.
-foreign import ccall "SDL_hid_write" sdlHidWriteRaw :: 
+foreign import ccall "SDL_hid_write" sdlHidWriteRaw ::
   Ptr SDLHidDevice -> Ptr Word8 -> CSize -> IO CInt
 
 sdlHidWrite :: SDLHidDevice -> [Word8] -> IO Int
@@ -268,7 +262,7 @@ sdlHidWrite (SDLHidDevice dev) bytes = do
 -- Input reports are returned to the host through the INTERRUPT IN endpoint.
 -- The first byte will contain the Report number if the device uses numbered
 -- reports.
-foreign import ccall "SDL_hid_read_timeout" sdlHidReadTimeoutRaw :: 
+foreign import ccall "SDL_hid_read_timeout" sdlHidReadTimeoutRaw ::
   Ptr SDLHidDevice -> Ptr Word8 -> CSize -> CInt -> IO CInt
 
 sdlHidReadTimeout :: SDLHidDevice -> Int -> Int -> IO (Maybe [Word8])
@@ -286,7 +280,7 @@ sdlHidReadTimeout (SDLHidDevice dev) len timeoutMs = do
 -- Input reports are returned to the host through the INTERRUPT IN endpoint.
 -- The first byte will contain the Report number if the device uses numbered
 -- reports.
-foreign import ccall "SDL_hid_read" sdlHidReadRaw :: 
+foreign import ccall "SDL_hid_read" sdlHidReadRaw ::
   Ptr SDLHidDevice -> Ptr Word8 -> CSize -> IO CInt
 
 sdlHidRead :: SDLHidDevice -> Int -> IO (Maybe [Word8])
@@ -304,7 +298,7 @@ sdlHidRead (SDLHidDevice dev) len = do
 -- In non-blocking mode calls to sdlHidRead() will return immediately with a
 -- value of 0 if there is no data to be read. In blocking mode, sdlHidRead()
 -- will wait (block) until there is data to read before returning.
-foreign import ccall "SDL_hid_set_nonblocking" sdlHidSetNonblockingRaw :: 
+foreign import ccall "SDL_hid_set_nonblocking" sdlHidSetNonblockingRaw ::
   Ptr SDLHidDevice -> CInt -> IO CInt
 
 sdlHidSetNonblocking :: SDLHidDevice -> Bool -> IO Bool
@@ -316,7 +310,7 @@ sdlHidSetNonblocking (SDLHidDevice dev) nonblock = do
 --
 -- Feature reports are sent over the Control endpoint as a Set_Report
 -- transfer. The first byte of `data` must contain the Report ID.
-foreign import ccall "SDL_hid_send_feature_report" sdlHidSendFeatureReportRaw :: 
+foreign import ccall "SDL_hid_send_feature_report" sdlHidSendFeatureReportRaw ::
   Ptr SDLHidDevice -> Ptr Word8 -> CSize -> IO CInt
 
 sdlHidSendFeatureReport :: SDLHidDevice -> [Word8] -> IO Int
@@ -328,7 +322,7 @@ sdlHidSendFeatureReport (SDLHidDevice dev) bytes = do
 -- | Get a feature report from a HID device.
 --
 -- Set the first byte of `data` to the Report ID of the report to be read.
-foreign import ccall "SDL_hid_get_feature_report" sdlHidGetFeatureReportRaw :: 
+foreign import ccall "SDL_hid_get_feature_report" sdlHidGetFeatureReportRaw ::
   Ptr SDLHidDevice -> Ptr Word8 -> CSize -> IO CInt
 
 sdlHidGetFeatureReport :: SDLHidDevice -> Word8 -> Int -> IO (Maybe [Word8])
@@ -345,7 +339,7 @@ sdlHidGetFeatureReport (SDLHidDevice dev) reportId len = do
 -- | Get an input report from a HID device.
 --
 -- Set the first byte of `data` to the Report ID of the report to be read.
-foreign import ccall "SDL_hid_get_input_report" sdlHidGetInputReportRaw :: 
+foreign import ccall "SDL_hid_get_input_report" sdlHidGetInputReportRaw ::
   Ptr SDLHidDevice -> Ptr Word8 -> CSize -> IO CInt
 
 sdlHidGetInputReport :: SDLHidDevice -> Word8 -> Int -> IO (Maybe [Word8])
@@ -368,7 +362,7 @@ sdlHidClose (SDLHidDevice dev) = do
   return (result == 0)
 
 -- | Get The Manufacturer String from a HID device.
-foreign import ccall "SDL_hid_get_manufacturer_string" sdlHidGetManufacturerStringRaw :: 
+foreign import ccall "SDL_hid_get_manufacturer_string" sdlHidGetManufacturerStringRaw ::
   Ptr SDLHidDevice -> Ptr CWchar -> CSize -> IO CInt
 
 sdlHidGetManufacturerString :: SDLHidDevice -> IO (Maybe String)
@@ -381,7 +375,7 @@ sdlHidGetManufacturerString (SDLHidDevice dev) = do
       else Just <$> peekCWString buffer
 
 -- | Get The Product String from a HID device.
-foreign import ccall "SDL_hid_get_product_string" sdlHidGetProductStringRaw :: 
+foreign import ccall "SDL_hid_get_product_string" sdlHidGetProductStringRaw ::
   Ptr SDLHidDevice -> Ptr CWchar -> CSize -> IO CInt
 
 sdlHidGetProductString :: SDLHidDevice -> IO (Maybe String)
@@ -394,7 +388,7 @@ sdlHidGetProductString (SDLHidDevice dev) = do
       else Just <$> peekCWString buffer
 
 -- | Get The Serial Number String from a HID device.
-foreign import ccall "SDL_hid_get_serial_number_string" sdlHidGetSerialNumberStringRaw :: 
+foreign import ccall "SDL_hid_get_serial_number_string" sdlHidGetSerialNumberStringRaw ::
   Ptr SDLHidDevice -> Ptr CWchar -> CSize -> IO CInt
 
 sdlHidGetSerialNumberString :: SDLHidDevice -> IO (Maybe String)
@@ -407,7 +401,7 @@ sdlHidGetSerialNumberString (SDLHidDevice dev) = do
       else Just <$> peekCWString buffer
 
 -- | Get a string from a HID device, based on its string index.
-foreign import ccall "SDL_hid_get_indexed_string" sdlHidGetIndexedStringRaw :: 
+foreign import ccall "SDL_hid_get_indexed_string" sdlHidGetIndexedStringRaw ::
   Ptr SDLHidDevice -> CInt -> Ptr CWchar -> CSize -> IO CInt
 
 sdlHidGetIndexedString :: SDLHidDevice -> Int -> IO (Maybe String)
@@ -420,7 +414,7 @@ sdlHidGetIndexedString (SDLHidDevice dev) stringIndex = do
       else Just <$> peekCWString buffer
 
 -- | Get the device info from a HID device.
-foreign import ccall "SDL_hid_get_device_info" sdlHidGetDeviceInfoRaw :: 
+foreign import ccall "SDL_hid_get_device_info" sdlHidGetDeviceInfoRaw ::
   Ptr SDLHidDevice -> IO (Ptr SDLHidDeviceInfo)
 
 sdlHidGetDeviceInfo :: SDLHidDevice -> IO (Maybe SDLHidDeviceInfo)
@@ -431,7 +425,7 @@ sdlHidGetDeviceInfo (SDLHidDevice dev) = do
     else Just <$> peek deviceInfo
 
 -- | Get a report descriptor from a HID device.
-foreign import ccall "SDL_hid_get_report_descriptor" sdlHidGetReportDescriptorRaw :: 
+foreign import ccall "SDL_hid_get_report_descriptor" sdlHidGetReportDescriptorRaw ::
   Ptr SDLHidDevice -> Ptr Word8 -> CSize -> IO CInt
 
 sdlHidGetReportDescriptor :: SDLHidDevice -> IO (Maybe [Word8])

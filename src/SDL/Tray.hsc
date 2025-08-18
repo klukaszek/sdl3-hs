@@ -66,10 +66,10 @@ import Foreign.C.String (CString, withCString, peekCString)
 import Foreign.C.Types
 import Foreign.Ptr (castPtr, Ptr, nullPtr, FunPtr, nullFunPtr)
 import Foreign.Marshal.Alloc (alloca)
-import Foreign.Marshal.Array (peekArray) -- Use peekArray instead of peekArray0 for counted arrays
+import Foreign.Marshal.Array (peekArray)
 import Foreign.Storable (Storable, peek)
-import Foreign.Marshal.Utils (maybeWith, with, toBool) -- Added toBool
-import Data.Bits (Bits, (.|.), zeroBits) -- Added zeroBits
+import Foreign.Marshal.Utils (maybeWith, toBool)
+import Data.Bits (Bits)
 import SDL.Surface (SDLSurface(..)) -- SDLSurface is the data type, we need Ptr SDLSurface
 
 -- Opaque C struct types
@@ -103,11 +103,6 @@ pattern SDL_TRAYENTRY_CHECKED  = SDLTrayEntryFlags #{const SDL_TRAYENTRY_CHECKED
 -- | Callback function prototype for when a tray menu entry is clicked.
 --   Arguments: userdata pointer, SDLTrayEntry handle.
 type SDLTrayCallback = Ptr () -> SDLTrayEntry -> IO ()
-
--- Wrapper for C boolean results (assuming 1=true, 0=false)
-cIntToBool :: CInt -> Bool
-cIntToBool 0 = False
-cIntToBool _ = True
 
 -- * Tray Management
 

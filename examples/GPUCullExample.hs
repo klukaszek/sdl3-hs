@@ -21,24 +21,21 @@ module Main where
 -- Import common init/quit and shader loading
 
 -- Add forM/forM_
-import Control.Exception (bracket, bracketOnError, finally, onException)
+import Control.Exception (bracket, bracketOnError)
 import Control.Monad (forM, forM_, unless, void, when)
 -- Add CInt
 
-import Data.Bits ((.|.))
 import Data.Foldable (for_)
 import Data.IORef
-import Data.Maybe (fromJust, fromMaybe, isJust, isNothing)
-import Data.Word (Word32, Word64, Word8)
-import Foreign.C.Types (CFloat, CInt, CSize)
-import Foreign.Marshal.Alloc (alloca)
+import Data.Maybe (fromJust, isJust, isNothing)
+import Data.Word (Word32, Word64)
+import Foreign.C.Types (CFloat, CSize)
 import Foreign.Marshal.Array (pokeArray)
-import Foreign.Ptr (Ptr, castPtr, nullPtr, plusPtr)
-import Foreign.Storable (Storable (..), peekByteOff, poke, pokeByteOff, sizeOf)
+import Foreign.Ptr (Ptr, castPtr, plusPtr)
+import Foreign.Storable (Storable (..), sizeOf)
 import GPUCommon
 import SDL
 import System.Exit (exitFailure, exitSuccess)
-import Text.Printf (printf)
 
 -- Define vertex data (CW and CCW)
 vertexDataCW :: [PositionColorVertex]
@@ -98,7 +95,7 @@ main = do
 
 -- | Application logic, receives the base Context
 runAppGPU :: Context -> IO ()
-runAppGPU context@Context {..} = do
+runAppGPU context@Context {} = do
   sdlLog "Base context initialized."
 
   -- Bracket pattern to manage app resources
@@ -130,7 +127,7 @@ runAppGPU context@Context {..} = do
   where
     -- Action to create all GPU resources (pipelines, vertex buffers, upload data)
     createResources :: Context -> IO (Maybe AppResources)
-    createResources ctx@Context {contextDevice = dev, contextWindow = win} = do
+    createResources Context {contextDevice = dev, contextWindow = win} = do
       -- Load Shaders
       sdlLog "Loading shaders..."
       -- Use bracket for shaders too
@@ -204,7 +201,7 @@ runAppGPU context@Context {..} = do
                 rasterizerState = defaultRasterizerState, -- Will be modified
                 targetInfo = targetInfo,
                 depthStencilState = defaultDepthStencilState,
-                props = 0
+                pipelineProps = 0
               }
 
       -- Loop to create 6 pipelines
@@ -242,22 +239,29 @@ runAppGPU context@Context {..} = do
           sdlLog "Error: Vertex data list(s) are empty."
           return Nothing
         else do
-          (vSizeCW, totalCSizeCW, totalSizeW32CW) <- calculateVertexDataSize dataCW
-          (vSizeCCW, totalCSizeCCW, totalSizeW32CCW) <- calculateVertexDataSize dataCCW
+          (_, totalCSizeCW, totalSizeW32CW) <- calculateVertexDataSize dataCW
+          (_, totalCSizeCCW, totalSizeW32CCW) <- calculateVertexDataSize dataCCW
 
           let totalTransferSize = totalSizeW32CW + totalSizeW32CCW -- Combine sizes for one transfer buffer
           sdlLog $ "Total Transfer Buffer Size: " ++ show totalTransferSize
 
           -- Create buffers first (using bracketOnError for complex cleanup)
           bracketOnError
-            (createBufferPair dev (fromIntegral totalCSizeCW) (fromIntegral totalCSizeCCW))
-            (cleanupBufferPair dev)
+            (createBufferPair (fromIntegral totalCSizeCW) (fromIntegral totalCSizeCCW))
+            cleanupBufferPair
             $ \maybeBuffers -> do
               case maybeBuffers of
                 Nothing -> return Nothing -- Buffer creation failed
                 Just (vbCW, vbCCW) -> do
                   -- Proceed with transfer and upload
-                  uploadSuccess <- uploadBothViaTransferBuffer dev vbCW vbCCW dataCW dataCCW totalTransferSize totalCSizeCW totalSizeW32CW totalSizeW32CCW
+                  uploadSuccess <-
+                    uploadBothViaTransferBuffer
+                      vbCW
+                      vbCCW
+                      totalTransferSize
+                      totalCSizeCW
+                      totalSizeW32CW
+                      totalSizeW32CCW
                   if uploadSuccess
                     then do
                       sdlLog "--- Vertex Buffers Creation and Upload Successful ---"
@@ -267,7 +271,7 @@ runAppGPU context@Context {..} = do
                       -- Cleanup handled by bracketOnError
                       return Nothing
       where
-        createBufferPair dev sizeCW sizeCCW = do
+        createBufferPair sizeCW sizeCCW = do
           sdlLog "Creating CW Vertex Buffer..."
           mVB_CW <- sdlCreateGPUBuffer dev (SDLGPUBufferCreateInfo SDL_GPU_BUFFERUSAGE_VERTEX sizeCW 0)
           case mVB_CW of
@@ -279,7 +283,7 @@ runAppGPU context@Context {..} = do
                 Nothing -> sdlLog "!!! Failed to create CCW VB" >> sdlReleaseGPUBuffer dev vbCW >> return Nothing
                 Just vbCCW -> return $ Just (vbCW, vbCCW)
 
-        cleanupBufferPair dev maybePair =
+        cleanupBufferPair maybePair =
           when (isJust maybePair) $ do
             let (vbCW, vbCCW) = fromJust maybePair
             sdlLog "Error occurred, releasing vertex buffer pair..."
@@ -287,20 +291,20 @@ runAppGPU context@Context {..} = do
             sdlReleaseGPUBuffer dev vbCCW
 
         -- Reuses helpers from previous example's meticulous version, adapted slightly
-        uploadBothViaTransferBuffer dev vbCW vbCCW dataCW dataCCW transferSize totalSizeCW_CSize totalSizeCW_W32 totalSizeCCW_W32 = do
+        uploadBothViaTransferBuffer vbCW vbCCW transferSize totalSizeCW_CSize totalSizeCW_W32 totalSizeCCW_W32 = do
           bracket
             (createTransferBuffer dev transferSize SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "buffer")
             (cleanupTransferBuffer dev)
             $ \case
               Nothing -> return False
               Just transferBuffer -> do
-                mapCopySuccess <- mapAndCopyBothData dev transferBuffer dataCW dataCCW totalSizeCW_CSize
+                mapCopySuccess <- mapAndCopyBothData transferBuffer dataCW dataCCW totalSizeCW_CSize
                 if mapCopySuccess
-                  then uploadBothDataCommandBuffer dev vbCW vbCCW transferBuffer totalSizeCW_W32 totalSizeCCW_W32
+                  then uploadBothDataCommandBuffer vbCW vbCCW transferBuffer totalSizeCW_W32 totalSizeCCW_W32
                   else return False
 
         -- Combined map and copy for both datasets
-        mapAndCopyBothData dev tb dCW dCCW offsetBytesCW_CSize = do
+        mapAndCopyBothData tb dCW dCCW offsetBytesCW_CSize = do
           bracket
             (sdlMapGPUTransferBuffer dev tb False)
             (\mPtr -> when (isJust mPtr) $ sdlUnmapGPUTransferBuffer dev tb)
@@ -324,7 +328,7 @@ runAppGPU context@Context {..} = do
                   return True
 
         -- Combined upload command for both datasets
-        uploadBothDataCommandBuffer dev vbCW vbCCW tb sizeCW sizeCCW = do
+        uploadBothDataCommandBuffer vbCW vbCCW tb sizeCW sizeCCW = do
           bracket (sdlAcquireGPUCommandBuffer dev) cleanupCommandBuffer $ \maybeCmdBuf -> do
             case maybeCmdBuf of
               Nothing -> sdlLog "!!! Acquire upload CB failed" >> return False
@@ -340,7 +344,7 @@ runAppGPU context@Context {..} = do
                       sdlLog $ "Recording upload CW (Size: " ++ show sizeCW ++ ")"
                       sdlUploadToGPUBuffer copyPass srcLocCW dstRegCW False
                       -- Upload CCW
-                      let offset = fromIntegral sizeCW -- Offset in transfer buffer
+                      let offset = sizeCW -- Offset in transfer buffer
                       let srcLocCCW = SDLGPUTransferBufferLocation tb offset
                           dstRegCCW = SDLGPUBufferRegion vbCCW 0 sizeCCW
                       sdlLog $ "Recording upload CCW (Offset: " ++ show offset ++ ", Size: " ++ show sizeCCW ++ ")"
@@ -366,7 +370,7 @@ runAppGPU context@Context {..} = do
     releaseResources Context {..} (Just AppResources {..}) = do
       sdlLog "--> Releasing AppResources..."
       sdlLog "  --> Releasing Pipelines..."
-      forM_ (zip [0 ..] resPipelines) $ \(i, p) -> do
+      forM_ (zip [0 :: Int ..] resPipelines) $ \(i, p) -> do
         sdlLog $ "    Releasing Pipeline " ++ show i ++ ": " ++ show p
         sdlReleaseGPUGraphicsPipeline contextDevice p
       sdlLog "  <-- Pipelines Released."
@@ -431,7 +435,7 @@ processEventsGPU context shouldQuitRef deltaTimeRef state = do
 
 -- | Handle a single SDL event, modifying state IORefs and window title
 handleEventGPU :: Context -> SDLEvent -> IORef Double -> AppState -> IO Bool
-handleEventGPU context event deltaTimeRef state@AppState {..} = case event of
+handleEventGPU _ event _ AppState {..} = case event of
   SDLEventQuit _ -> sdlLog "Quit event received." >> return True
   SDLEventKeyboard (SDLKeyboardEvent _ _ _ _ scancode _ _ _ down _) | down -> do
     let numModes = length modeNames

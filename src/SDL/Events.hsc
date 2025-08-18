@@ -1,6 +1,7 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fno-warn-missing-pattern-synonym-signatures #-}
 
 {-|
 Module      : SDL.Events
@@ -139,12 +140,12 @@ module SDL.Events
 
 #include <SDL3/SDL_events.h>
 
-import Foreign (fromBool, toBool, FunPtr, nullFunPtr, with)
-import Foreign.C.Types (CInt(..), CUInt(..), CBool(..), CFloat(..))
+import Foreign (fromBool, toBool, FunPtr, with)
+import Foreign.C.Types (CInt(..), CBool(..))
 import Foreign.C.String (CString, peekCString)
 import Foreign.Ptr (Ptr, nullPtr, castPtr)
 import Foreign.Marshal.Alloc (alloca, allocaBytes)
-import Foreign.Marshal.Array (peekArray, withArray)
+import Foreign.Marshal.Array (withArray)
 import Foreign.Storable (Storable(..), peek)
 import Data.Word
 import Data.Int (Int32)
@@ -557,6 +558,7 @@ peekWindowEvent ptr = do
   d2 <- peekByteOff ptr 24
   return $ SDLWindowEvent t ts wid d1 d2
 
+peekKeyboardEvent :: Ptr SDLEvent -> IO SDLKeyboardEvent
 peekKeyboardEvent ptr = do
   t <- peek (castPtr ptr :: Ptr Word32)
   ts <- peekByteOff ptr 8
@@ -564,11 +566,11 @@ peekKeyboardEvent ptr = do
   which <- peekByteOff ptr 20
   scancode <- peekByteOff ptr 24
   key <- peekByteOff ptr 28
-  mod <- peekByteOff ptr 32
+  mod' <- peekByteOff ptr 32
   raw <- peekByteOff ptr 34
   down <- peekByteOff ptr 36
-  repeat <- peekByteOff ptr 37
-  return $ SDLKeyboardEvent t ts wid which scancode key mod raw (toBool (down :: CBool)) (toBool (repeat :: CBool))
+  repeat' <- peekByteOff ptr 37
+  return $ SDLKeyboardEvent t ts wid which scancode key mod' raw (toBool (down :: CBool)) (toBool (repeat' :: CBool))
 
 peekTextInputEvent :: Ptr SDLEvent -> IO SDLTextInputEvent
 peekTextInputEvent ptr = do
@@ -661,7 +663,7 @@ foreign import ccall "SDL_PeepEvents"
 sdlPeepEvents :: [SDLEvent] -> Int -> SDLEventAction -> Word32 -> Word32 -> IO Int
 sdlPeepEvents events num action minType maxType =
   withArray events $ \ptr -> do
-    res <- sdlPeepEventsRaw ptr (fromIntegral num) (fromIntegral action) minType maxType
+    res <- sdlPeepEventsRaw ptr (fromIntegral num) action minType maxType
     return $ fromIntegral res
 
 foreign import ccall "SDL_HasEvent"
@@ -716,9 +718,9 @@ foreign import ccall "SDL_SetEventFilter"
   sdlSetEventFilterRaw :: FunPtr SDLEventFilter -> Ptr () -> IO ()
 
 sdlSetEventFilter :: SDLEventFilter -> Ptr () -> IO ()
-sdlSetEventFilter filter userdata = do
-  filterPtr <- wrapEventFilter filter
-  sdlSetEventFilterRaw filterPtr userdata
+sdlSetEventFilter filt userdata = do
+  filtPtr <- wrapEventFilter filt
+  sdlSetEventFilterRaw filtPtr userdata
 
 foreign import ccall "dynamic"
   mkEventFilter :: FunPtr SDLEventFilter -> SDLEventFilter
@@ -730,33 +732,33 @@ sdlGetEventFilter :: IO (Maybe (SDLEventFilter, Ptr ()))
 sdlGetEventFilter = alloca $ \filterPtr -> alloca $ \userdataPtr -> do
   success <- toBool <$> sdlGetEventFilterRaw filterPtr userdataPtr
   if success then do
-    filter <- peek filterPtr
+    filt <- peek filterPtr
     userdata <- peek userdataPtr
-    return $ Just (mkEventFilter filter, userdata)
+    return $ Just (mkEventFilter filt, userdata)
   else return Nothing
 
 foreign import ccall "SDL_AddEventWatch"
   sdlAddEventWatchRaw :: FunPtr SDLEventFilter -> Ptr () -> IO CBool
 
 sdlAddEventWatch :: SDLEventFilter -> Ptr () -> IO Bool
-sdlAddEventWatch filter userdata = do
-  filterPtr <- wrapEventFilter filter
+sdlAddEventWatch filt userdata = do
+  filterPtr <- wrapEventFilter filt
   toBool <$> sdlAddEventWatchRaw filterPtr userdata
 
 foreign import ccall "SDL_RemoveEventWatch"
   sdlRemoveEventWatchRaw :: FunPtr SDLEventFilter -> Ptr () -> IO ()
 
 sdlRemoveEventWatch :: SDLEventFilter -> Ptr () -> IO ()
-sdlRemoveEventWatch filter userdata = do
-  filterPtr <- wrapEventFilter filter
+sdlRemoveEventWatch filt userdata = do
+  filterPtr <- wrapEventFilter filt
   sdlRemoveEventWatchRaw filterPtr userdata
 
 foreign import ccall "SDL_FilterEvents"
   sdlFilterEventsRaw :: FunPtr SDLEventFilter -> Ptr () -> IO ()
 
 sdlFilterEvents :: SDLEventFilter -> Ptr () -> IO ()
-sdlFilterEvents filter userdata = do
-  filterPtr <- wrapEventFilter filter
+sdlFilterEvents filt userdata = do
+  filterPtr <- wrapEventFilter filt
   sdlFilterEventsRaw filterPtr userdata
 
 foreign import ccall "SDL_SetEventEnabled"

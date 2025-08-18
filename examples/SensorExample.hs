@@ -1,21 +1,26 @@
+-- |
+-- Example     : SDL.Sensor
+-- Description : Example of using SDL.Sensor module to get sensor data
+-- Copyright   : (c) Kyle Lukaszek, 2025
+-- License     : BSD3
+-- |
 module Main where
 
-import SDL
 import Control.Monad
+import SDL
 import System.Exit (exitFailure, exitSuccess)
-import Foreign.Ptr (nullPtr)
 
 main :: IO ()
 main = do
   -- Initialize SDL with sensor subsystem
   initSuccess <- sdlInit [SDL_INIT_SENSOR]
-  
+
   unless initSuccess $ do
     sdlLog "Failed to initialize SDL with sensor support!"
     exitFailure
-  
+
   sdlLog "SDL initialized with sensor support"
-  
+
   -- Get list of available sensors
   maybeSensors <- sdlGetSensors
   case maybeSensors of
@@ -24,33 +29,33 @@ main = do
       cleanupAndExit
     Just sensorIds -> do
       sdlLog $ "Found " ++ show (length sensorIds) ++ " sensor(s)"
-      
+
       -- Process each sensor
       forM_ sensorIds $ \sensorId -> do
         sdlLog $ "\nProcessing sensor ID: " ++ show sensorId
-        
+
         -- Get sensor name
         maybeName <- sdlGetSensorNameForID sensorId
         sdlLog $ "Name: " ++ maybe "Unknown" id maybeName
-        
+
         -- Get sensor type
-        sensorType <- sdlGetSensorTypeForID sensorId
-        sdlLog $ "Type: " ++ show sensorType
-        
+        t <- sdlGetSensorTypeForID sensorId
+        sdlLog $ "Type: " ++ show t
+
         -- Open the sensor
         maybeSensor <- sdlOpenSensor sensorId
         case maybeSensor of
           Nothing -> sdlLog "Failed to open sensor"
           Just sensor -> do
             sdlLog "Successfully opened sensor"
-            
+
             -- Get some sensor data (assuming 3 values for accel/gyro)
             maybeData <- sdlGetSensorData sensor 3
             case maybeData of
               Nothing -> sdlLog "Failed to get sensor data"
               Just values -> do
                 sdlLog "Sensor data:"
-                case sensorType of
+                case t of
                   SDL_SENSOR_ACCEL -> do
                     sdlLog $ "X acceleration: " ++ show (values !! 0) ++ " m/s²"
                     sdlLog $ "Y acceleration: " ++ show (values !! 1) ++ " m/s²"
@@ -60,11 +65,11 @@ main = do
                     sdlLog $ "Y rotation: " ++ show (values !! 1) ++ " rad/s"
                     sdlLog $ "Z rotation: " ++ show (values !! 2) ++ " rad/s"
                   _ -> sdlLog $ "Raw values: " ++ show values
-            
+
             -- Close the sensor
             sdlCloseSensor sensor
             sdlLog "Sensor closed"
-  
+
   cleanupAndExit
 
 -- Helper function to cleanup and exit
@@ -80,9 +85,10 @@ showSensorType :: SDLSensorType -> String
 showSensorType t = case t of
   SDL_SENSOR_INVALID -> "Invalid"
   SDL_SENSOR_UNKNOWN -> "Unknown"
-  SDL_SENSOR_ACCEL   -> "Accelerometer"
-  SDL_SENSOR_GYRO    -> "Gyroscope"
+  SDL_SENSOR_ACCEL -> "Accelerometer"
+  SDL_SENSOR_GYRO -> "Gyroscope"
   SDL_SENSOR_ACCEL_L -> "Left Joy-Con Accelerometer"
-  SDL_SENSOR_GYRO_L  -> "Left Joy-Con Gyroscope"
+  SDL_SENSOR_GYRO_L -> "Left Joy-Con Gyroscope"
   SDL_SENSOR_ACCEL_R -> "Right Joy-Con Accelerometer"
-  SDL_SENSOR_GYRO_R  -> "Right Joy-Con Gyroscope"
+  SDL_SENSOR_GYRO_R -> "Right Joy-Con Gyroscope"
+  _ -> "Sensor Type Error"

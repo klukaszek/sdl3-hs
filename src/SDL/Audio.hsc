@@ -17,7 +17,7 @@ https://wiki.libsdl.org/SDL3/CategoryAudio
 
 module SDL.Audio
   ( -- * Types
-    SDLAudioFormat(..)
+    SDLAudioFormat()
   , SDLAudioSpec(..)
   , SDLAudioDeviceID
   , SDLAudioStream(..)
@@ -109,17 +109,10 @@ module SDL.Audio
 #include <SDL3/SDL_audio.h>
 
 import Foreign
-import Foreign.Ptr (Ptr, FunPtr, nullPtr, castPtr, nullFunPtr)
-import Foreign.ForeignPtr (newForeignPtr, newForeignPtr_)
-import Foreign.StablePtr
 import Foreign.C.Types
 import Foreign.C.String
-import Data.Word
-import Data.Int
-import SDL.Error
 import SDL.IOStream
 import SDL.Properties
-import Control.Monad (when, (>=>))
 import Control.Exception (bracket)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS

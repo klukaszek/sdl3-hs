@@ -31,7 +31,6 @@ module SDL.Endian
   , sdlSwapFloatBE
   ) where
 
-import Foreign.C.Types
 import Data.Word
 import Data.Bits
 import Unsafe.Coerce (unsafeCoerce)
@@ -44,7 +43,7 @@ sdlLilEndian = 1234
 sdlBigEndian :: Int
 sdlBigEndian = 4321
 
-{-| 
+{-|
 Indicates the byte order of the current system.
 Will be either 'sdlLilEndian' or 'sdlBigEndian'.
 -}
@@ -71,10 +70,10 @@ sdlSwap16 x = (x `shiftL` 8) .|. (x `shiftR` 8)
 
 -- | Swaps the byte order of a 32-bit integer
 sdlSwap32 :: Word32 -> Word32
-sdlSwap32 x = 
-  ((x `shiftL` 24) .|. 
+sdlSwap32 x =
+  ((x `shiftL` 24) .|.
    ((x `shiftL` 8) .&. 0x00FF0000) .|.
-   ((x `shiftR` 8) .&. 0x0000FF00) .|. 
+   ((x `shiftR` 8) .&. 0x0000FF00) .|.
    (x `shiftR` 24))
 
 -- | Swaps the byte order of a 64-bit integer
@@ -88,14 +87,14 @@ sdlSwap64 x =
 
 -- | Swaps the byte order of a floating point number
 sdlSwapFloat :: Float -> Float
-sdlSwapFloat x = 
+sdlSwapFloat x =
   let bits = floatToWord x
       swapped = sdlSwap32 bits
   in wordToFloat swapped
   where
     floatToWord :: Float -> Word32
     floatToWord = unsafeCoerce
-    
+
     wordToFloat :: Word32 -> Float
     wordToFloat = unsafeCoerce
 

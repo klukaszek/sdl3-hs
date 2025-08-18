@@ -172,17 +172,17 @@ module SDL.Gamepad
 
 #include <SDL3/SDL_gamepad.h>
 
-import Foreign (Ptr, nullPtr, FunPtr, castPtr, peekArray, pokeArray, withArray, peek, poke, toBool, plusPtr, with, fromBool)
-import Foreign.C.Types (CBool(..), CInt(..), CChar(..), CFloat(..), CUInt(..), CULLong(..))
+import Foreign (Ptr, nullPtr, peekArray, withArray, toBool, with, fromBool)
+import Foreign.C.Types (CBool(..), CInt(..), CChar(..), CFloat(..), CULLong(..))
 import Foreign.C.String (CString, peekCString, withCString)
 import Foreign.Storable (Storable(..))
 import Foreign.Marshal.Alloc (alloca, free)
 import Data.Word (Word32, Word16, Word8)
-import Data.Int (Int32, Int16)
+import Data.Int (Int16)
 import SDL.GUID (SDLGUID(..))
 import SDL.Joystick (SDLJoystick(..), SDLJoystickID(..), SDLJoystickConnectionState(..))
 import SDL.Power (SDLPowerState(..))
-import SDL.Properties (SDLPropertiesID(..))
+import SDL.Properties (SDLPropertiesID)
 import SDL.Sensor (SDLSensorType(..))
 import SDL.IOStream (SDLIOStream)
 

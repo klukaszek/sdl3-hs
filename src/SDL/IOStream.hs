@@ -97,8 +97,7 @@ import Foreign.C.Types
 import Foreign.Marshal.Alloc
 import Foreign.Ptr
 import Foreign.Storable
-import SDL.Properties (SDLPropertiesID (..))
-import SDL.Stdinc (SDLCall)
+import SDL.Properties (SDLPropertiesID)
 
 -- | SDL_IOStream status, set by a read or write operation
 data SDLIOStatus

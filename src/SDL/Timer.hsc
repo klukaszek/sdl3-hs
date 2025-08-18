@@ -56,9 +56,7 @@ module SDL.Timer
 
 #include <SDL3/SDL_timer.h>
 
-import Foreign.C.Types
-import Foreign.Ptr (Ptr, FunPtr, nullPtr, freeHaskellFunPtr)
-import Foreign.C.String (peekCString)
+import Foreign.Ptr (Ptr, FunPtr, freeHaskellFunPtr)
 import Data.Word (Word32, Word64)
 
 -- | Number of milliseconds in a second (SDL_MS_PER_SECOND).

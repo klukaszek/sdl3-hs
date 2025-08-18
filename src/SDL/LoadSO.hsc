@@ -22,7 +22,6 @@ module SDL.LoadSO
 
 #include <SDL3/SDL_loadso.h>
 
-import Foreign.C.Types (CInt)
 import Foreign.Ptr (Ptr, nullPtr, FunPtr, nullFunPtr)
 import Foreign.C.String (CString, withCString)
 

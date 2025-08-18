@@ -15,15 +15,7 @@ module SDL.Misc
     sdlOpenURL
   ) where
 
-import Foreign
-import Foreign.C.Types
 import Foreign.C.String
-import Data.Word
-import Data.Int
-import Control.Monad
-
-import SDL.Stdinc
-import SDL.Error
 
 #include <SDL3/SDL_misc.h>
 
@@ -31,7 +23,7 @@ import SDL.Error
 foreign import ccall "SDL_OpenURL" sdlOpenURLRaw :: CString -> IO Bool
 
 -- | Open a URL/URI in the browser or other appropriate external application.
--- This high-level function wraps the SDL_OpenURL C function, converting the 
+-- This high-level function wraps the SDL_OpenURL C function, converting the
 -- Haskell String to a C string and handling errors appropriately.
 sdlOpenURL :: String -> IO Bool
 sdlOpenURL url = withCString url sdlOpenURLRaw

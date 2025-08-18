@@ -25,23 +25,23 @@ module Main where
 
 import Control.Exception (bracket, bracketOnError, finally)
 import Control.Monad (unless, void, when)
-import Data.Bits ((.|.))
+import Data.Bits ()
+import Data.Foldable (for_)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Maybe (fromJust, isJust, isNothing)
 import Data.Word (Word16, Word32, Word64)
-import Foreign.C.Types (CFloat, CSize)
-import Foreign.Marshal.Alloc (alloca)
-import Foreign.Marshal.Array (pokeArray)
-import Foreign.Marshal.Utils (copyBytes, with)
-import Foreign.Ptr (Ptr, castPtr, nullPtr, plusPtr)
-import Foreign.Storable (peek, poke, sizeOf)
+import Foreign.C.Types (CFloat)
+import Foreign.Marshal.Alloc ()
+import Foreign.Marshal.Array ()
+import Foreign.Marshal.Utils ()
+import Foreign.Ptr (Ptr, nullPtr)
+import Foreign.Storable (peek, sizeOf)
 import GPUCommon
 -- linear algebra library
 import Linear
-import SDL hiding (cos, pi, sin)
+import SDL hiding (cos, sin)
 import System.Exit (exitFailure, exitSuccess)
 import System.FilePath ((</>))
-import Text.Printf (printf)
 
 -- | We can also use Geomancy for linalg
 -- import Geomancy.Mat4               (Mat4, transpose, matrixProduct)
@@ -91,7 +91,7 @@ main = do
 
 -- runAppGPU
 runAppGPU :: Context -> IO ()
-runAppGPU context@Context {..} = do
+runAppGPU context@Context {} = do
   sdlLog "Base context initialized."
   timeRef <- newIORef (0.0 :: Float) -- For animation time
   bracket
@@ -171,8 +171,8 @@ createGPUObjects dev win vertShader fragShader surfacePtr = do
 
   -- Peek Surface Info
   surfaceData <- peek surfacePtr :: IO SDLSurface
-  let texWidth = fromIntegral (surfaceW surfaceData) :: Int
-  let texHeight = fromIntegral (surfaceH surfaceData) :: Int
+  let texWidth = surfaceW surfaceData
+  let texHeight = surfaceH surfaceData
   when (surfacePixels surfaceData == nullPtr) $ sdlLog "!!! WARNING: Surface pixel data pointer is NULL!"
 
   -- Calculate data sizes
@@ -286,9 +286,10 @@ createPipeline dev win vertShader fragShader = do
 
   let colorTargetDesc = SDLGPUColorTargetDescription swapchainFormat blendState
       targetInfo = SDLGPUGraphicsPipelineTargetInfo [colorTargetDesc] SDL_GPU_TEXTUREFORMAT_INVALID False
-      pipelineCI = (defaultGraphicsPipelineCreateInfo vertShader fragShader swapchainFormat)
-          { vertexInputState = vertexInputState
-          , targetInfo = targetInfo
+      pipelineCI =
+        (defaultGraphicsPipelineCreateInfo vertShader fragShader swapchainFormat)
+          { vertexInputState = vertexInputState,
+            targetInfo = targetInfo
           }
   maybePipeline <- sdlCreateGPUGraphicsPipeline dev pipelineCI
   when (isNothing maybePipeline) $ sdlGetError >>= sdlLog . ("!!! Failed to create graphics pipeline: " ++)
@@ -353,7 +354,7 @@ uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf
                             then do
                               sdlLog "Upload command buffer submitted successfully."
                               sdlLog "Waiting for GPU device idle after upload submission..."
-                              sdlWaitForGPUIdle dev `finally` sdlLog "GPU device idle wait finished (or errored)."
+                              _ <- sdlWaitForGPUIdle dev `finally` sdlLog "GPU device idle wait finished (or errored)."
                               sdlLog "GPU device idle."
                               return True
                             else do
@@ -371,11 +372,11 @@ uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf
                   return False
 
 recordUploadCommands :: SDLGPUDevice -> SDLGPUCommandBuffer -> SDLGPUTransferBuffer -> SDLGPUTransferBuffer -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> Word32 -> Word32 -> Int -> Int -> IO Bool
-recordUploadCommands dev cmdBuf bufTransfer texTransfer vertexBuf indexBuf texture vOffset iOffset texWidth texHeight = do
+recordUploadCommands _ cmdBuf bufTransfer texTransfer vertexBuf indexBuf texture vOffset iOffset texWidth texHeight = do
   sdlLog "Beginning Copy Pass for uploads..."
   bracket
     (sdlBeginGPUCopyPass cmdBuf)
-    (\mcp -> when (isJust mcp) $ sdlEndGPUCopyPass (fromJust mcp))
+    (`for_` sdlEndGPUCopyPass)
     $ \case
       Nothing -> sdlLog "!!! Failed to begin copy pass." >> return False
       Just copyPass -> do
@@ -383,12 +384,12 @@ recordUploadCommands dev cmdBuf bufTransfer texTransfer vertexBuf indexBuf textu
         (_, _, vertexSizeW32) <- calculateBufferDataSize vertexData "Vertex"
         (_, _, indexSizeW32) <- calculateBufferDataSize indexData "Index"
 
-        let vbSrc = SDLGPUTransferBufferLocation bufTransfer (fromIntegral vOffset)
+        let vbSrc = SDLGPUTransferBufferLocation bufTransfer vOffset
         let vbDst = SDLGPUBufferRegion vertexBuf 0 vertexSizeW32
         sdlLog $ "Recording Vertex Buffer Upload: " ++ show vbSrc ++ " -> " ++ show vbDst
         sdlUploadToGPUBuffer copyPass vbSrc vbDst False
 
-        let ibSrc = SDLGPUTransferBufferLocation bufTransfer (fromIntegral iOffset)
+        let ibSrc = SDLGPUTransferBufferLocation bufTransfer iOffset
         let ibDst = SDLGPUBufferRegion indexBuf 0 indexSizeW32
         sdlLog $ "Recording Index Buffer Upload: " ++ show ibSrc ++ " -> " ++ show ibDst
         sdlUploadToGPUBuffer copyPass ibSrc ibDst False

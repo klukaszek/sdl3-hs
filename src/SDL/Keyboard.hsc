@@ -3,6 +3,7 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fno-warn-missing-pattern-synonym-signatures #-}
 
 {-|
 Module      : SDL.Keyboard
@@ -26,7 +27,7 @@ Basic usage:
 
 module SDL.Keyboard
   ( -- * Types
-    SDLKeyboardID(..)
+    SDLKeyboardID
   , SDLTextInputType(..)
   , SDLCapitalization(..)
 
@@ -74,10 +75,10 @@ import Foreign.Marshal.Alloc (alloca, free)
 import Foreign.Marshal.Array (peekArray)
 import Foreign.Storable (peek)
 import Data.Word (Word32, Word16)
-import SDL.Keycode (SDLKeycode(..), SDLKeymod(..))
-import SDL.Properties (SDLPropertiesID(..))
+import SDL.Keycode (SDLKeycode, SDLKeymod)
+import SDL.Properties (SDLPropertiesID)
 import SDL.Rect (SDLRect(..))
-import SDL.Scancode (SDLScancode(..))
+import SDL.Scancode (SDLScancode)
 import SDL.Video (SDLWindow(..))
 
 -- | A unique ID for a keyboard, valid while connected to the system.

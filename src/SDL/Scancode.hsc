@@ -1,5 +1,6 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fno-warn-missing-pattern-synonym-signatures #-}
 
 {-|
 Module      : SDL.Scancode
@@ -275,17 +276,7 @@ module SDL.Scancode
 #include <SDL3/SDL_keyboard.h>
 #include <SDL3/SDL_scancode.h>
 
-import Foreign (fromBool, toBool, with)
-import Foreign.C.Types (CInt(..), CBool(..))
-import Foreign.C.String (CString, peekCString, withCString)
-import Foreign.Ptr (Ptr, nullPtr)
-import Foreign.Marshal.Alloc (alloca, free)
-import Foreign.Marshal.Array (peekArray)
-import Foreign.Storable (peek)
-import Data.Word (Word32, Word16)
-import SDL.Properties (SDLPropertiesID(..))
-import SDL.Rect (SDLRect(..))
-import SDL.Video (SDLWindow(..))
+import Data.Word (Word32)
 
 -- | A unique ID for a keyboard, valid while connected to the system.
 type SDLKeyboardID = Word32

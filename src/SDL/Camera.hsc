@@ -21,7 +21,7 @@ permission status and handle approval or denial events.
 module SDL.Camera
   ( -- * Camera Types
     SDLCamera
-  , SDLCameraID(..)
+  , SDLCameraID
   , SDLCameraSpec(..)
   , SDLCameraPosition(..)
 

@@ -17,20 +17,18 @@
 -- - SDL.free exists and works.
 module GPUCommon where
 
-import Control.Exception (Exception, IOException, SomeException, bracket, catch, try)
-import Control.Monad (unless, void, when)
-import Control.Monad.IO.Class (liftIO)
+import Control.Exception (IOException, SomeException, bracket, catch, try)
+import Control.Monad (unless, when)
 -- Import the function from the auto-generated module
 -- For path manipulation (optional but clean)
 
 import Data.Bits ((.&.), (.|.))
-import Data.List (find)
-import Data.Maybe (fromJust, fromMaybe, isJust, isNothing)
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Word (Word16, Word32, Word8)
 import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Marshal.Alloc (alloca)
-import Foreign.Marshal.Array (pokeArray, withArray)
+import Foreign.Marshal.Array (pokeArray)
 import Foreign.Marshal.Utils (copyBytes)
 import Foreign.Ptr (Ptr, castPtr, nullPtr, plusPtr)
 import Foreign.Storable (Storable (..), peek)
@@ -162,7 +160,7 @@ defaultGraphicsPipelineCreateInfo vShader fShader swapchainFormat =
       multisampleState = defaultMultiSampleState,
       depthStencilState = defaultDepthStencilState,
       targetInfo = defaultGraphicsPipelineTargetInfo swapchainFormat,
-      props = 0
+      pipelineProps = 0
     }
 
 defaultComputePipelineCreateInfo :: SDLGPUComputePipelineCreateInfo
@@ -200,6 +198,7 @@ defaultColorTargetInfo =
       targetCycleResolve = False
     }
 
+defaultSamplerCreateInfo :: SDLGPUFilter -> SDLGPUSamplerCreateInfo
 defaultSamplerCreateInfo filt =
   SDLGPUSamplerCreateInfo
     filt
@@ -460,7 +459,7 @@ createComputePipelineFromShader device baseFilename baseCreateInfo = do
               let finalCI =
                     baseCreateInfo
                       { code = castPtr codePtr,
-                        codeSize = fromIntegral loadedSize, -- Ensure types match
+                        codeSize = loadedSize, -- Ensure types match
                         entryPoint = entryP,
                         compFormat = shaderFmt
                       }
@@ -544,7 +543,7 @@ loadImage relativeImagePath = do
 createGPUBuffer :: SDLGPUDevice -> SDLGPUBufferUsageFlags -> Word32 -> String -> IO (Maybe SDLGPUBuffer)
 createGPUBuffer dev usage size name = do
   sdlLog $ "Creating " ++ name ++ " (Size: " ++ show size ++ " bytes)..."
-  let ci = SDLGPUBufferCreateInfo {bufferUsage = usage, bufferSize = fromIntegral size, bufferProps = 0}
+  let ci = SDLGPUBufferCreateInfo {bufferUsage = usage, bufferSize = size, bufferProps = 0}
   maybeBuf <- sdlCreateGPUBuffer dev ci
   when (isNothing maybeBuf) $ do
     err <- sdlGetError
@@ -572,7 +571,7 @@ createTransferBuffer ::
 createTransferBuffer dev size usage name = do
   let logName = if null name then "Transfer Buffer" else name
   sdlLog $ "Creating " ++ logName ++ " (Size: " ++ show size ++ " bytes, Usage: " ++ show usage ++ ")..."
-  let tbCreateInfo = SDLGPUTransferBufferCreateInfo usage (fromIntegral size) 0
+  let tbCreateInfo = SDLGPUTransferBufferCreateInfo usage size 0
   maybeTb <- sdlCreateGPUTransferBuffer dev tbCreateInfo
   when (isNothing maybeTb) $ do
     err <- sdlGetError
@@ -652,7 +651,7 @@ mapAndCopyTextureData dev tb surfacePtr w h bytesPerPixel = do
           else do
             let dataSize = w * h * bytesPerPixel
             sdlLog $ "Texture Transfer Buffer mapped. Copying " ++ show dataSize ++ " bytes of pixel data."
-            copyBytes (castPtr mappedPtr) pixelsPtr (fromIntegral dataSize)
+            copyBytes (castPtr mappedPtr) pixelsPtr dataSize
             sdlLog "Texture data copied."
             return True
 

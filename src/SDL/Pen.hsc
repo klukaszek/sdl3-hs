@@ -45,13 +45,12 @@ module SDL.Pen
   , pattern SDL_PEN_AXIS_COUNT
   ) where
 
-import Foreign (Ptr, FunPtr, nullPtr, nullFunPtr)
 import Foreign.C.Types (CInt(..))
 import Foreign.Storable (Storable)
-import Data.Word (Word32, Word64)
-import Data.Bits (Bits, (.|.))
-import SDL.Mouse (SDLMouseID) -- Assuming SDLMouseID is Word32 or similar
-import SDL.Touch (SDLTouchID) -- Assuming SDLTouchID is Word64 or similar
+import Data.Word (Word32)
+import Data.Bits (Bits)
+import SDL.Mouse (SDLMouseID)
+import SDL.Touch (SDLTouchID)
 
 -- | SDL pen instance ID.
 -- Zero signifies an invalid/null device.
