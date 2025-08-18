@@ -31,6 +31,7 @@ module SDL.Video
     pattern SDL_WINDOW_FULLSCREEN,
     pattern SDL_WINDOW_OPENGL,
     pattern SDL_WINDOW_METAL,
+    pattern SDL_WINDOW_VULKAN,
     pattern SDL_WINDOW_HIDDEN,
     pattern SDL_WINDOW_BORDERLESS,
     pattern SDL_WINDOW_RESIZABLE,
@@ -215,6 +216,8 @@ pattern SDL_WINDOW_OPENGL :: SDLWindowFlags
 pattern SDL_WINDOW_OPENGL             = SDLWindowFlags #{const SDL_WINDOW_OPENGL}
 pattern SDL_WINDOW_METAL :: SDLWindowFlags
 pattern SDL_WINDOW_METAL              = SDLWindowFlags #{const SDL_WINDOW_METAL}
+pattern SDL_WINDOW_VULKAN :: SDLWindowFlags
+pattern SDL_WINDOW_VULKAN             = SDLWindowFlags #{const SDL_WINDOW_VULKAN}
 pattern SDL_WINDOW_HIDDEN :: SDLWindowFlags
 pattern SDL_WINDOW_HIDDEN             = SDLWindowFlags #{const SDL_WINDOW_HIDDEN}
 pattern SDL_WINDOW_BORDERLESS :: SDLWindowFlags

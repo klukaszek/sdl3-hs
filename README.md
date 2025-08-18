@@ -234,14 +234,14 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 
 ## 📊 Binding Status
 
-*Last updated: 2025-08-18 07:29 UTC*
+*Last updated: 2025-08-18 07:47 UTC*
 
 *SDL3 commit: `e1a623f129e75ad532315852d656fb26c80382a6`*
 
 ### Summary
-- **Total Modules**: 54
-- **Modules with Bindings**: 54
-- **Complete Bindings**: 54
+- **Total Modules**: 55
+- **Modules with Bindings**: 55
+- **Complete Bindings**: 55
 - **Missing Functions**: 0
 - **Completion Rate**: 100%
 
@@ -303,6 +303,7 @@ These examples are based off of the original [SDL3 GPU Examples](https://github.
 | `SDL_tray` | ✅ Complete |
 | `SDL_version` | ✅ Complete |
 | `SDL_video` | ✅ Complete |
+| `SDL_vulkan` | ✅ Complete |
 
 ### Legend
 - ✅ **Complete**: All functions from the header are bound
