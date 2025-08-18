@@ -1,76 +1,75 @@
-{-|
-Module      : SDL.Mutex
-Description : Thread synchronization primitives
-Copyright   : (c) Kyle Lukaszek, 2025
-License     : BSD3
-
-SDL offers several thread synchronization primitives:
-
-- Mutexes: 'sdlCreateMutex'
-- Read/Write locks: 'sdlCreateRWLock' 
-- Semaphores: 'sdlCreateSemaphore'
-- Condition variables: 'sdlCreateCondition'
-
-SDL also offers a datatype, 'SDLInitState', which can be used to make sure
-only one thread initializes/deinitializes some resource that several
-threads might try to use for the first time simultaneously.
--}
-
+-- |
+-- Module      : SDL.Mutex
+-- Description : Thread synchronization primitives
+-- Copyright   : (c) Kyle Lukaszek, 2025
+-- License     : BSD3
+--
+-- SDL offers several thread synchronization primitives:
+--
+-- - Mutexes: 'sdlCreateMutex'
+-- - Read/Write locks: 'sdlCreateRWLock'
+-- - Semaphores: 'sdlCreateSemaphore'
+-- - Condition variables: 'sdlCreateCondition'
+--
+-- SDL also offers a datatype, 'SDLInitState', which can be used to make sure
+-- only one thread initializes/deinitializes some resource that several
+-- threads might try to use for the first time simultaneously.
 module SDL.Mutex
   ( -- * Thread safety annotation wrappers
+
     -- These are C macros, not exposed directly in Haskell
 
     -- * Mutex functions
-    SDLMutex
-  , sdlCreateMutex
-  , sdlLockMutex
-  , sdlTryLockMutex
-  , sdlUnlockMutex
-  , sdlDestroyMutex
-    
-    -- * Read/write lock functions
-  , SDLRWLock
-  , sdlCreateRWLock
-  , sdlLockRWLockForReading
-  , sdlLockRWLockForWriting
-  , sdlTryLockRWLockForReading
-  , sdlTryLockRWLockForWriting
-  , sdlUnlockRWLock
-  , sdlDestroyRWLock
-    
-    -- * Semaphore functions
-  , SDLSemaphore
-  , sdlCreateSemaphore
-  , sdlDestroySemaphore
-  , sdlWaitSemaphore
-  , sdlTryWaitSemaphore
-  , sdlWaitSemaphoreTimeout
-  , sdlSignalSemaphore
-  , sdlGetSemaphoreValue
-    
-    -- * Condition variable functions
-  , SDLCondition
-  , sdlCreateCondition
-  , sdlDestroyCondition
-  , sdlSignalCondition
-  , sdlBroadcastCondition
-  , sdlWaitCondition
-  , sdlWaitConditionTimeout
-    
-    -- * Thread-safe initialization state functions
-  , SDLInitStatus(..)
-  , SDLInitState(..)
-  , sdlShouldInit
-  , sdlShouldQuit
-  , sdlSetInitialized
-  ) where
+    SDLMutex,
+    sdlCreateMutex,
+    sdlLockMutex,
+    sdlTryLockMutex,
+    sdlUnlockMutex,
+    sdlDestroyMutex,
 
-import Foreign.C.Types
-import Foreign.Ptr
-import Data.Word
+    -- * Read/write lock functions
+    SDLRWLock,
+    sdlCreateRWLock,
+    sdlLockRWLockForReading,
+    sdlLockRWLockForWriting,
+    sdlTryLockRWLockForReading,
+    sdlTryLockRWLockForWriting,
+    sdlUnlockRWLock,
+    sdlDestroyRWLock,
+
+    -- * Semaphore functions
+    SDLSemaphore,
+    sdlCreateSemaphore,
+    sdlDestroySemaphore,
+    sdlWaitSemaphore,
+    sdlTryWaitSemaphore,
+    sdlWaitSemaphoreTimeout,
+    sdlSignalSemaphore,
+    sdlGetSemaphoreValue,
+
+    -- * Condition variable functions
+    SDLCondition,
+    sdlCreateCondition,
+    sdlDestroyCondition,
+    sdlSignalCondition,
+    sdlBroadcastCondition,
+    sdlWaitCondition,
+    sdlWaitConditionTimeout,
+
+    -- * Thread-safe initialization state functions
+    SDLInitStatus (..),
+    SDLInitState (..),
+    sdlShouldInit,
+    sdlShouldQuit,
+    sdlSetInitialized,
+  )
+where
+
 import Data.Int
-import SDL.Thread (SDLThreadID)
+import Data.Word
+import Foreign.Ptr
 import SDL.Atomic (SDLAtomicInt)
+import SDL.Thread (SDLThreadID)
 
 -- | A means to serialize access to a resource between threads
 data SDLMutex
@@ -409,17 +408,24 @@ foreign import ccall "SDL_WaitConditionTimeout" sdlWaitConditionTimeout :: Ptr S
 
 -- | The current status of an SDLInitState structure
 data SDLInitStatus
-  = SDLInitStatusUninitialized  -- ^ Not yet initialized
-  | SDLInitStatusInitializing   -- ^ Currently being initialized
-  | SDLInitStatusInitialized    -- ^ Successfully initialized
-  | SDLInitStatusUninitializing -- ^ Currently being uninitialized
+  = -- | Not yet initialized
+    SDLInitStatusUninitialized
+  | -- | Currently being initialized
+    SDLInitStatusInitializing
+  | -- | Successfully initialized
+    SDLInitStatusInitialized
+  | -- | Currently being uninitialized
+    SDLInitStatusUninitializing
   deriving (Eq, Ord, Show, Read, Enum, Bounded)
 
 -- | A structure used for thread-safe initialization and shutdown
 data SDLInitState = SDLInitState
-  { sdlInitStatus  :: SDLAtomicInt -- ^ Current status
-  , sdlInitThread  :: SDLThreadID  -- ^ Thread that is initializing
-  , sdlInitReserved :: Ptr ()      -- ^ Reserved for future use
+  { -- | Current status
+    sdlInitStatus :: SDLAtomicInt,
+    -- | Thread that is initializing
+    sdlInitThread :: SDLThreadID,
+    -- | Reserved for future use
+    sdlInitReserved :: Ptr ()
   }
 
 -- | Return whether initialization should be done

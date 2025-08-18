@@ -274,29 +274,24 @@ module SDL.Render
 #include <SDL3/SDL_version.h>
 
 -- Haskell Imports
-import Foreign.Ptr (Ptr, nullPtr, FunPtr, castPtr, plusPtr)
+import Foreign.Ptr (Ptr, nullPtr, castPtr, plusPtr)
 import Foreign.C.Types
 import Foreign.C.String (CString, withCString, peekCString)
-import Foreign.Marshal.Alloc (alloca, malloc, free, mallocBytes, allocaBytes)
-import Foreign.Marshal.Array (withArray, withArrayLen, peekArray, allocaArray)
-import Foreign.Marshal.Utils (copyBytes, fromBool, toBool, with, maybeWith, new, withMany)
+import Foreign.Marshal.Alloc (alloca, allocaBytes)
+import Foreign.Marshal.Array (withArrayLen)
+import Foreign.Marshal.Utils (toBool, with, maybeWith)
 import Foreign.Storable (Storable(..))
-import Data.Word (Word8, Word16, Word32)
-import Data.Int (Int32, Int64)
-import Data.Bits (Bits, (.|.))
-import Data.Maybe (fromMaybe)
-import Control.Monad (when, unless, forM_, void)
-import Control.Exception (bracket)
+import Data.Word (Word8, Word32)
+import Data.Int (Int64)
 
 -- SDL Imports
 import SDL.BlendMode (SDLBlendMode(..))
-import SDL.Error (sdlGetError)
 import SDL.Events (SDLEvent) -- Assuming Ptr SDLEvent underneath
 import SDL.Pixels (SDLPixelFormat(..), SDLFColor(..), pixelFormatToCUInt)
-import SDL.Properties (SDLPropertiesID(..))
+import SDL.Properties (SDLPropertiesID)
 import SDL.Rect (SDLRect(..), SDLFPoint(..), SDLFRect(..))
 import SDL.Surface (SDLSurface(..), SDLFlipMode(..), SDLScaleMode(..))
-import SDL.Video (SDLWindow(..), SDLWindowFlags)
+import SDL.Video (SDLWindow(..))
 import SDL.GPU (SDLGPUShaderFormat(..), SDLGPUDevice(..), SDLGPUShader(..), SDLGPUTextureSamplerBinding(..), SDLGPUTexture(..), SDLGPUBuffer(..)) -- Import necessary GPU types
 
 -- Opaque Handle Types
@@ -1344,6 +1339,7 @@ data SDLGPURenderStateDesc = SDLGPURenderStateDesc
     } deriving (Show, Eq)
 
 -- Helper for marshalling SDL_GPURenderStateDesc
+withGPURenderStateDesc :: SDLGPURenderStateDesc -> (Ptr () -> IO a) -> IO a
 withGPURenderStateDesc SDLGPURenderStateDesc{..} f =
     withArrayLen gpuRenderStateDescSamplerBindings $ \numSamplers samplersPtr ->
     withArrayLen (map (\(SDLGPUTexture p) -> p) gpuRenderStateDescStorageTextures) $ \numTex texPtrs ->

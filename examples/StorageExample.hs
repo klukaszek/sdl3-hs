@@ -1,15 +1,13 @@
 module Main where
 
-import SDL
 import Control.Monad
-import System.Exit (exitFailure, exitSuccess)
-import Foreign.Ptr (Ptr, nullPtr, castPtr)
-import Foreign.C.Types
-import Foreign.C.String (CString, withCString, peekCString)
-import Foreign.Marshal.Alloc (alloca, mallocBytes)
-import Foreign.Marshal.Array (copyArray)
-import Foreign.Storable (poke, peek)
 import Data.Word (Word64)
+import Foreign.C.String (CString, peekCString, withCString)
+import Foreign.Marshal.Alloc (mallocBytes)
+import Foreign.Marshal.Array (copyArray)
+import Foreign.Ptr (Ptr, castPtr, nullPtr)
+import SDL
+import System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()
 main = do
@@ -77,8 +75,8 @@ waitForStorageReady :: Ptr SDLStorage -> IO ()
 waitForStorageReady storage = do
   sdlLog "Waiting for storage to be ready..."
   let checkReady = do
-        ready <- sdlStorageReady storage
-        unless ready $ do
+        isReady <- sdlStorageReady storage
+        unless isReady $ do
           sdlDelay 1
           checkReady
   checkReady
@@ -94,7 +92,7 @@ writeTestFile storage = do
   withCString content $ \cstr -> do
     copyArray contentPtr cstr (fromIntegral len)
     success <- sdlWriteStorageFile storage "test.txt" (castPtr contentPtr) len
-    free contentPtr  -- Use Haskell's free for mallocBytes
+    free contentPtr -- Use Haskell's free for mallocBytes
     if success
       then sdlLog "Successfully wrote test.txt"
       else do
@@ -112,18 +110,18 @@ readTestFile storage = do
       sdlLog "Failed to get size of test.txt!"
       err <- sdlGetError
       sdlLog $ "Error: " ++ err
-    Just size -> do
-      buffer <- mallocBytes (fromIntegral size)
-      success <- sdlReadStorageFile storage "test.txt" buffer size
+    Just len -> do
+      buf <- mallocBytes (fromIntegral len)
+      success <- sdlReadStorageFile storage "test.txt" buf len
       if success
         then do
-          content <- peekCString (castPtr buffer)
+          content <- peekCString (castPtr buf)
           sdlLog $ "Read from test.txt: " ++ content
         else do
           sdlLog "Failed to read test.txt!"
           err <- sdlGetError
           sdlLog $ "Error: " ++ err
-      free buffer  -- Use Haskell's free for mallocBytes
+      free buf -- Use Haskell's free for mallocBytes
 
 -- List directory contents
 listDirectory :: Ptr SDLStorage -> IO ()
@@ -143,13 +141,15 @@ listDirectory storage = do
 
 -- Helper function to print subsystem names
 printSubsystem :: SDLInitFlags -> IO ()
-printSubsystem flag = sdlLog $ "  - " ++ case flag of
-  SDL_INIT_AUDIO    -> "Audio"
-  SDL_INIT_VIDEO    -> "Video"
-  SDL_INIT_JOYSTICK -> "Joystick"
-  SDL_INIT_HAPTIC   -> "Haptic"
-  SDL_INIT_GAMEPAD  -> "Gamepad"
-  SDL_INIT_EVENTS   -> "Events"
-  SDL_INIT_SENSOR   -> "Sensor"
-  SDL_INIT_CAMERA   -> "Camera"
-  _            -> "Unknown subsystem"
+printSubsystem flag =
+  sdlLog $
+    "  - " ++ case flag of
+      SDL_INIT_AUDIO -> "Audio"
+      SDL_INIT_VIDEO -> "Video"
+      SDL_INIT_JOYSTICK -> "Joystick"
+      SDL_INIT_HAPTIC -> "Haptic"
+      SDL_INIT_GAMEPAD -> "Gamepad"
+      SDL_INIT_EVENTS -> "Events"
+      SDL_INIT_SENSOR -> "Sensor"
+      SDL_INIT_CAMERA -> "Camera"
+      _ -> "Unknown subsystem"

@@ -1,29 +1,28 @@
 module Main where
 
-import SDL
-import Foreign.C.Types (CInt(..))
 import Control.Monad (unless)
+import SDL
 
 main :: IO ()
 main = do
-    -- Initialize SDL
-    initSuccess <- sdlInit [SDL_INIT_VIDEO]
-    unless initSuccess $ do
-        sdlLog "Failed to initialize SDL"
-        return ()
+  -- Initialize SDL
+  initSuccess <- sdlInit [SDL_INIT_VIDEO]
+  unless initSuccess $ do
+    sdlLog "Failed to initialize SDL"
+    return ()
 
-    -- Get preferred locales
-    locales <- sdlGetPreferredLocales
-    
-    -- Print the results
-    sdlLog "User's preferred locales:"
-    mapM_ printLocale locales
-    
-    -- Clean up
-    sdlQuit
+  -- Get preferred locales
+  locales <- sdlGetPreferredLocales
+
+  -- Print the results
+  sdlLog "User's preferred locales:"
+  mapM_ printLocale locales
+
+  -- Clean up
+  sdlQuit
 
 -- Helper function to print a locale in a readable format
 printLocale :: SDLLocale -> IO ()
-printLocale (SDLLocale lang country) = do
-    let countryStr = maybe "" (", " ++) country
-    sdlLog $ "Language: " ++ lang ++ countryStr
+printLocale (SDLLocale lang countryVal) = do
+  let countryStr = maybe "" (", " ++) countryVal
+  sdlLog $ "Language: " ++ lang ++ countryStr

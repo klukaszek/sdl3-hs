@@ -1,6 +1,8 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fno-warn-missing-pattern-synonym-signatures #-}
+{-# OPTIONS_GHC -fno-warn-unused-top-binds#-}
 
 -- SDL/Init.hs
 {-|
@@ -12,10 +14,8 @@ License     : BSD3
 This module provides Haskell bindings to the SDL stdinc functionality.
 -}
 
-#include <SDL3/SDL_init.h>
-
 module SDL.Init
-  ( 
+  (
   -- * Initialization
   -- ** Initialization Flags
     SDLInitFlags
@@ -27,31 +27,31 @@ module SDL.Init
   , pattern SDL_INIT_EVENTS
   , pattern SDL_INIT_SENSOR
   , pattern SDL_INIT_CAMERA
-  
+
   -- ** Basic Initialization Functions
   , sdlInit
   , sdlInitSubSystem
   , sdlQuitSubSystem
   , sdlWasInit
   , sdlQuit
-  
+
   -- ** Thread Functions
   , sdlIsMainThread
   , MainThreadCallback
   , sdlRunOnMainThread
-  
+
   -- ** App Result Types
   , SDLAppResult(..)
   , SDLAppInitFunc
   , SDLAppIterateFunc
   , SDLAppEventFunc
   , SDLAppQuitFunc
-  
+
   -- ** App Metadata
   , sdlSetAppMetadata
   , sdlSetAppMetadataProperty
   , sdlGetAppMetadataProperty
-  
+
   -- *** App Metadata Properties
   , propAppMetadataName
   , propAppMetadataVersion
@@ -61,6 +61,8 @@ module SDL.Init
   , propAppMetadataUrl
   , propAppMetadataType
   ) where
+
+#include <SDL3/SDL_init.h>
 
 import Prelude hiding (init)
 import Foreign
@@ -94,7 +96,7 @@ pattern SDL_INIT_SENSOR = (#const SDL_INIT_SENSOR) :: SDLInitFlags
 pattern SDL_INIT_CAMERA = (#const SDL_INIT_CAMERA) :: SDLInitFlags
 
 -- | Result for app callbacks
-data SDLAppResult = 
+data SDLAppResult =
     SDL_APP_CONTINUE    -- ^ Continue app execution
   | SDL_APP_SUCCESS     -- ^ Terminate with success
   | SDL_APP_FAILURE     -- ^ Terminate with error
@@ -179,7 +181,7 @@ sdlWasInit :: [SDLInitFlags] -> IO [SDLInitFlags]
 sdlWasInit flags = do
   result <- sdlWasInit_ (foldr (.|.) 0 flags)
   -- Create list of initialized flags
-  return $ filter (\flag -> (result .&. flag) /= 0) 
+  return $ filter (\flag -> (result .&. flag) /= 0)
     [SDL_INIT_AUDIO, SDL_INIT_VIDEO, SDL_INIT_JOYSTICK, SDL_INIT_HAPTIC, SDL_INIT_GAMEPAD, SDL_INIT_EVENTS, SDL_INIT_SENSOR, SDL_INIT_CAMERA]
 
 -- | Clean up all initialized subsystems.
@@ -219,7 +221,7 @@ foreign import ccall unsafe "SDL_SetAppMetadata" sdlSetAppMetadata_ :: CString -
 
 -- | Set basic app metadata
 sdlSetAppMetadata :: String -> String -> String -> IO Bool
-sdlSetAppMetadata appname appversion appidentifier = 
+sdlSetAppMetadata appname appversion appidentifier =
   withCString appname $ \appnamePtr ->
   withCString appversion $ \appversionPtr ->
   withCString appidentifier $ \appidentifierPtr ->
@@ -230,7 +232,7 @@ foreign import ccall unsafe "SDL_SetAppMetadataProperty" sdlSetAppMetadataProper
 
 -- | Set an app metadata property
 sdlSetAppMetadataProperty :: String -> String -> IO Bool
-sdlSetAppMetadataProperty name value = 
+sdlSetAppMetadataProperty name value =
   withCString name $ \namePtr ->
   withCString value $ \valuePtr ->
     sdlSetAppMetadataProperty_ namePtr valuePtr

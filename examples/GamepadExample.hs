@@ -1,17 +1,15 @@
 module Main where
 
-import SDL hiding (abs)
-import Control.Monad
-import System.Exit (exitFailure, exitSuccess)
-import Foreign.C.String (peekCString)
-import Data.Word (Word16, Word8)
-import Data.Char (chr)
 import Control.Concurrent (threadDelay)
-import Foreign.Ptr (nullPtr)
+import Control.Monad
+import Data.Char (chr)
+import Data.Word (Word16)
+import SDL hiding (abs)
+import System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()
 main = do
-    -- Basic SDL initialization
+  -- Basic SDL initialization
   sdlLog $ "Compiled SDL Version: " ++ show sdlVersion
   when (sdlVersionAtLeast 3 3 0) $
     sdlLog "Compiled with at least SDL 3.3.0"
@@ -36,11 +34,11 @@ main = do
   -- Check if any gamepads are connected
   hasGamepad <- sdlHasGamepad
   if not hasGamepad
-  then do
-    sdlLog "No gamepads detected. Please connect a gamepad and try again."
-    sdlQuit
-    exitSuccess
-  else sdlLog "Gamepad detected!"
+    then do
+      sdlLog "No gamepads detected. Please connect a gamepad and try again."
+      sdlQuit
+      exitSuccess
+    else sdlLog "Gamepad detected!"
 
   -- Get list of connected gamepads
   gamepads <- sdlGetGamepads
@@ -49,7 +47,7 @@ main = do
   -- Test the first gamepad
   case gamepads of
     [] -> sdlLog "No gamepads available to test."
-    (jid:_) -> do
+    (jid : _) -> do
       sdlLog $ "Testing gamepad with ID: " ++ show jid
       -- Check if joystick is a gamepad
       isGamepad <- sdlIsGamepad jid
@@ -68,11 +66,11 @@ main = do
       vendor <- sdlGetGamepadVendorForID jid
       sdlLog $ "Vendor ID: 0x" ++ showHex vendor
 
-      product <- sdlGetGamepadProductForID jid
-      sdlLog $ "Product ID: 0x" ++ showHex product
+      prod <- sdlGetGamepadProductForID jid
+      sdlLog $ "Product ID: 0x" ++ showHex prod
 
-      version <- sdlGetGamepadProductVersionForID jid
-      sdlLog $ "Product version: " ++ show version
+      ver <- sdlGetGamepadProductVersionForID jid
+      sdlLog $ "Product version: " ++ show ver
 
       gamepadType <- sdlGetGamepadTypeForID jid
       sdlLog $ "Gamepad type: " ++ show gamepadType
@@ -88,13 +86,13 @@ main = do
           exitFailure
         Just gamepad -> do
           sdlLog "Gamepad opened successfully."
-      
+
           -- Get more detailed info now that the gamepad is open
           mName' <- sdlGetGamepadName gamepad
           sdlLog $ "Confirmed name: " ++ maybe "Unknown" id mName'
-      
+
           -- Check for specific buttons and axes
-          forM_ [SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_EAST, SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_NORTH ] $ \btn -> do
+          forM_ [SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_EAST, SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_NORTH] $ \btn -> do
             hasButton <- sdlGamepadHasButton gamepad btn
             when hasButton $ do
               btnLabel <- sdlGetGamepadButtonLabel gamepad btn
@@ -105,7 +103,7 @@ main = do
             when hasAxis $ do
               mAxisName <- sdlGetGamepadStringForAxis axis
               sdlLog $ "Has axis " ++ show axis ++ maybe "" (\n -> " (" ++ n ++ ")") mAxisName
-      
+
           -- Test rumble if available
           let rumbleTest = do
                 sdlLog "Testing rumble (low=16384, high=32768) for 1 second..."
@@ -113,8 +111,8 @@ main = do
                 if rumbleSuccess
                   then sdlLog "Rumble started successfully."
                   else sdlLog "Failed to start rumble."
-                threadDelay 1000000  -- Wait 1 second
-      
+                threadDelay 1000000 -- Wait 1 second
+
           -- Test trigger rumble if available
           let triggerRumbleTest = do
                 sdlLog "Testing trigger rumble (left=16384, right=32768) for 1 second..."
@@ -122,8 +120,8 @@ main = do
                 if rumbleSuccess
                   then sdlLog "Trigger rumble started successfully."
                   else sdlLog "Failed to start trigger rumble."
-                threadDelay 1000000  -- Wait 1 second
-      
+                threadDelay 1000000 -- Wait 1 second
+
           -- Test LED if available
           let ledTest = do
                 sdlLog "Testing LED (setting to red)..."
@@ -131,32 +129,33 @@ main = do
                 if ledSuccess
                   then sdlLog "LED set successfully."
                   else sdlLog "Failed to set LED."
-      
+
           -- Run tests
           rumbleTest
           triggerRumbleTest
           ledTest
-      
+
           -- Real-time input monitoring
           sdlLog "\nMonitoring gamepad input for 5 seconds..."
           sdlLog "Press buttons or move sticks to see values..."
-      
-          forM_ [1..5] $ \_ -> do
-            sdlUpdateGamepads  -- Update gamepad state
-        
+
+          forM_ [1 .. 5 :: Int] $ \_ -> do
+            sdlUpdateGamepads -- Update gamepad state
+
           -- Check some button states
           forM_ [SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_EAST, SDL_GAMEPAD_BUTTON_WEST, SDL_GAMEPAD_BUTTON_NORTH] $ \btn -> do
             pressed <- sdlGetGamepadButton gamepad btn
             when pressed $ sdlLog $ "Button " ++ show btn ++ " is pressed!"
-        
+
           -- Check some axis values
           forM_ [SDL_GAMEPAD_AXIS_LEFTX, SDL_GAMEPAD_AXIS_LEFTY, SDL_GAMEPAD_AXIS_RIGHTX, SDL_GAMEPAD_AXIS_RIGHTY] $ \axis -> do
             value <- sdlGetGamepadAxis gamepad axis
-            when (abs (fromIntegral value) > 8000) $ 
-              sdlLog $ "Axis " ++ show axis ++ " value: " ++ show value
-        
-          threadDelay 100000  -- 100ms delay between updates
-      
+            when ((abs (fromIntegral value) :: Int) > 8000) $
+              sdlLog $
+                "Axis " ++ show axis ++ " value: " ++ show value
+
+          threadDelay 100000 -- 100ms delay between updates
+
           -- Close gamepad
           sdlCloseGamepad gamepad
           sdlLog "Gamepad closed."
@@ -174,26 +173,27 @@ showHex n = pad 4 (showHex' n)
   where
     showHex' :: Word16 -> String
     showHex' 0 = ""
-    showHex' n = showHex' (n `div` 16) ++ [hexDigit (n `mod` 16)]
+    showHex' n' = showHex' (n' `div` 16) ++ [hexDigit (n' `mod` 16)]
 
     hexDigit :: Word16 -> Char
-    hexDigit n 
-      | n < 10    = chr (fromEnum '0' + fromIntegral n)
-      | otherwise = chr (fromEnum 'a' + fromIntegral (n - 10))
+    hexDigit n'
+      | n' < 10 = chr (fromEnum '0' + fromIntegral n')
+      | otherwise = chr (fromEnum 'a' + fromIntegral (n' - 10))
 
     pad :: Int -> String -> String
-    pad n s = replicate (n - length s) '0' ++ s
-
+    pad n' s = replicate (n' - length s) '0' ++ s
 
 -- Helper function to print subsystem names
 printSubsystem :: SDLInitFlags -> IO ()
-printSubsystem flag = sdlLog $ "  - " ++ case flag of
-  SDL_INIT_AUDIO    -> "Audio"
-  SDL_INIT_VIDEO    -> "Video"
-  SDL_INIT_JOYSTICK -> "Joystick"
-  SDL_INIT_HAPTIC   -> "Haptic"
-  SDL_INIT_GAMEPAD  -> "Gamepad"
-  SDL_INIT_EVENTS   -> "Events"
-  SDL_INIT_SENSOR   -> "Sensor"
-  SDL_INIT_CAMERA   -> "Camera"
-  _            -> "Unknown subsystem"
+printSubsystem flag =
+  sdlLog $
+    "  - " ++ case flag of
+      SDL_INIT_AUDIO -> "Audio"
+      SDL_INIT_VIDEO -> "Video"
+      SDL_INIT_JOYSTICK -> "Joystick"
+      SDL_INIT_HAPTIC -> "Haptic"
+      SDL_INIT_GAMEPAD -> "Gamepad"
+      SDL_INIT_EVENTS -> "Events"
+      SDL_INIT_SENSOR -> "Sensor"
+      SDL_INIT_CAMERA -> "Camera"
+      _ -> "Unknown subsystem"

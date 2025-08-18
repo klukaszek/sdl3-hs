@@ -54,7 +54,6 @@ module SDL.CPUInfo
 
 import Foreign.C.Types
 import Data.Word
-import Data.Int
 
 -- | A guess for the cacheline size used for padding.
 -- Most x86 processors have a 64 byte cache line.

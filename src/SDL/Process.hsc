@@ -14,7 +14,7 @@ This module provides Haskell bindings to the SDL3 process functionality.
 -}
 
 module SDL.Process
-  ( 
+  (
     -- * Process Creation and Management
     SDLProcess
   , sdlCreateProcess
@@ -31,21 +31,21 @@ module SDL.Process
   , SDLProcessIO(..)
 
     -- * Property Constants
-  , pattern SDL_PROP_PROCESS_CREATE_ARGS_POINTER 
-  , pattern SDL_PROP_PROCESS_CREATE_ENVIRONMENT_POINTER 
-  , pattern SDL_PROP_PROCESS_CREATE_STDIN_NUMBER 
-  , pattern SDL_PROP_PROCESS_CREATE_STDIN_POINTER 
-  , pattern SDL_PROP_PROCESS_CREATE_STDOUT_NUMBER 
-  , pattern SDL_PROP_PROCESS_CREATE_STDOUT_POINTER 
-  , pattern SDL_PROP_PROCESS_CREATE_STDERR_NUMBER 
-  , pattern SDL_PROP_PROCESS_CREATE_STDERR_POINTER 
-  , pattern SDL_PROP_PROCESS_CREATE_STDERR_TO_STDOUT_BOOLEAN 
-  , pattern SDL_PROP_PROCESS_CREATE_BACKGROUND_BOOLEAN 
+  , pattern SDL_PROP_PROCESS_CREATE_ARGS_POINTER
+  , pattern SDL_PROP_PROCESS_CREATE_ENVIRONMENT_POINTER
+  , pattern SDL_PROP_PROCESS_CREATE_STDIN_NUMBER
+  , pattern SDL_PROP_PROCESS_CREATE_STDIN_POINTER
+  , pattern SDL_PROP_PROCESS_CREATE_STDOUT_NUMBER
+  , pattern SDL_PROP_PROCESS_CREATE_STDOUT_POINTER
+  , pattern SDL_PROP_PROCESS_CREATE_STDERR_NUMBER
+  , pattern SDL_PROP_PROCESS_CREATE_STDERR_POINTER
+  , pattern SDL_PROP_PROCESS_CREATE_STDERR_TO_STDOUT_BOOLEAN
+  , pattern SDL_PROP_PROCESS_CREATE_BACKGROUND_BOOLEAN
   , pattern SDL_PROP_PROCESS_PID_NUMBER
-  , pattern SDL_PROP_PROCESS_STDIN_POINTER 
-  , pattern SDL_PROP_PROCESS_STDOUT_POINTER 
-  , pattern SDL_PROP_PROCESS_STDERR_POINTER 
-  , pattern SDL_PROP_PROCESS_BACKGROUND_BOOLEAN 
+  , pattern SDL_PROP_PROCESS_STDIN_POINTER
+  , pattern SDL_PROP_PROCESS_STDOUT_POINTER
+  , pattern SDL_PROP_PROCESS_STDERR_POINTER
+  , pattern SDL_PROP_PROCESS_BACKGROUND_BOOLEAN
 
   ) where
 
@@ -54,7 +54,7 @@ module SDL.Process
 import Foreign
 import Foreign.C
 import SDL.IOStream (SDLIOStream)
-import SDL.Properties (SDLPropertiesID(..))
+import SDL.Properties (SDLPropertiesID)
 
 -- | An opaque handle representing a system process.
 data SDLProcess
@@ -65,7 +65,7 @@ data SDLProcessIO
   = SDL_PROCESS_STDIO_INHERITED
   | SDL_PROCESS_STDIO_NULL
   | SDL_PROCESS_STDIO_APP
-  | SDL_PROCESS_STDIO_REDIRECT 
+  | SDL_PROCESS_STDIO_REDIRECT
   deriving (Show, Eq, Bounded, Enum)
 
 -- FFI Imports

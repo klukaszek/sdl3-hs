@@ -3,6 +3,7 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fno-warn-missing-pattern-synonym-signatures #-}
 
 {-|
 Module      : SDL.Messagebox
@@ -23,11 +24,11 @@ module SDL.MessageBox
   ( -- * Types
     SDLMessageBoxFlags(..)
   , pattern SDL_MESSAGEBOX_ERROR
-  , pattern SDL_MESSAGEBOX_WARNING           
-  , pattern SDL_MESSAGEBOX_INFORMATION       
+  , pattern SDL_MESSAGEBOX_WARNING
+  , pattern SDL_MESSAGEBOX_INFORMATION
   , pattern SDL_MESSAGEBOX_LEFT_TO_RIGHT
   , pattern SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT
-    
+
   , SDLMessageBoxButtonFlags(..)
   , pattern SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT
   , pattern SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT
@@ -46,13 +47,13 @@ module SDL.MessageBox
 #include <SDL3/SDL_messagebox.h>
 
 import Foreign (new)
-import Foreign.C.Types (CBool, CChar, CInt)
+import Foreign.C.Types (CInt)
 import Foreign.Ptr (Ptr, nullPtr, castPtr)
 import Foreign.C.String (CString, peekCString, newCString)
 import Foreign.Storable (Storable(..))
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Array (newArray, peekArray, pokeArray)
-import Data.Word (Word32, Word8)
+import Data.Word (Word32)
 import SDL.Pixels
 import SDL.Video
 import Data.Bits
@@ -90,12 +91,12 @@ instance Storable SDLMessageBoxButtonData where
   peek ptr = do
     -- Peek the flags directly; Storable instance handles the newtype
     flags    <- #{peek SDL_MessageBoxButtonData, flags} ptr
-    buttonID <- #{peek SDL_MessageBoxButtonData, buttonID} ptr
+    bid <- #{peek SDL_MessageBoxButtonData, buttonID} ptr
     textPtr  <- #{peek SDL_MessageBoxButtonData, text} ptr
     -- Convert the text CString
     text     <- peekCString textPtr
     -- Construct the Haskell record
-    pure $ SDLMessageBoxButtonData flags buttonID text
+    pure $ SDLMessageBoxButtonData flags bid text
 
   poke ptr (SDLMessageBoxButtonData (SDLMessageBoxButtonFlags flags) bid text) = do
     -- Use pattern matching to get the Word32 out of the flags newtype

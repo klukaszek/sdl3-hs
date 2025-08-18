@@ -2,16 +2,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 import Control.Exception (IOException, catch)
-import Control.Monad (filterM, forM_, unless, when)
+import Control.Monad (filterM, when)
 import Data.Char (toLower, toUpper)
 import Data.List (find, isInfixOf, isPrefixOf, stripPrefix)
-import Data.Maybe (fromMaybe, isJust, mapMaybe)
+import Data.Maybe (mapMaybe)
 import System.Directory (createDirectoryIfMissing, doesFileExist, listDirectory)
 import System.Environment (getArgs)
-import System.FilePath (replaceExtension, takeBaseName, (</>))
+import System.FilePath (takeBaseName, (</>))
 import System.IO (hIsTerminalDevice, stdin)
-import System.Process (readProcess)
-import Text.Regex.Posix ((=~))
 
 -- | Represents a C function declaration
 data CFunction = CFunction
@@ -221,11 +219,11 @@ parseCFunction line
         Nothing -> Nothing
 
     findSDLCall :: String -> Maybe String
-    findSDLCall l = findSDLCALLInString l
+    findSDLCall = findSDLCALLInString
       where
         findSDLCALLInString :: String -> Maybe String
         findSDLCALLInString [] = Nothing
-        findSDLCALLInString s@(c : cs)
+        findSDLCALLInString s@(_ : cs)
           | "SDLCALL" `isPrefixOf` s = Just (drop 7 s)
           | otherwise = findSDLCALLInString cs
 

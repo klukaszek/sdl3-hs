@@ -34,7 +34,6 @@ module SDL.Version
 
 import Foreign.C.Types
 import Foreign.C.String (CString, peekCString)
-import Data.Word (Word32)
 
 -- | The current major version of SDL headers (SDL_MAJOR_VERSION).
 sdlMajorVersion :: Int

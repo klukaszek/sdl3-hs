@@ -1,12 +1,9 @@
 module Main where
 
-import SDL
-import SDL.GUID
 import Control.Monad
-import System.Exit (exitFailure, exitSuccess)
-import Foreign.Ptr (nullPtr)
 import Data.Word (Word8)
-import Data.Maybe (fromMaybe)
+import SDL
+import System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()
 main = do
@@ -64,13 +61,15 @@ main = do
 
 -- Helper function to print subsystem names
 printSubsystem :: SDLInitFlags -> IO ()
-printSubsystem flag = sdlLog $ "  - " ++ case flag of
-  SDL_INIT_AUDIO    -> "Audio"
-  SDL_INIT_VIDEO    -> "Video"
-  SDL_INIT_JOYSTICK -> "Joystick"
-  SDL_INIT_HAPTIC   -> "Haptic"
-  SDL_INIT_GAMEPAD  -> "Gamepad"
-  SDL_INIT_EVENTS   -> "Events"
-  SDL_INIT_SENSOR   -> "Sensor"
-  SDL_INIT_CAMERA   -> "Camera"
-  _            -> "Unknown subsystem"
+printSubsystem flag =
+  sdlLog $
+    "  - " ++ case flag of
+      SDL_INIT_AUDIO -> "Audio"
+      SDL_INIT_VIDEO -> "Video"
+      SDL_INIT_JOYSTICK -> "Joystick"
+      SDL_INIT_HAPTIC -> "Haptic"
+      SDL_INIT_GAMEPAD -> "Gamepad"
+      SDL_INIT_EVENTS -> "Events"
+      SDL_INIT_SENSOR -> "Sensor"
+      SDL_INIT_CAMERA -> "Camera"
+      _ -> "Unknown subsystem"

@@ -91,14 +91,6 @@ module SDL.System
 
 import Foreign
 import Foreign.C.Types
-import Foreign.Ptr (Ptr, FunPtr, nullPtr, castPtr)
-import Foreign.C.String (CString, newCString, peekCString)
-import Foreign.Marshal.Alloc (alloca)
-import Foreign.Marshal.Utils (with)
-import Data.Word (Word32, Word64)
-import Data.Int (Int64)
-import Control.Monad (when)
-import SDL.Video (SDLWindow, SDLDisplayID)  -- Assuming SDL.Video defines these
 
 -- | Query if the current device is a tablet (SDL_IsTablet).
 foreign import ccall "SDL_IsTablet"

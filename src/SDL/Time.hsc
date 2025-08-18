@@ -55,13 +55,9 @@ import Foreign.C.Types
 import Foreign.Ptr (Ptr)
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Storable (Storable(..), peek, poke)
-import Data.Word (Word64, Word32)
+import Data.Word (Word32)
 import SDL.Stdinc (SDLTime)
-import Control.Monad (when)
-import Foreign.Marshal.Utils (toBool, fromBool) -- Need this for Bool conversions
-
--- | Opaque definition for C struct (if not defined elsewhere)
-data SDL_DateTime
+import Foreign.Marshal.Utils (toBool, fromBool)
 
 -- | A structure holding a calendar date and time broken down into its components (SDL_DateTime).
 data SDLDateTime = SDLDateTime

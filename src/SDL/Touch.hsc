@@ -51,11 +51,10 @@ module SDL.Touch
 import Foreign.C.Types
 import Foreign.Ptr (Ptr, nullPtr, castPtr)
 import Foreign.C.String (CString, peekCString)
-import Foreign.Storable (Storable(..), peek, poke) -- Added poke
+import Foreign.Storable (Storable(..), peek, poke)
 import Foreign.Marshal.Alloc (free, alloca)
 import Foreign.Marshal.Array (peekArray)
-import Data.Word (Word32, Word64)
-import Control.Monad (when, mapM) -- Added mapM
+import Data.Word (Word64)
 import SDL.Mouse (SDLMouseID) -- Assuming defined as Word32
 
 -- | A unique ID for a touch device (SDL_TouchID).

@@ -14,6 +14,8 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE CPP #-} -- For conditional GDK compilation
+{-# OPTIONS_GHC -fno-warn-missing-pattern-synonym-signatures #-}
+{-# OPTIONS_GHC -fno-warn-unused-top-binds#-}
 
 -- |
 -- Module      : SDL.GPU
@@ -27,7 +29,6 @@
 -- Refer to the official SDL documentation and CategoryGPU for detailed explanations:
 -- https://wiki.libsdl.org/SDL3/CategoryGPU
 
-#include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_version.h>
 
 module SDL.GPU
@@ -525,25 +526,23 @@ module SDL.GPU
 #endif
   ) where
 
+#include <SDL3/SDL_gpu.h>
+
 -- Haskell Imports
-import Foreign.Ptr (Ptr, nullPtr, FunPtr, castPtr, plusPtr)
+import Foreign.Ptr (Ptr, nullPtr, castPtr, plusPtr)
 import Foreign.C.Types
 import Foreign.C.String (CString, withCString, peekCString)
-import Foreign.Marshal.Alloc (alloca, allocaBytes, malloc, free, mallocBytes)
-import Foreign.Marshal.Array (withArray, withArrayLen, peekArray, peekArray0, allocaArray)
-import Foreign.Marshal.Utils (copyBytes, fromBool, toBool, with, maybeWith, new, withMany)
+import Foreign.Marshal.Alloc (alloca, allocaBytes)
+import Foreign.Marshal.Array (withArray, withArrayLen)
+import Foreign.Marshal.Utils (fromBool, toBool, with, maybeWith)
 import Foreign.Storable (Storable(..))
-import Data.Word (Word8, Word16, Word32)
+import Data.Word (Word8, Word32)
 import Data.Int (Int32)
-import Data.Bits (Bits, (.|.))
-import Data.Maybe (fromMaybe)
-import Control.Monad (when, unless, forM_, void)
-import Control.Exception (bracket)
-import SDL.Error (sdlGetError)
-import SDL.Pixels (SDLPixelFormat, SDLFColor(..))
-import SDL.Properties (SDLPropertiesID(..))
+import Data.Bits (Bits)
+import SDL.Pixels (SDLFColor(..))
+import SDL.Properties (SDLPropertiesID())
 import SDL.Rect (SDLRect(..))
-import SDL.Surface (SDLSurface, SDLFlipMode(..))
+import SDL.Surface (SDLFlipMode(..))
 import SDL.Video (SDLWindow(..))
 
 -- Helper to convert CBool to Bool more explicitly than fromBool
@@ -1748,7 +1747,7 @@ data SDLGPUGraphicsPipelineCreateInfo = SDLGPUGraphicsPipelineCreateInfo
   , multisampleState  :: SDLGPUMultisampleState
   , depthStencilState :: SDLGPUDepthStencilState
   , targetInfo        :: SDLGPUGraphicsPipelineTargetInfo
-  , props             :: SDLPropertiesID
+  , pipelineProps     :: SDLPropertiesID
   } deriving (Show, Eq)
 
 -- No direct Storable instance. Marshal using helpers.
@@ -1769,7 +1768,7 @@ withGPUGraphicsPipelineCreateInfo SDLGPUGraphicsPipelineCreateInfo{..} f =
     poke (#{ptr SDL_GPUGraphicsPipelineCreateInfo, rasterizer_state} ptr) rasterizerState
     poke (#{ptr SDL_GPUGraphicsPipelineCreateInfo, multisample_state} ptr) multisampleState
     poke (#{ptr SDL_GPUGraphicsPipelineCreateInfo, depth_stencil_state} ptr) depthStencilState
-    #{poke SDL_GPUGraphicsPipelineCreateInfo, props} ptr props
+    #{poke SDL_GPUGraphicsPipelineCreateInfo, props} ptr pipelineProps
 
     -- Poke the nested struct fields *directly* into the main struct's memory
     -- Target the memory location *within* ptr where vertex_input_state resides
@@ -2739,8 +2738,8 @@ foreign import ccall unsafe "SDL_MapGPUTransferBuffer"
   c_sdlMapGPUTransferBuffer :: Ptr SDLGPUDevice -> Ptr SDLGPUTransferBuffer -> CBool -> IO (Ptr ())
 
 sdlMapGPUTransferBuffer :: SDLGPUDevice -> SDLGPUTransferBuffer -> Bool -> IO (Maybe (Ptr ()))
-sdlMapGPUTransferBuffer (SDLGPUDevice dev) (SDLGPUTransferBuffer tbuf) cycle = do
-  ptr <- c_sdlMapGPUTransferBuffer dev tbuf (fromBool cycle)
+sdlMapGPUTransferBuffer (SDLGPUDevice dev) (SDLGPUTransferBuffer tbuf) cycleRes = do
+  ptr <- c_sdlMapGPUTransferBuffer dev tbuf (fromBool cycleRes)
   if ptr == nullPtr
     then return Nothing
     else return $ Just ptr
@@ -2768,40 +2767,40 @@ foreign import ccall unsafe "SDL_UploadToGPUTexture"
   c_sdlUploadToGPUTexture :: Ptr SDLGPUCopyPass -> Ptr SDLGPUTextureTransferInfo -> Ptr SDLGPUTextureRegion -> CBool -> IO ()
 
 sdlUploadToGPUTexture :: SDLGPUCopyPass -> SDLGPUTextureTransferInfo -> SDLGPUTextureRegion -> Bool -> IO ()
-sdlUploadToGPUTexture (SDLGPUCopyPass cp) source destination cycle =
+sdlUploadToGPUTexture (SDLGPUCopyPass cp) source destination cycleRes =
   with source $ \srcPtr ->
   with destination $ \dstPtr ->
-  c_sdlUploadToGPUTexture cp srcPtr dstPtr (fromBool cycle)
+  c_sdlUploadToGPUTexture cp srcPtr dstPtr (fromBool cycleRes)
 
 -- | Uploads data from a transfer buffer to a buffer.
 foreign import ccall unsafe "SDL_UploadToGPUBuffer"
   c_sdlUploadToGPUBuffer :: Ptr SDLGPUCopyPass -> Ptr SDLGPUTransferBufferLocation -> Ptr SDLGPUBufferRegion -> CBool -> IO ()
 
 sdlUploadToGPUBuffer :: SDLGPUCopyPass -> SDLGPUTransferBufferLocation -> SDLGPUBufferRegion -> Bool -> IO ()
-sdlUploadToGPUBuffer (SDLGPUCopyPass cp) source destination cycle =
+sdlUploadToGPUBuffer (SDLGPUCopyPass cp) source destination cycleRes =
   with source $ \srcPtr ->
   with destination $ \dstPtr ->
-  c_sdlUploadToGPUBuffer cp srcPtr dstPtr (fromBool cycle)
+  c_sdlUploadToGPUBuffer cp srcPtr dstPtr (fromBool cycleRes)
 
 -- | Performs a texture-to-texture copy.
 foreign import ccall unsafe "SDL_CopyGPUTextureToTexture"
   c_sdlCopyGPUTextureToTexture :: Ptr SDLGPUCopyPass -> Ptr SDLGPUTextureLocation -> Ptr SDLGPUTextureLocation -> CUInt -> CUInt -> CUInt -> CBool -> IO ()
 
 sdlCopyGPUTextureToTexture :: SDLGPUCopyPass -> SDLGPUTextureLocation -> SDLGPUTextureLocation -> Word32 -> Word32 -> Word32 -> Bool -> IO ()
-sdlCopyGPUTextureToTexture (SDLGPUCopyPass cp) source destination w h d cycle =
+sdlCopyGPUTextureToTexture (SDLGPUCopyPass cp) source destination w h d cycleRes =
   with source $ \srcPtr ->
   with destination $ \dstPtr ->
-  c_sdlCopyGPUTextureToTexture cp srcPtr dstPtr (fromIntegral w) (fromIntegral h) (fromIntegral d) (fromBool cycle)
+  c_sdlCopyGPUTextureToTexture cp srcPtr dstPtr (fromIntegral w) (fromIntegral h) (fromIntegral d) (fromBool cycleRes)
 
 -- | Performs a buffer-to-buffer copy.
 foreign import ccall unsafe "SDL_CopyGPUBufferToBuffer"
   c_sdlCopyGPUBufferToBuffer :: Ptr SDLGPUCopyPass -> Ptr SDLGPUBufferLocation -> Ptr SDLGPUBufferLocation -> CUInt -> CBool -> IO ()
 
 sdlCopyGPUBufferToBuffer :: SDLGPUCopyPass -> SDLGPUBufferLocation -> SDLGPUBufferLocation -> Word32 -> Bool -> IO ()
-sdlCopyGPUBufferToBuffer (SDLGPUCopyPass cp) source destination size cycle =
+sdlCopyGPUBufferToBuffer (SDLGPUCopyPass cp) source destination size cycleRes =
   with source $ \srcPtr ->
   with destination $ \dstPtr ->
-  c_sdlCopyGPUBufferToBuffer cp srcPtr dstPtr (fromIntegral size) (fromBool cycle)
+  c_sdlCopyGPUBufferToBuffer cp srcPtr dstPtr (fromIntegral size) (fromBool cycleRes)
 
 -- | Copies data from a texture to a transfer buffer on the GPU timeline.
 foreign import ccall unsafe "SDL_DownloadFromGPUTexture"

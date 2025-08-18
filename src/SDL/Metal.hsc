@@ -27,8 +27,7 @@ module SDL.Metal
   ) where
 
 import Foreign hiding (void) -- Avoid hiding void from Prelude if Ptr () is okay
-import Foreign.C.Types
-import SDL.Video (SDLWindow(..)) -- Import the newtype
+import SDL.Video (SDLWindow(..))
 
 #include <SDL3/SDL_metal.h>
 

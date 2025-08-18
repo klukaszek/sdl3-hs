@@ -316,11 +316,9 @@ import Foreign.Ptr
 import Foreign.Storable
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Array (withArray)
-import Foreign.Marshal.Utils (toBool, fromBool)
+import Foreign.Marshal.Utils (toBool)
 import Data.Bits (shiftL, shiftR, (.|.), (.&.))
 import Data.Word
-import Data.Int
-import Data.Maybe (fromMaybe)
 
 -- * Alpha constants
 

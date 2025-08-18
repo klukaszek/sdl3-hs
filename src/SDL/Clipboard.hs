@@ -1,64 +1,63 @@
-{-|
-Module      : SDL.Clipboard
-Description : Clipboard management for SDL applications
-Copyright   : (c) Kyle Lukaszek, 2025
-License     : BSD3
-
-This module provides bindings to the SDL3 clipboard API, allowing Haskell applications
-to interact with system clipboards. It supports text and arbitrary data transfer
-using mime types, including both standard clipboard and primary selection.
-
-The clipboard API allows setting and retrieving text, checking clipboard contents,
-and managing more complex clipboard interactions with multiple data formats.
--}
-
-module SDL.Clipboard 
+-- |
+-- Module      : SDL.Clipboard
+-- Description : Clipboard management for SDL applications
+-- Copyright   : (c) Kyle Lukaszek, 2025
+-- License     : BSD3
+--
+-- This module provides bindings to the SDL3 clipboard API, allowing Haskell applications
+-- to interact with system clipboards. It supports text and arbitrary data transfer
+-- using mime types, including both standard clipboard and primary selection.
+--
+-- The clipboard API allows setting and retrieving text, checking clipboard contents,
+-- and managing more complex clipboard interactions with multiple data formats.
+module SDL.Clipboard
   ( -- * Text Clipboard Operations
-    sdlSetClipboardText
-  , sdlGetClipboardText
-  , sdlHasClipboardText
+    sdlSetClipboardText,
+    sdlGetClipboardText,
+    sdlHasClipboardText,
 
     -- * Primary Selection Operations
-  , sdlSetPrimarySelectionText
-  , sdlGetPrimarySelectionText
-  , sdlHasPrimarySelectionText
+    sdlSetPrimarySelectionText,
+    sdlGetPrimarySelectionText,
+    sdlHasPrimarySelectionText,
 
     -- * Clipboard Data Callbacks
-  , SDLClipboardDataCallback
-  , SDLClipboardCleanupCallback
+    SDLClipboardDataCallback,
+    SDLClipboardCleanupCallback,
 
     -- * Advanced Clipboard Data Management
-  , sdlSetClipboardData
-  , sdlClearClipboardData
-  , sdlGetClipboardData
-  , sdlHasClipboardData
-  , sdlGetClipboardMimeTypes
-  ) where
+    sdlSetClipboardData,
+    sdlClearClipboardData,
+    sdlGetClipboardData,
+    sdlHasClipboardData,
+    sdlGetClipboardMimeTypes,
+  )
+where
 
-import Foreign.C.Types
-import Foreign.C.String
-import Foreign.Ptr
-import Foreign.Marshal.Array
-import Foreign.Marshal.Alloc (alloca)
-import Foreign.Storable (peek, poke)
-import Data.Word
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
+import Data.Word ()
+import Foreign.C.String
+import Foreign.C.Types
+import Foreign.Marshal.Alloc (alloca)
+import Foreign.Marshal.Array
+import Foreign.Ptr
+import Foreign.Storable (peek, poke)
 import System.IO.Unsafe (unsafePerformIO)
 
 -- | Callback function for providing clipboard data when requested
-type SDLClipboardDataCallback = 
-  Ptr () ->           -- userdata
-  CString ->          -- mime_type
-  Ptr CSize ->        -- size
-  IO (Ptr ())         -- data pointer
+type SDLClipboardDataCallback =
+  Ptr () -> -- userdata
+  CString -> -- mime_type
+  Ptr CSize -> -- size
+  IO (Ptr ()) -- data pointer
 
 -- | Callback function for cleaning up clipboard data
-type SDLClipboardCleanupCallback = 
-  Ptr () ->           -- userdata
+type SDLClipboardCleanupCallback =
+  Ptr () -> -- userdata
   IO ()
 
--- | Set clipboard text 
+-- | Set clipboard text
 --
 -- Returns True on success, False on failure
 foreign import ccall "SDL_SetClipboardText"
@@ -118,36 +117,37 @@ foreign import ccall "SDL_HasPrimarySelectionText"
 
 -- | Set clipboard data with mime types and callbacks
 foreign import ccall "SDL_SetClipboardData"
-  sdlSetClipboardDataRaw :: 
-    FunPtr SDLClipboardDataCallback ->    -- callback
+  sdlSetClipboardDataRaw ::
+    FunPtr SDLClipboardDataCallback -> -- callback
     FunPtr SDLClipboardCleanupCallback -> -- cleanup
-    Ptr () ->                             -- userdata
-    Ptr CString ->                        -- mime_types
-    CSize ->                              -- num_mime_types
+    Ptr () -> -- userdata
+    Ptr CString -> -- mime_types
+    CSize -> -- num_mime_types
     IO CBool
 
-sdlSetClipboardData :: 
-  SDLClipboardDataCallback -> 
-  SDLClipboardCleanupCallback -> 
-  Ptr () -> 
-  [String] -> 
+sdlSetClipboardData ::
+  SDLClipboardDataCallback ->
+  SDLClipboardCleanupCallback ->
+  Ptr () ->
+  [String] ->
   IO Bool
 sdlSetClipboardData callback cleanup userdata mimeTypes = do
   withArrayLen (map (unsafeToText . noNullPtr) mimeTypes) $ \len mimeArray -> do
     callbackPtr <- makeCallback callback
     cleanupPtr <- makeCleanup cleanup
-    result <- sdlSetClipboardDataRaw 
-      callbackPtr 
-      cleanupPtr 
-      userdata 
-      mimeArray 
-      (fromIntegral len)
+    result <-
+      sdlSetClipboardDataRaw
+        callbackPtr
+        cleanupPtr
+        userdata
+        mimeArray
+        (fromIntegral len)
     return $ cbool result
   where
     -- Ensure non-null text conversion
     unsafeToText s = unsafePerformIO $ newCString s
     noNullPtr "" = "null"
-    noNullPtr s  = s
+    noNullPtr s = s
 
 -- | Clear clipboard data
 foreign import ccall "SDL_ClearClipboardData"
@@ -155,10 +155,10 @@ foreign import ccall "SDL_ClearClipboardData"
 
 -- | Get clipboard data for a specific mime type
 foreign import ccall "SDL_GetClipboardData"
-  sdlGetClipboardDataRaw :: 
-    CString ->     -- mime_type
-    Ptr CSize ->   -- size
-    IO (Ptr ())    -- data
+  sdlGetClipboardDataRaw ::
+    CString -> -- mime_type
+    Ptr CSize -> -- size
+    IO (Ptr ()) -- data
 
 sdlGetClipboardData :: String -> IO (Maybe ByteString)
 sdlGetClipboardData mimeType = do
