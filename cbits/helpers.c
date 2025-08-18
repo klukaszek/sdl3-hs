@@ -67,3 +67,9 @@ void* wrapper_SDL_GetWindowICCProfile(SDL_Window *window, size_t *size) {
     SDL_free(profile);
     return copy;
 }
+
+// Wrappers for macros in SDL_Atomic
+void wrapper_SDL_CompilerBarrier(void) { SDL_CompilerBarrier(); }
+void wrapper_SDL_MemoryBarrierAcquire(void) { SDL_MemoryBarrierAcquire(); }
+void wrapper_SDL_MemoryBarrierRelease(void) { SDL_MemoryBarrierRelease(); }
+void wrapper_SDL_CPUPauseInstruction(void) { SDL_CPUPauseInstruction(); }

@@ -90,7 +90,7 @@ foreign import ccall unsafe "SDL_UnlockSpinlock"
 -- Memory Barrier Functions
 
 -- | Mark a compiler barrier.
-foreign import ccall unsafe "static inline"
+foreign import ccall unsafe "wrapper_SDL_CompilerBarrier"
   sdlCompilerBarrier :: IO ()
 
 -- | Insert a memory release barrier (function version).
@@ -102,15 +102,15 @@ foreign import ccall unsafe "SDL_MemoryBarrierAcquireFunction"
   sdlMemoryBarrierAcquireFunction :: IO ()
 
 -- | Insert a memory release barrier (macro version).
-foreign import ccall unsafe "static inline"
+foreign import ccall unsafe "wrapper_SDL_MemoryBarrierRelease"
   sdlMemoryBarrierRelease :: IO ()
 
 -- | Insert a memory acquire barrier (macro version).
-foreign import ccall unsafe "static inline"
+foreign import ccall unsafe "wrapper_SDL_MemoryBarrierAcquire"
   sdlMemoryBarrierAcquire :: IO ()
 
 -- | Insert a CPU-specific "pause" instruction.
-foreign import ccall unsafe "static inline"
+foreign import ccall unsafe "wrapper_SDL_CPUPauseInstruction"
   sdlCPUPauseInstruction :: IO ()
 
 -- Atomic Integer Functions
