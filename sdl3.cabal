@@ -153,6 +153,7 @@ library
         SDL.Tray
         SDL.Version
         SDL.Video
+        SDL.Vulkan
         GPUCommon
 
     -- Modules included in this library but not exported.
