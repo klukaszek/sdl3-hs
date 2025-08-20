@@ -92,6 +92,10 @@ module SDL.System
 import Foreign
 import Foreign.C.Types
 
+#if defined(SDL_PLATFORM_WIN32) || defined(SDL_PLATFORM_WINGDK)
+import SDL.Video (SDLDisplayID)
+#endif
+
 -- | Query if the current device is a tablet (SDL_IsTablet).
 foreign import ccall "SDL_IsTablet"
   sdlIsTablet :: IO Bool
