@@ -56,7 +56,6 @@ module SDL.Tray
   , sdlGetTrayEntryEnabled
   , sdlSetTrayEntryCallback
   , sdlClickTrayEntry
-  , sdlIsTraySupported
 
   ) where
 
@@ -105,13 +104,6 @@ pattern SDL_TRAYENTRY_CHECKED  = SDLTrayEntryFlags #{const SDL_TRAYENTRY_CHECKED
 type SDLTrayCallback = Ptr () -> SDLTrayEntry -> IO ()
 
 -- * Tray Management
-
--- | Returns True if system tray is supported on this platform.
-foreign import ccall unsafe "SDL_IsTraySupported"
-  c_sdlIsTraySupported :: IO CBool
-
-sdlIsTraySupported :: IO Bool
-sdlIsTraySupported = toBool <$> c_sdlIsTraySupported
 
 -- | Creates a new system tray icon instance.
 foreign import ccall unsafe "SDL_CreateTray"
