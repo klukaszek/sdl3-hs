@@ -1,5 +1,5 @@
 import Foreign.Marshal.Utils (with)
-import SDL
+import SDL3
 
 
 main :: IO ()

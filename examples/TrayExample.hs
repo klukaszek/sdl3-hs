@@ -5,7 +5,7 @@ import Control.Monad (unless, when)
 import Data.IORef
 import Foreign.Ptr (nullPtr)
 import Foreign.Storable (peek)
-import SDL
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()

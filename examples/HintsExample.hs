@@ -1,7 +1,7 @@
 module Main where
 
 import Control.Monad
-import SDL
+import SDL3
 import System.Exit (exitFailure)
 
 -- Check power state

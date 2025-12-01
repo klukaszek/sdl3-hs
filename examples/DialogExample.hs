@@ -5,7 +5,7 @@ import Foreign.C.String (CString, peekCString)
 import Foreign.C.Types (CInt (..))
 import Foreign.Marshal.Array (peekArray0, withArrayLen)
 import Foreign.Ptr (FunPtr, Ptr, nullPtr)
-import SDL
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()
