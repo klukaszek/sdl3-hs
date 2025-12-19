@@ -34,7 +34,7 @@ import Foreign.Marshal.Utils (copyBytes)
 import Foreign.Ptr (castPtr, plusPtr)
 import Foreign.Storable (peek)
 import GPUCommon
-import SDL
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 import System.FilePath ((</>))
 

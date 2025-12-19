@@ -36,7 +36,7 @@ import Foreign.Marshal.Array (pokeArray)
 import Foreign.Ptr (castPtr)
 import Foreign.Storable (Storable (..), sizeOf)
 import GPUCommon
-import SDL
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 import Text.Printf (printf)
 

@@ -6,7 +6,7 @@ import Foreign.C.String (CString, peekCString, withCString)
 import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Marshal.Array (copyArray)
 import Foreign.Ptr (Ptr, castPtr, nullPtr)
-import SDL
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()

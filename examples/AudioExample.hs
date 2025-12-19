@@ -17,7 +17,7 @@ import Data.ByteString.Unsafe (unsafePackCStringLen)
 import Foreign
 import Foreign.Marshal.Array ()
 import Foreign.Storable ()
-import SDL hiding (round, sin)
+import SDL3 hiding (round, sin)
 
 -- | Main function to demonstrate SDL audio playback with a 1-second 440 Hz tone
 main :: IO ()

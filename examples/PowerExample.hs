@@ -3,7 +3,7 @@ module Main where
 import Control.Monad
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Storable (peek)
-import SDL
+import SDL3
 import System.Exit (exitFailure)
 
 -- Check power state

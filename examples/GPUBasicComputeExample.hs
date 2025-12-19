@@ -11,7 +11,7 @@ import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Foreign.C.Types (CFloat)
 import Foreign.Storable (sizeOf)
 import GPUCommon
-import SDL
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 
 -- Vertex data (Triangle strip for a full-screen quad, UVs from 0,0 to 1,1)

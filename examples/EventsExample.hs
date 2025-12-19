@@ -3,7 +3,7 @@ module Main where
 import Control.Monad (unless, when)
 import Data.IORef
 import Data.Word (Word64)
-import SDL
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 import Text.Printf (printf)
 

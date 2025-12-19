@@ -1,4 +1,4 @@
-import SDL
+import SDL3
 
 main :: IO ()
 main = do

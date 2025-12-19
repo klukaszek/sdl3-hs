@@ -31,7 +31,7 @@ import Foreign.Marshal.Array (pokeArray)
 import Foreign.Ptr (castPtr, plusPtr)
 import Foreign.Storable (poke, sizeOf)
 import GPUCommon
-import SDL
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 
 -- Vertex Data (10 vertices with PositionColor)
