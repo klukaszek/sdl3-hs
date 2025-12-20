@@ -1,0 +1,113 @@
+-- Main module
+module SDL3 (
+  module SDL3.Assert,
+  module SDL3.AsyncIO,
+  module SDL3.Atomic,
+  module SDL3.Audio,
+  module SDL3.Bits,
+  module SDL3.BlendMode,
+  module SDL3.Camera,
+  module SDL3.Clipboard,
+  module SDL3.CPUInfo,
+  module SDL3.Dialog,
+  module SDL3.Endian,
+  module SDL3.Error,
+  module SDL3.Events,
+  module SDL3.Filesystem,
+  module SDL3.Gamepad,
+  module SDL3.GPU,
+  module SDL3.GUID,
+  module SDL3.Haptic,
+  module SDL3.Hidapi,
+  module SDL3.Hints,
+  module SDL3.IOStream,
+  module SDL3.Init,
+  module SDL3.Joystick,
+  module SDL3.Keyboard,
+  module SDL3.Keycode,
+  module SDL3.Locale,
+  module SDL3.LoadSO,
+  module SDL3.Log,
+  module SDL3.MessageBox,
+  module SDL3.Metal,
+  module SDL3.Misc,
+  module SDL3.Mouse,
+  module SDL3.Mutex,
+  module SDL3.Pen,
+  module SDL3.Pixels,
+  module SDL3.Platform,
+  module SDL3.Power,
+  module SDL3.Process,
+  module SDL3.Properties,
+  module SDL3.Rect,
+  module SDL3.Render,
+  module SDL3.Scancode,
+  module SDL3.Sensor,
+  module SDL3.Stdinc,
+  module SDL3.Storage,
+  module SDL3.Surface,
+  module SDL3.System,
+  module SDL3.Thread,
+  module SDL3.Time,
+  module SDL3.Timer,
+  module SDL3.Touch,
+  module SDL3.Tray,
+  module SDL3.Version,
+  module SDL3.Video,
+)
+where
+
+import SDL3.Assert
+import SDL3.AsyncIO
+import SDL3.Atomic
+import SDL3.Audio
+import SDL3.Bits
+import SDL3.BlendMode
+import SDL3.CPUInfo
+import SDL3.Camera
+import SDL3.Clipboard
+import SDL3.Dialog
+import SDL3.Endian
+import SDL3.Error
+import SDL3.Events
+import SDL3.Filesystem
+import SDL3.GPU
+import SDL3.GUID
+import SDL3.Gamepad
+import SDL3.Haptic
+import SDL3.Hidapi
+import SDL3.Hints
+import SDL3.IOStream
+import SDL3.Init
+import SDL3.Joystick
+import SDL3.Keyboard
+import SDL3.Keycode
+import SDL3.LoadSO
+import SDL3.Locale
+import SDL3.Log
+import SDL3.MessageBox
+import SDL3.Metal
+import SDL3.Misc
+import SDL3.Mouse
+import SDL3.Mutex
+import SDL3.Pen
+import SDL3.Pixels
+import SDL3.Platform
+import SDL3.Power
+import SDL3.Process
+import SDL3.Properties
+import SDL3.Rect
+import SDL3.Render
+import SDL3.Scancode
+import SDL3.Sensor
+import SDL3.Stdinc
+import SDL3.Storage
+import SDL3.Surface
+import SDL3.System
+import SDL3.Thread
+import SDL3.Time
+import SDL3.Timer
+import SDL3.Touch
+import SDL3.Tray
+import SDL3.Version
+import SDL3.Video

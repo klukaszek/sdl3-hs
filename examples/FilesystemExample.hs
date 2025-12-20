@@ -1,7 +1,7 @@
 module Main where
 
 import Control.Monad (unless)
-import SDL
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()

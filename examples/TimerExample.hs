@@ -1,6 +1,6 @@
 import Control.Monad (when)
 import Foreign.Ptr (nullPtr)
-import SDL
+import SDL3
 
 main :: IO ()
 main = do

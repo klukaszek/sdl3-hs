@@ -27,7 +27,7 @@ import Data.IORef -- For mutable state (toggles)
 import Data.Maybe (fromJust, isJust, isNothing)
 import Data.Word (Word64)
 import GPUCommon
-import SDL
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 import Text.Printf (printf)
 

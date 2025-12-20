@@ -16,7 +16,7 @@ import Control.Monad (unless, when)
 import qualified Data.ByteString as BS
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Foreign
-import SDL hiding (round, sin)
+import SDL3 hiding (round, sin)
 import System.Exit (exitFailure, exitSuccess)
 import Text.Printf (printf)
 

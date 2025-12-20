@@ -3,7 +3,7 @@ module Main where
 import Control.Concurrent (threadDelay)
 import Control.Monad
 import Foreign.C.String (peekCString)
-import SDL
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()

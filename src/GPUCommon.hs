@@ -33,7 +33,7 @@ import Foreign.Marshal.Utils (copyBytes)
 import Foreign.Ptr (Ptr, castPtr, nullPtr, plusPtr)
 import Foreign.Storable (Storable (..), peek)
 import Paths_sdl3 (getDataFileName)
-import SDL
+import SDL3
 import System.Directory (doesFileExist, getCurrentDirectory)
 import System.Exit (exitFailure)
 import System.FilePath ((</>))

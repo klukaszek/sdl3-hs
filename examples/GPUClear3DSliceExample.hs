@@ -33,7 +33,7 @@ import Data.Bits ((.|.))
 import Data.IORef
 import Data.Word (Word32)
 import GPUCommon
-import SDL
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 
 -- AppResources for this example

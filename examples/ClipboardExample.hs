@@ -1,6 +1,6 @@
 module Main where
 
-import SDL
+import SDL3
 import Control.Monad (when, unless)
 import System.Exit (exitFailure, exitSuccess)
 

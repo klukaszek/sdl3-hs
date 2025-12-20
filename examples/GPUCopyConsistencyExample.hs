@@ -24,7 +24,7 @@ This example shows:
 
 module Main where
 
-import SDL
+import SDL3
 import GPUCommon
 
 import Control.Monad (unless, when, void, (>=>))

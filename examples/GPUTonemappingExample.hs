@@ -55,7 +55,7 @@ import Data.IORef
 import Data.Maybe (catMaybes, fromJust, isJust, isNothing)
 import Foreign.Ptr (castPtr)
 import GPUCommon
-import SDL
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 
 -- AppResources

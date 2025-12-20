@@ -4,7 +4,7 @@ import Control.Concurrent (threadDelay)
 import Control.Monad
 import Data.Char (chr)
 import Data.Word (Word16)
-import SDL hiding (abs)
+import SDL3 hiding (abs)
 import System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()

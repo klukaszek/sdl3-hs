@@ -1,6 +1,6 @@
 module Main where
 
-import SDL
+import SDL3
 import Foreign.C.Types (CInt)
 import Control.Monad (unless)
 import Data.Bits (zeroBits)

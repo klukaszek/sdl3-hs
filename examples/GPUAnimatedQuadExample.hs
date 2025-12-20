@@ -39,7 +39,7 @@ import Foreign.Storable (peek, sizeOf)
 import GPUCommon
 -- linear algebra library
 import Linear
-import SDL hiding (cos, sin)
+import SDL3 hiding (cos, sin)
 import System.Exit (exitFailure, exitSuccess)
 import System.FilePath ((</>))
 
