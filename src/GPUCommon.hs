@@ -97,6 +97,94 @@ instance Storable PositionTextureVertex where
     pokeByteOff ptr 12 u
     pokeByteOff ptr 16 v
 
+-- PositionTextureColorVertex
+data PositionTextureColorVertex = PositionTextureColorVertex
+  { ptcvX, ptcvY, ptcvZ, ptcvW :: {-# UNPACK #-} !CFloat,
+    ptcvU, ptcvV, ptcvPaddingA, ptcvPaddingB :: {-# UNPACK #-} !CFloat,
+    ptcvR, ptcvG, ptcvB, ptcvA :: {-# UNPACK #-} !CFloat
+  }
+  deriving (Show, Eq)
+
+instance Storable PositionTextureColorVertex where
+  sizeOf _ = 48 -- 12 * 4
+  alignment _ = alignment (undefined :: CFloat)
+  peek ptr =
+    PositionTextureColorVertex
+      <$> peekByteOff ptr 0
+      <*> peekByteOff ptr 4
+      <*> peekByteOff ptr 8
+      <*> peekByteOff ptr 12
+      <*> peekByteOff ptr 16
+      <*> peekByteOff ptr 20
+      <*> peekByteOff ptr 24
+      <*> peekByteOff ptr 28
+      <*> peekByteOff ptr 32
+      <*> peekByteOff ptr 36
+      <*> peekByteOff ptr 40
+      <*> peekByteOff ptr 44
+  poke ptr PositionTextureColorVertex {..} = do
+    pokeByteOff ptr 0 ptcvX
+    pokeByteOff ptr 4 ptcvY
+    pokeByteOff ptr 8 ptcvZ
+    pokeByteOff ptr 12 ptcvW
+    pokeByteOff ptr 16 ptcvU
+    pokeByteOff ptr 20 ptcvV
+    pokeByteOff ptr 24 ptcvPaddingA
+    pokeByteOff ptr 28 ptcvPaddingB
+    pokeByteOff ptr 32 ptcvR
+    pokeByteOff ptr 36 ptcvG
+    pokeByteOff ptr 40 ptcvB
+    pokeByteOff ptr 44 ptcvA
+
+-- ComputeSpriteInstance
+data ComputeSpriteInstance = ComputeSpriteInstance
+  { csiX, csiY, csiZ :: {-# UNPACK #-} !CFloat,
+    csiRotation :: {-# UNPACK #-} !CFloat,
+    csiW, csiH, csiPaddingA, csiPaddingB :: {-# UNPACK #-} !CFloat,
+    csiTexU, csiTexV, csiTexW, csiTexH :: {-# UNPACK #-} !CFloat,
+    csiR, csiG, csiB, csiA :: {-# UNPACK #-} !CFloat
+  }
+  deriving (Show, Eq)
+
+instance Storable ComputeSpriteInstance where
+  sizeOf _ = 64 -- 16 * 4
+  alignment _ = alignment (undefined :: CFloat)
+  peek ptr =
+    ComputeSpriteInstance
+      <$> peekByteOff ptr 0
+      <*> peekByteOff ptr 4
+      <*> peekByteOff ptr 8
+      <*> peekByteOff ptr 12
+      <*> peekByteOff ptr 16
+      <*> peekByteOff ptr 20
+      <*> peekByteOff ptr 24
+      <*> peekByteOff ptr 28
+      <*> peekByteOff ptr 32
+      <*> peekByteOff ptr 36
+      <*> peekByteOff ptr 40
+      <*> peekByteOff ptr 44
+      <*> peekByteOff ptr 48
+      <*> peekByteOff ptr 52
+      <*> peekByteOff ptr 56
+      <*> peekByteOff ptr 60
+  poke ptr ComputeSpriteInstance {..} = do
+    pokeByteOff ptr 0 csiX
+    pokeByteOff ptr 4 csiY
+    pokeByteOff ptr 8 csiZ
+    pokeByteOff ptr 12 csiRotation
+    pokeByteOff ptr 16 csiW
+    pokeByteOff ptr 20 csiH
+    pokeByteOff ptr 24 csiPaddingA
+    pokeByteOff ptr 28 csiPaddingB
+    pokeByteOff ptr 32 csiTexU
+    pokeByteOff ptr 36 csiTexV
+    pokeByteOff ptr 40 csiTexW
+    pokeByteOff ptr 44 csiTexH
+    pokeByteOff ptr 48 csiR
+    pokeByteOff ptr 52 csiG
+    pokeByteOff ptr 56 csiB
+    pokeByteOff ptr 60 csiA
+
 -- FragMultiplyUniform (for AnimatedQuads example fragment shader)
 data FragMultiplyUniform = FragMultiplyUniform
   { multR :: {-# UNPACK #-} !Float,

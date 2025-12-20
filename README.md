@@ -252,6 +252,32 @@ These examples are based off of the original
   to the GPU, alter it, and draw it to the framebuffer.
 - [GPU Copy & Readback](examples/GPUCopyAndReadbackExample.hs) - Write texture
   to GPU and read it back, verifying data integrity.
+- [GPU Texture 2D Array](examples/GPUTexture2DArrayExample.hs) - Rendering with
+  2D texture arrays
+- [GPU Texture Type Test](examples/GPUTextureTypeTestExample.hs) - Testing
+  various texture types and formats
+- [GPU Compressed Textures](examples/GPUCompressedTexturesExample.hs) - BCn and
+  ASTC texture loading
+- [GPU Generate Mipmaps](examples/GPUGenerateMipmapsExample.hs) - On-the-fly
+  mipmap generation
+- [GPU Blit 2D Array](examples/GPUBlit2DArrayExample.hs) - Blitting 2D texture
+  array layers
+- [GPU Blit Cube](examples/GPUBlitCubeExample.hs) - Blitting cubemap faces
+- [GPU Blit Mirror](examples/GPUBlitMirrorExample.hs) - Mirroring blit
+  operations
+- [GPU Latency](examples/GPULatencyExample.hs) - Measuring and managing
+  input-to-display latency
+- [GPU Window Resize](examples/GPUWindowResizeExample.hs) - Efficiently handling
+  window resizing with GPU resources
+- [GPU Triangle MSAA](examples/GPUTriangleMSAAExample.hs) - Multi-sample
+  anti-aliasing basics
+- [GPU Cubemap](examples/GPUCubemapExample.hs) - Cubemap rendering and skybox
+- [GPU Depth Sampler](examples/GPUDepthSamplerExample.hs) - Depth buffer
+  sampling and post-processing
+- [GPU Compute Sprite Batch](examples/GPUComputeSpriteBatchExample.hs) -
+  GPU-driven sprite batching with compute
+- [GPU Pull Sprite Batch](examples/GPUPullSpriteBatchExample.hs) - Pull-based
+  vertex shader sprite batching
 - (... More coming ...)
 
 ## Input & Interaction
@@ -315,7 +341,7 @@ These examples are based off of the original
 
 ## 📊 Binding Status
 
-*Last updated: 2025-12-20 03:24 UTC*
+*Last updated: 2025-12-20 03:35 UTC*
 
 ### Summary
 - **Total Modules**: 55
