@@ -727,6 +727,23 @@ executable gpu-blitcube
     hs-source-dirs:   examples
     default-language: Haskell2010
 
+executable gpu-cubemap
+    main-is: GPUCubemapExample.hs
+    other-modules: Paths_sdl3
+    autogen-modules: Paths_sdl3
+    if flag(examples)
+        buildable: True
+    else
+        buildable: False
+    build-depends:
+        base >= 4.16 && < 5,
+        sdl3,
+        linear,
+        filepath >= 1.4 && < 1.6,
+        directory >= 1.3 && < 1.4
+    hs-source-dirs:   examples
+    default-language: Haskell2010
+
 executable guid
     main-is: GUIDExample.hs
     if flag(examples)
