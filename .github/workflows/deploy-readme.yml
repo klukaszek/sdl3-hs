@@ -134,66 +134,31 @@ jobs:
       - name: Generate binding status
         run: |
           echo "Generating SDL3 binding status..."
+          chmod +x .github/config.sh
           chmod +x .github/generate-binding-status.sh
           chmod +x .github/update-readme.sh
 
-          # Debug: Show current git status
-          echo "Current git commit:"
-          git log --oneline -n 3
+          # Source config (for logging)
+          source .github/config.sh
+          echo "Using binding source directory: $BINDING_SRC_DIR"
+          echo "SDL3 commit: $SDL_HEADER_COMMIT"
 
-          # Debug: Show binding checker executable info
-          echo "Binding checker executable:"
-          ls -la dist-newstyle/build/*/ghc-*/sdl3-*/x/binding-checker/build/binding-checker/ || echo "Build directory not found"
-
-          # Debug: Show working directory and absolute paths
-          echo "=== Current working directory ==="
-          pwd
-          echo "=== Absolute path to project ==="
-          realpath .
-          echo "=== Environment variables ==="
-          echo "HOME: $HOME"
-          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
-
-          # Debug: Show project file structure
-          echo "Project file structure:"
-          echo "=== Root directory ==="
-          ls -la
-          echo "=== src/ directory ==="
-          ls -la src/
-          echo "=== src/SDL/ directory ==="
-          ls -la src/SDL/
-          echo "=== First 10 files in src/SDL/ ==="
-          ls src/SDL/ | head -10
-
-          # Debug: Test specific binding file paths
-          echo "=== Testing specific binding file paths ==="
-          for module in AsyncIO BlendMode CPUInfo GPU GUID IOStream LoadSO MessageBox; do
-            for ext in hs hsc; do
-              if [ -f "src/SDL/${module}.${ext}" ]; then
-                echo "✅ Found src/SDL/${module}.${ext}"
-              else
-                echo "❌ Missing src/SDL/${module}.${ext}"
-              fi
-            done
-          done
-
-          # Debug: Test binding checker with key modules that should be complete
-          echo "Testing binding checker with key modules:"
-          for module in SDL_asyncio SDL_blendmode SDL_cpuinfo SDL_gpu SDL_guid SDL_iostream SDL_loadso SDL_messagebox; do
-            if [ -f "/usr/local/include/SDL3/${module}.h" ]; then
-              echo "=== Testing ${module}.h ==="
-              echo "/usr/local/include/SDL3/${module}.h" | cabal exec -f-pkgconfig binding-checker
-              echo ""
-            fi
-          done
-
-          # Generate binding status - fail if this doesn't work
-          if ! ./.github/update-readme.sh; then
-            echo "❌ Failed to update binding status"
+          # Verify binding source exists
+          if [ ! -d "$BINDING_SRC_DIR" ]; then
+            echo "Error: Binding source directory not found: $BINDING_SRC_DIR"
+            ls -la src/
             exit 1
           fi
 
-          echo "✅ Binding status updated successfully"
+          echo "Found $(ls $BINDING_SRC_DIR/*.hs $BINDING_SRC_DIR/*.hsc 2>/dev/null | wc -l) binding files"
+
+          # Generate binding status
+          if ! ./.github/update-readme.sh; then
+            echo "Failed to update binding status"
+            exit 1
+          fi
+
+          echo "Binding status updated successfully"
 
       - name: Set up Pandoc
         uses: r-lib/actions/setup-pandoc@v2 # A reliable action to install Pandoc

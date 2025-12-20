@@ -7,7 +7,7 @@ import Data.Char (toLower, toUpper)
 import Data.List (find, isInfixOf, isPrefixOf, stripPrefix)
 import Data.Maybe (mapMaybe)
 import System.Directory (createDirectoryIfMissing, doesFileExist, listDirectory)
-import System.Environment (getArgs)
+import System.Environment (getArgs, lookupEnv)
 import System.FilePath (takeBaseName, (</>))
 import System.IO (hIsTerminalDevice, stdin)
 
@@ -250,10 +250,10 @@ findBindingFile :: String -> IO (Maybe String)
 findBindingFile headerPath = do
   let baseName = takeBaseName headerPath
 
-      -- Special case for SDL.h -> src/SDL.hs
+      -- Special case for SDL.h -> src/SDL3.hs
       specialCases =
         if baseName == "SDL"
-          then ["src/SDL.hs"]
+          then ["src/SDL3.hs"]
           else []
 
       -- Remove "SDL_" prefix if present
@@ -285,12 +285,12 @@ findBindingFile headerPath = do
 
       possiblePaths =
         specialCases
-          ++ [ "src/SDL/" ++ correctModuleName ++ ".hsc",
-               "src/SDL/" ++ correctModuleName ++ ".hs",
-               "src/SDL/" ++ camelCaseName ++ ".hsc",
-               "src/SDL/" ++ camelCaseName ++ ".hs",
-               "src/SDL/" ++ baseName ++ ".hsc",
-               "src/SDL/" ++ baseName ++ ".hs"
+          ++ [ "src/SDL3/" ++ correctModuleName ++ ".hsc",
+               "src/SDL3/" ++ correctModuleName ++ ".hs",
+               "src/SDL3/" ++ camelCaseName ++ ".hsc",
+               "src/SDL3/" ++ camelCaseName ++ ".hs",
+               "src/SDL3/" ++ baseName ++ ".hsc",
+               "src/SDL3/" ++ baseName ++ ".hs"
              ]
 
   existing <- filterM doesFileExist possiblePaths

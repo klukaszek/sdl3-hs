@@ -7,6 +7,10 @@
 
 set -e
 
+# Source central configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/config.sh"
+
 echo "Generating SDL3 binding status..." >&2
 
 # Check if cabal and binding-checker are available
@@ -44,7 +48,7 @@ trap "rm -rf $TEMP_DIR" EXIT
 
 # Get list of modules from source directory
 modules=()
-for file in src/SDL/*.hsc src/SDL/*.hs; do
+for file in ${BINDING_SRC_DIR}/*.hsc ${BINDING_SRC_DIR}/*.hs; do
     if [[ -f "$file" ]]; then
         basename=$(basename "$file" .hsc)
         basename=$(basename "$basename" .hs)
@@ -54,7 +58,7 @@ done
 
 # Check if we found any modules
 if [[ ${#modules[@]} -eq 0 ]]; then
-    echo "Error: No Haskell binding modules found in src/SDL/" >&2
+    echo "Error: No Haskell binding modules found in ${BINDING_SRC_DIR}/" >&2
     exit 1
 fi
 
