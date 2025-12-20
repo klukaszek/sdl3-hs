@@ -1,59 +1,58 @@
-{-|
-Module      : SDL.Camera
-Description : Video capture and camera management
-Copyright   : (c) Kyle Lukaszek, 2025
-License     : BSD3
-
-This module provides bindings to the SDL3 camera API, allowing Haskell applications
-to interact with video capture devices such as webcams. It supports enumerating,
-querying, and opening camera devices, as well as acquiring video frames as
-SDL surfaces.
-
-The SDL camera API provides access to video frames but does not handle audio
-or full-motion video encoding. Applications can process frames as pixel data
-or upload them to SDL textures for rendering.
-
-Note that camera access often requires user permission on many platforms,
-which may involve a system prompt. The API provides mechanisms to check
-permission status and handle approval or denial events.
--}
-
+-- |
+-- Module      : SDL.Camera
+-- Description : Video capture and camera management
+-- Copyright   : (c) Kyle Lukaszek, 2025
+-- License     : BSD3
+--
+-- This module provides bindings to the SDL3 camera API, allowing Haskell applications
+-- to interact with video capture devices such as webcams. It supports enumerating,
+-- querying, and opening camera devices, as well as acquiring video frames as
+-- SDL surfaces.
+--
+-- The SDL camera API provides access to video frames but does not handle audio
+-- or full-motion video encoding. Applications can process frames as pixel data
+-- or upload them to SDL textures for rendering.
+--
+-- Note that camera access often requires user permission on many platforms,
+-- which may involve a system prompt. The API provides mechanisms to check
+-- permission status and handle approval or denial events.
 module SDL3.Camera
   ( -- * Camera Types
-    SDLCamera
-  , SDLCameraID
-  , SDLCameraSpec(..)
-  , SDLCameraPosition(..)
+    SDLCamera,
+    SDLCameraID,
+    SDLCameraSpec (..),
+    SDLCameraPosition (..),
 
     -- * Camera Driver Functions
-  , sdlGetNumCameraDrivers
-  , sdlGetCameraDriver
-  , sdlGetCurrentCameraDriver
+    sdlGetNumCameraDrivers,
+    sdlGetCameraDriver,
+    sdlGetCurrentCameraDriver,
 
     -- * Camera Device Functions
-  , sdlGetCameras
-  , sdlGetCameraSupportedFormats
-  , sdlGetCameraName
-  , sdlGetCameraPosition
-  , sdlOpenCamera
-  , sdlGetCameraPermissionState
-  , sdlGetCameraID
-  , sdlGetCameraProperties
-  , sdlGetCameraFormat
-  , sdlAcquireCameraFrame
-  , sdlReleaseCameraFrame
-  , sdlCloseCamera
-  ) where
+    sdlGetCameras,
+    sdlGetCameraSupportedFormats,
+    sdlGetCameraName,
+    sdlGetCameraPosition,
+    sdlOpenCamera,
+    sdlGetCameraPermissionState,
+    sdlGetCameraID,
+    sdlGetCameraProperties,
+    sdlGetCameraFormat,
+    sdlAcquireCameraFrame,
+    sdlReleaseCameraFrame,
+    sdlCloseCamera,
+  )
+where
 
-import Foreign.C.Types
+import Data.Int
+import Data.Word
 import Foreign.C.String
-import Foreign.Ptr
-import Foreign.Storable
+import Foreign.C.Types
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Array (peekArray)
-import Data.Word
-import Data.Int
-import SDL3.Pixels (SDLPixelFormat(..), pixelFormatToCUInt, SDLColorspace(..), colorspaceToWord32, cUIntToPixelFormat, cUIntToColorspace)
+import Foreign.Ptr
+import Foreign.Storable
+import SDL3.Pixels (SDLColorspace (..), SDLPixelFormat (..), cUIntToColorspace, cUIntToPixelFormat, colorspaceToWord32, pixelFormatToCUInt)
 import SDL3.Surface (SDLSurface)
 
 -- | A unique ID for a camera device, valid while connected to the system.
@@ -67,26 +66,39 @@ data SDLCamera = SDLCamera
 
 -- | Specification of an output format for a camera device.
 data SDLCameraSpec = SDLCameraSpec
-  { cameraFormat         :: SDLPixelFormat     -- ^ Frame pixel format
-  , cameraColorspace     :: SDLColorspace      -- ^ Frame colorspace
-  , cameraWidth          :: Int                -- ^ Frame width
-  , cameraHeight         :: Int                -- ^ Frame height
-  , cameraFramerateNum   :: Int                -- ^ Frame rate numerator (FPS = num / denom)
-  , cameraFramerateDenom :: Int                -- ^ Frame rate denominator (duration = denom / num)
-  } deriving (Eq, Show)
+  { -- | Frame pixel format
+    cameraFormat :: SDLPixelFormat,
+    -- | Frame colorspace
+    cameraColorspace :: SDLColorspace,
+    -- | Frame width
+    cameraWidth :: Int,
+    -- | Frame height
+    cameraHeight :: Int,
+    -- | Frame rate numerator (FPS = num / denom)
+    cameraFramerateNum :: Int,
+    -- | Frame rate denominator (duration = denom / num)
+    cameraFramerateDenom :: Int
+  }
+  deriving (Eq, Show)
 
 instance Storable SDLCameraSpec where
-  sizeOf _ = 24  -- sizeof(SDL_PixelFormat) + sizeof(SDL_Colorspace) + 4 * sizeof(int)
+  sizeOf _ = 24 -- sizeof(SDL_PixelFormat) + sizeof(SDL_Colorspace) + 4 * sizeof(int)
   alignment _ = 4
   peek ptr = do
-    fmt    <- peekByteOff ptr 0  :: IO Word32
-    cspace <- peekByteOff ptr 4  :: IO Word32
-    w      <- peekByteOff ptr 8  :: IO Int32  -- Specify Int32
-    h      <- peekByteOff ptr 12 :: IO Int32  -- Specify Int32
-    num    <- peekByteOff ptr 16 :: IO Int32  -- Specify Int32
-    denom  <- peekByteOff ptr 20 :: IO Int32  -- Specify Int32
-    return $ SDLCameraSpec (cUIntToPixelFormat (fromIntegral fmt)) (cUIntToColorspace (fromIntegral cspace))
-                            (fromIntegral w) (fromIntegral h) (fromIntegral num) (fromIntegral denom)
+    fmt <- peekByteOff ptr 0 :: IO Word32
+    cspace <- peekByteOff ptr 4 :: IO Word32
+    w <- peekByteOff ptr 8 :: IO Int32 -- Specify Int32
+    h <- peekByteOff ptr 12 :: IO Int32 -- Specify Int32
+    num <- peekByteOff ptr 16 :: IO Int32 -- Specify Int32
+    denom <- peekByteOff ptr 20 :: IO Int32 -- Specify Int32
+    return $
+      SDLCameraSpec
+        (cUIntToPixelFormat (fromIntegral fmt))
+        (cUIntToColorspace (fromIntegral cspace))
+        (fromIntegral w)
+        (fromIntegral h)
+        (fromIntegral num)
+        (fromIntegral denom)
   poke ptr (SDLCameraSpec fmt cspace w h num denom) = do
     pokeByteOff ptr 0 (pixelFormatToCUInt fmt)
     pokeByteOff ptr 4 (colorspaceToWord32 cspace)
@@ -146,8 +158,7 @@ sdlGetCameras = alloca $ \countPtr -> do
     then return []
     else do
       count <- peek countPtr
-      ids <- peekArray (fromIntegral count) idsPtr
-      return ids
+      peekArray (fromIntegral count) idsPtr
 
 -- | Get the list of native formats/sizes a camera supports.
 foreign import ccall "SDL_GetCameraSupportedFormats"
@@ -196,7 +207,6 @@ sdlOpenCamera instance_id mspec =
     Nothing -> do
       camPtr <- sdlOpenCameraRaw instance_id nullPtr
       return $ if camPtr == nullPtr then Nothing else Just camPtr
-
 
 -- | Query if camera access has been approved by the user.
 --

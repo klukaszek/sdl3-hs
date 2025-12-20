@@ -1,9 +1,9 @@
 module Main where
 
-import SDL3
-import Foreign.C.Types (CInt)
 import Control.Monad (unless)
 import Data.Bits (zeroBits)
+import Foreign.C.Types (CInt)
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()
@@ -15,11 +15,12 @@ main = do
     exitFailure
 
   -- Create a window for our dialog
-  maybeWindow <- sdlCreateWindow      
-    "SDL Dialog Example"
-    800 
-    600 
-    [SDL_WINDOW_RESIZABLE]
+  maybeWindow <-
+    sdlCreateWindow
+      "SDL Dialog Example"
+      800
+      600
+      [SDL_WINDOW_RESIZABLE]
 
   sdlLog "SDL Initialized. Testing message boxes..."
 
@@ -48,26 +49,28 @@ main = do
 -- Function to show a standard message box
 showMessageBox :: String -> String -> Maybe SDLWindow -> [SDLMessageBoxFlags] -> IO (Maybe Int)
 showMessageBox title msg window msgType = do
-  let msgBoxData = SDLMessageBoxData
-        { messageBoxFlags = msgType
-        , messageBoxWindow = window
-        , messageBoxTitle = title
-        , messageBoxMessage = msg
-        , messageBoxButtons = []
-        , messageBoxColorScheme = Nothing
-        }
+  let msgBoxData =
+        SDLMessageBoxData
+          { messageBoxFlags = msgType,
+            messageBoxWindow = window,
+            messageBoxTitle = title,
+            messageBoxMessage = msg,
+            messageBoxButtons = [],
+            messageBoxColorScheme = Nothing
+          }
   sdlShowMessageBox msgBoxData
 
 -- Function to show a custom message box with buttons
 showCustomMessageBox :: String -> String -> Maybe SDLWindow -> [(String, CInt)] -> IO (Maybe Int)
 showCustomMessageBox title msg window buttons = do
-  let buttonData = [ SDLMessageBoxButtonData zeroBits bid txt | (txt, bid) <- buttons ]
-      msgBoxData = SDLMessageBoxData
-        { messageBoxFlags = [SDL_MESSAGEBOX_INFORMATION]
-        , messageBoxWindow = window
-        , messageBoxTitle = title
-        , messageBoxMessage = msg
-        , messageBoxButtons = buttonData
-        , messageBoxColorScheme = Nothing
-        }
+  let buttonData = [SDLMessageBoxButtonData zeroBits bid txt | (txt, bid) <- buttons]
+      msgBoxData =
+        SDLMessageBoxData
+          { messageBoxFlags = [SDL_MESSAGEBOX_INFORMATION],
+            messageBoxWindow = window,
+            messageBoxTitle = title,
+            messageBoxMessage = msg,
+            messageBoxButtons = buttonData,
+            messageBoxColorScheme = Nothing
+          }
   sdlShowMessageBox msgBoxData

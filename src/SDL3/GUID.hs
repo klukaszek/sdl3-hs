@@ -1,46 +1,39 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-{-|
-Module      : SDL.Guid
-Description : SDL GUID functions for working with globally unique identifiers
-Copyright   : Kyle Lukaszek, 2025
-License     : BSD3
-
-This module provides bindings to the SDL3 GUID functions, allowing Haskell applications
-to work with 128-bit globally unique identifiers (GUIDs) used to identify input devices
-across runs of SDL programs on the same platform.
-
-The GUID functionality allows conversion between binary GUID structures and their
-ASCII string representations.
--}
-
+-- |
+-- Module      : SDL.Guid
+-- Description : SDL GUID functions for working with globally unique identifiers
+-- Copyright   : Kyle Lukaszek, 2025
+-- License     : BSD3
+--
+-- This module provides bindings to the SDL3 GUID functions, allowing Haskell applications
+-- to work with 128-bit globally unique identifiers (GUIDs) used to identify input devices
+-- across runs of SDL programs on the same platform.
+--
+-- The GUID functionality allows conversion between binary GUID structures and their
+-- ASCII string representations.
 module SDL3.GUID
   ( -- * Types
-    SDLGUID(..)
+    SDLGUID (..),
 
     -- * GUID Operations
-  , sdlGUIDToString
-  , sdlStringToGUID
-  ) where
+    sdlGUIDToString,
+    sdlStringToGUID,
+  )
+where
 
 import Foreign
-import Foreign.C.Types
 import Foreign.C.String
-
-#include <SDL3/SDL_guid.h>
-
--- Define the proper structure for SDL_GUID to match C declaration
-data SDL_GUID = SDL_GUID
-  { guidData :: [Word8] -- 16-byte array
-  } deriving (Show, Eq)
+import Foreign.C.Types
 
 -- Create a newtype for easier manipulation in Haskell
-newtype SDLGUID = SDLGUID { unSDLGUID :: [Word8] }
+newtype SDLGUID = SDLGUID {unSDLGUID :: [Word8]}
   deriving (Show, Eq)
 
 -- Define the storable instance for SDL_GUID to properly handle marshalling
 instance Storable SDLGUID where
-  sizeOf _ = 16  -- Size of the SDL_GUID struct (16 bytes)
+  sizeOf _ = 16 -- Size of the SDL_GUID struct (16 bytes)
   alignment _ = alignment (undefined :: Word8)
 
   peek ptr = do
@@ -51,16 +44,18 @@ instance Storable SDLGUID where
     pokeArray (castPtr ptr) (take 16 $ bytes ++ repeat 0)
 
 -- Foreign declarations around wrappers
-foreign import ccall safe "wrapper_SDL_GUIDToString" sdlGUIDToStringRaw ::
-  Ptr Word8 -> CString -> CInt -> IO ()
-foreign import ccall safe "wrapper_SDL_StringToGUID" sdlStringToGUIDRaw ::
-  CString -> Ptr Word8 -> IO ()
+foreign import ccall safe "wrapper_SDL_GUIDToString"
+  sdlGUIDToStringRaw ::
+    Ptr Word8 -> CString -> CInt -> IO ()
+
+foreign import ccall safe "wrapper_SDL_StringToGUID"
+  sdlStringToGUIDRaw ::
+    CString -> Ptr Word8 -> IO ()
 
 -- Convert our SDLGUID to string
 sdlGUIDToString :: SDLGUID -> IO String
 sdlGUIDToString (SDLGUID bytes) = do
-  let guidBytes = take 16 $ bytes ++ repeat 0  -- Ensure we have exactly 16 bytes
-
+  let guidBytes = take 16 $ bytes ++ repeat 0 -- Ensure we have exactly 16 bytes
   withArray guidBytes $ \guidPtr -> do
     -- Allocate a buffer for the string (33 bytes as specified in the SDL docs)
     allocaArray 33 $ \strPtr -> do

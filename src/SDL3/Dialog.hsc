@@ -212,26 +212,11 @@ sdlShowFileDialogWithProperties dialogType callback userdata props =
     props
 
 -- Property constants (using const_str for safety)
-sdlPropFileDialogFiltersPointer :: String
 sdlPropFileDialogFiltersPointer = #{const_str SDL_PROP_FILE_DIALOG_FILTERS_POINTER}
-
-sdlPropFileDialogNfiltersNumber :: String
 sdlPropFileDialogNfiltersNumber = #{const_str SDL_PROP_FILE_DIALOG_NFILTERS_NUMBER}
-
-sdlPropFileDialogWindowPointer :: String
 sdlPropFileDialogWindowPointer = #{const_str SDL_PROP_FILE_DIALOG_WINDOW_POINTER}
-
-sdlPropFileDialogLocationString :: String
 sdlPropFileDialogLocationString = #{const_str SDL_PROP_FILE_DIALOG_LOCATION_STRING}
-
-sdlPropFileDialogManyBoolean :: String
 sdlPropFileDialogManyBoolean = #{const_str SDL_PROP_FILE_DIALOG_MANY_BOOLEAN}
-
-sdlPropFileDialogTitleString :: String
 sdlPropFileDialogTitleString = #{const_str SDL_PROP_FILE_DIALOG_TITLE_STRING}
-
-sdlPropFileDialogAcceptString :: String
 sdlPropFileDialogAcceptString = #{const_str SDL_PROP_FILE_DIALOG_ACCEPT_STRING}
-
-sdlPropFileDialogCancelString :: String
 sdlPropFileDialogCancelString = #{const_str SDL_PROP_FILE_DIALOG_CANCEL_STRING}

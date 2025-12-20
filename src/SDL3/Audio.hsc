@@ -1,6 +1,7 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-|
 Module      : SDL.Audio
@@ -155,60 +156,26 @@ instance Storable SDLAudioSpec where
     putStrLn $ "Size: " ++ show (sizeOf (undefined :: SDLAudioSpec))
 
   -- Audio format constants
-pattern SDL_AUDIO_MASK_BITSIZE :: Word16
-pattern SDL_AUDIO_MASK_BITSIZE = #{const SDL_AUDIO_MASK_BITSIZE}
-
-pattern SDL_AUDIO_MASK_FLOAT :: Word16
-pattern SDL_AUDIO_MASK_FLOAT = #{const SDL_AUDIO_MASK_FLOAT}
-
-pattern SDL_AUDIO_MASK_BIG_ENDIAN :: Word16
-pattern SDL_AUDIO_MASK_BIG_ENDIAN = #{const SDL_AUDIO_MASK_BIG_ENDIAN}
-
-pattern SDL_AUDIO_MASK_SIGNED :: Word16
-pattern SDL_AUDIO_MASK_SIGNED = #{const SDL_AUDIO_MASK_SIGNED}
-
-pattern SDL_AUDIO_UNKNOWN :: Word16
-pattern SDL_AUDIO_UNKNOWN = #{const SDL_AUDIO_UNKNOWN}
-
-pattern SDL_AUDIO_U8 :: Word16
-pattern SDL_AUDIO_U8 = #{const SDL_AUDIO_U8}
-
-pattern SDL_AUDIO_S8 :: Word16
-pattern SDL_AUDIO_S8 = #{const SDL_AUDIO_S8}
-
-pattern SDL_AUDIO_S16LE :: Word16
-pattern SDL_AUDIO_S16LE = #{const SDL_AUDIO_S16LE}
-
-pattern SDL_AUDIO_S16BE :: Word16
-pattern SDL_AUDIO_S16BE = #{const SDL_AUDIO_S16BE}
-
-pattern SDL_AUDIO_S32LE :: Word16
-pattern SDL_AUDIO_S32LE = #{const SDL_AUDIO_S32LE}
-
-pattern SDL_AUDIO_S32BE :: Word16
-pattern SDL_AUDIO_S32BE = #{const SDL_AUDIO_S32BE}
-
-pattern SDL_AUDIO_F32LE :: Word16
-pattern SDL_AUDIO_F32LE = #{const SDL_AUDIO_F32LE}
-
-pattern SDL_AUDIO_F32BE :: Word16
-pattern SDL_AUDIO_F32BE = #{const SDL_AUDIO_F32BE}
-
-pattern SDL_AUDIO_S16 :: Word16
-pattern SDL_AUDIO_S16 = #{const SDL_AUDIO_S16}
-
-pattern SDL_AUDIO_S32 :: Word16
-pattern SDL_AUDIO_S32 = #{const SDL_AUDIO_S32}
-
-pattern SDL_AUDIO_F32 :: Word16
-pattern SDL_AUDIO_F32 = #{const SDL_AUDIO_F32}
+pattern SDL_AUDIO_MASK_BITSIZE = (#{const SDL_AUDIO_MASK_BITSIZE}) :: Word16
+pattern SDL_AUDIO_MASK_FLOAT = (#{const SDL_AUDIO_MASK_FLOAT}) :: Word16
+pattern SDL_AUDIO_MASK_BIG_ENDIAN = (#{const SDL_AUDIO_MASK_BIG_ENDIAN}) :: Word16
+pattern SDL_AUDIO_MASK_SIGNED = (#{const SDL_AUDIO_MASK_SIGNED}) :: Word16
+pattern SDL_AUDIO_UNKNOWN = (#{const SDL_AUDIO_UNKNOWN}) :: Word16
+pattern SDL_AUDIO_U8 = (#{const SDL_AUDIO_U8}) :: Word16
+pattern SDL_AUDIO_S8 = (#{const SDL_AUDIO_S8}) :: Word16
+pattern SDL_AUDIO_S16LE = (#{const SDL_AUDIO_S16LE}) :: Word16
+pattern SDL_AUDIO_S16BE = (#{const SDL_AUDIO_S16BE}) :: Word16
+pattern SDL_AUDIO_S32LE = (#{const SDL_AUDIO_S32LE}) :: Word16
+pattern SDL_AUDIO_S32BE = (#{const SDL_AUDIO_S32BE}) :: Word16
+pattern SDL_AUDIO_F32LE = (#{const SDL_AUDIO_F32LE}) :: Word16
+pattern SDL_AUDIO_F32BE = (#{const SDL_AUDIO_F32BE}) :: Word16
+pattern SDL_AUDIO_S16 = (#{const SDL_AUDIO_S16}) :: Word16
+pattern SDL_AUDIO_S32 = (#{const SDL_AUDIO_S32}) :: Word16
+pattern SDL_AUDIO_F32 = (#{const SDL_AUDIO_F32}) :: Word16
 
 -- Default device constants
-pattern SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK :: SDLAudioDeviceID
-pattern SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK = #{const SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK}
-
-pattern SDL_AUDIO_DEVICE_DEFAULT_RECORDING :: SDLAudioDeviceID
-pattern SDL_AUDIO_DEVICE_DEFAULT_RECORDING = #{const SDL_AUDIO_DEVICE_DEFAULT_RECORDING}
+pattern SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK = (#{const SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK}) :: SDLAudioDeviceID
+pattern SDL_AUDIO_DEVICE_DEFAULT_RECORDING = (#{const SDL_AUDIO_DEVICE_DEFAULT_RECORDING}) :: SDLAudioDeviceID
 
 -- Callback types
 type SDLAudioStreamCallback = Ptr () -> Ptr SDLAudioStream -> CInt -> CInt -> IO ()

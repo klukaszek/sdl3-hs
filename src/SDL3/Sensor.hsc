@@ -71,21 +71,13 @@ sdlStandardGravity = 9.80665
 newtype SDLSensorType = SDLSensorType CInt
   deriving newtype (Show, Eq, Ord, Storable, Num)
 
-pattern SDL_SENSOR_INVALID :: SDLSensorType
 pattern SDL_SENSOR_INVALID  = SDLSensorType (#{const SDL_SENSOR_INVALID})  -- ^ Invalid sensor (-1)
-pattern SDL_SENSOR_UNKNOWN :: SDLSensorType
 pattern SDL_SENSOR_UNKNOWN  = SDLSensorType #{const SDL_SENSOR_UNKNOWN}  -- ^ Unknown sensor type (0)
-pattern SDL_SENSOR_ACCEL :: SDLSensorType
 pattern SDL_SENSOR_ACCEL    = SDLSensorType #{const SDL_SENSOR_ACCEL}    -- ^ Accelerometer (1)
-pattern SDL_SENSOR_GYRO :: SDLSensorType
 pattern SDL_SENSOR_GYRO     = SDLSensorType #{const SDL_SENSOR_GYRO}     -- ^ Gyroscope (2)
-pattern SDL_SENSOR_ACCEL_L :: SDLSensorType
 pattern SDL_SENSOR_ACCEL_L  = SDLSensorType #{const SDL_SENSOR_ACCEL_L}  -- ^ Left Joy-Con/Nunchuk accelerometer (3)
-pattern SDL_SENSOR_GYRO_L :: SDLSensorType
 pattern SDL_SENSOR_GYRO_L   = SDLSensorType #{const SDL_SENSOR_GYRO_L}   -- ^ Left Joy-Con gyroscope (4)
-pattern SDL_SENSOR_ACCEL_R :: SDLSensorType
 pattern SDL_SENSOR_ACCEL_R  = SDLSensorType #{const SDL_SENSOR_ACCEL_R}  -- ^ Right Joy-Con accelerometer (5)
-pattern SDL_SENSOR_GYRO_R :: SDLSensorType
 pattern SDL_SENSOR_GYRO_R   = SDLSensorType #{const SDL_SENSOR_GYRO_R}   -- ^ Right Joy-Con gyroscope (6)
 
 -- | Get a list of currently connected sensors

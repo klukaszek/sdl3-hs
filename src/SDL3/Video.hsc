@@ -154,27 +154,19 @@ newtype SDLWindow = SDLWindow (Ptr SDLWindow)
 newtype SDLSystemTheme = SDLSystemTheme CInt
   deriving newtype (Show, Eq, Ord, Storable, Enum)
 
-pattern SDL_SYSTEM_THEME_UNKNOWN :: SDLSystemTheme
-pattern SDL_SYSTEM_THEME_UNKNOWN = SDLSystemTheme #{const SDL_SYSTEM_THEME_UNKNOWN}
-pattern SDL_SYSTEM_THEME_LIGHT :: SDLSystemTheme
-pattern SDL_SYSTEM_THEME_LIGHT   = SDLSystemTheme #{const SDL_SYSTEM_THEME_LIGHT}
-pattern SDL_SYSTEM_THEME_DARK :: SDLSystemTheme
-pattern SDL_SYSTEM_THEME_DARK    = SDLSystemTheme #{const SDL_SYSTEM_THEME_DARK}
+pattern SDL_SYSTEM_THEME_UNKNOWN = SDLSystemTheme (#const SDL_SYSTEM_THEME_UNKNOWN)
+pattern SDL_SYSTEM_THEME_LIGHT   = SDLSystemTheme (#const SDL_SYSTEM_THEME_LIGHT)
+pattern SDL_SYSTEM_THEME_DARK    = SDLSystemTheme (#const SDL_SYSTEM_THEME_DARK)
 
 -- | Display orientation enumeration.
 newtype SDLDisplayOrientation = SDLDisplayOrientation CInt
   deriving newtype (Show, Eq, Ord, Storable, Enum)
 
-pattern SDL_ORIENTATION_UNKNOWN :: SDLDisplayOrientation
-pattern SDL_ORIENTATION_UNKNOWN           = SDLDisplayOrientation #{const SDL_ORIENTATION_UNKNOWN}
-pattern SDL_ORIENTATION_LANDSCAPE :: SDLDisplayOrientation
-pattern SDL_ORIENTATION_LANDSCAPE         = SDLDisplayOrientation #{const SDL_ORIENTATION_LANDSCAPE}
-pattern SDL_ORIENTATION_LANDSCAPE_FLIPPED :: SDLDisplayOrientation
-pattern SDL_ORIENTATION_LANDSCAPE_FLIPPED = SDLDisplayOrientation #{const SDL_ORIENTATION_LANDSCAPE_FLIPPED}
-pattern SDL_ORIENTATION_PORTRAIT :: SDLDisplayOrientation
-pattern SDL_ORIENTATION_PORTRAIT          = SDLDisplayOrientation #{const SDL_ORIENTATION_PORTRAIT}
-pattern SDL_ORIENTATION_PORTRAIT_FLIPPED :: SDLDisplayOrientation
-pattern SDL_ORIENTATION_PORTRAIT_FLIPPED  = SDLDisplayOrientation #{const SDL_ORIENTATION_PORTRAIT_FLIPPED}
+pattern SDL_ORIENTATION_UNKNOWN           = SDLDisplayOrientation (#const SDL_ORIENTATION_UNKNOWN)
+pattern SDL_ORIENTATION_LANDSCAPE         = SDLDisplayOrientation (#const SDL_ORIENTATION_LANDSCAPE)
+pattern SDL_ORIENTATION_LANDSCAPE_FLIPPED = SDLDisplayOrientation (#const SDL_ORIENTATION_LANDSCAPE_FLIPPED)
+pattern SDL_ORIENTATION_PORTRAIT          = SDLDisplayOrientation (#const SDL_ORIENTATION_PORTRAIT)
+pattern SDL_ORIENTATION_PORTRAIT_FLIPPED  = SDLDisplayOrientation (#const SDL_ORIENTATION_PORTRAIT_FLIPPED)
 
 -- | Display mode structure.
 data SDLDisplayMode = SDLDisplayMode
@@ -212,41 +204,26 @@ instance Storable SDLDisplayMode where
 newtype SDLWindowFlags = SDLWindowFlags CUInt
   deriving newtype (Show, Eq, Bits, Num, Storable)
 
-pattern SDL_WINDOW_FULLSCREEN :: SDLWindowFlags
-pattern SDL_WINDOW_FULLSCREEN         = SDLWindowFlags #{const SDL_WINDOW_FULLSCREEN}
-pattern SDL_WINDOW_OPENGL :: SDLWindowFlags
-pattern SDL_WINDOW_OPENGL             = SDLWindowFlags #{const SDL_WINDOW_OPENGL}
-pattern SDL_WINDOW_METAL :: SDLWindowFlags
-pattern SDL_WINDOW_METAL              = SDLWindowFlags #{const SDL_WINDOW_METAL}
-pattern SDL_WINDOW_VULKAN :: SDLWindowFlags
-pattern SDL_WINDOW_VULKAN             = SDLWindowFlags #{const SDL_WINDOW_VULKAN}
-pattern SDL_WINDOW_HIDDEN :: SDLWindowFlags
-pattern SDL_WINDOW_HIDDEN             = SDLWindowFlags #{const SDL_WINDOW_HIDDEN}
-pattern SDL_WINDOW_BORDERLESS :: SDLWindowFlags
-pattern SDL_WINDOW_BORDERLESS         = SDLWindowFlags #{const SDL_WINDOW_BORDERLESS}
-pattern SDL_WINDOW_RESIZABLE :: SDLWindowFlags
-pattern SDL_WINDOW_RESIZABLE          = SDLWindowFlags #{const SDL_WINDOW_RESIZABLE}
-pattern SDL_WINDOW_MINIMIZED :: SDLWindowFlags
-pattern SDL_WINDOW_MINIMIZED          = SDLWindowFlags #{const SDL_WINDOW_MINIMIZED}
-pattern SDL_WINDOW_MAXIMIZED :: SDLWindowFlags
-pattern SDL_WINDOW_MAXIMIZED          = SDLWindowFlags #{const SDL_WINDOW_MAXIMIZED}
-pattern SDL_WINDOW_MOUSE_GRABBED :: SDLWindowFlags
-pattern SDL_WINDOW_MOUSE_GRABBED       = SDLWindowFlags #{const SDL_WINDOW_MOUSE_GRABBED}
-pattern SDL_WINDOW_HIGH_PIXEL_DENSITY :: SDLWindowFlags -- Renamed pattern
-pattern SDL_WINDOW_HIGH_PIXEL_DENSITY   = SDLWindowFlags #{const SDL_WINDOW_HIGH_PIXEL_DENSITY}
-pattern SDL_WINDOW_ALWAYS_ON_TOP :: SDLWindowFlags
-pattern SDL_WINDOW_ALWAYS_ON_TOP        = SDLWindowFlags #{const SDL_WINDOW_ALWAYS_ON_TOP}
+pattern SDL_WINDOW_FULLSCREEN         = SDLWindowFlags (#const SDL_WINDOW_FULLSCREEN)
+pattern SDL_WINDOW_OPENGL             = SDLWindowFlags (#const SDL_WINDOW_OPENGL)
+pattern SDL_WINDOW_METAL              = SDLWindowFlags (#const SDL_WINDOW_METAL)
+pattern SDL_WINDOW_VULKAN             = SDLWindowFlags (#const SDL_WINDOW_VULKAN)
+pattern SDL_WINDOW_HIDDEN             = SDLWindowFlags (#const SDL_WINDOW_HIDDEN)
+pattern SDL_WINDOW_BORDERLESS         = SDLWindowFlags (#const SDL_WINDOW_BORDERLESS)
+pattern SDL_WINDOW_RESIZABLE          = SDLWindowFlags (#const SDL_WINDOW_RESIZABLE)
+pattern SDL_WINDOW_MINIMIZED          = SDLWindowFlags (#const SDL_WINDOW_MINIMIZED)
+pattern SDL_WINDOW_MAXIMIZED          = SDLWindowFlags (#const SDL_WINDOW_MAXIMIZED)
+pattern SDL_WINDOW_MOUSE_GRABBED      = SDLWindowFlags (#const SDL_WINDOW_MOUSE_GRABBED)
+pattern SDL_WINDOW_HIGH_PIXEL_DENSITY = SDLWindowFlags (#const SDL_WINDOW_HIGH_PIXEL_DENSITY)
+pattern SDL_WINDOW_ALWAYS_ON_TOP      = SDLWindowFlags (#const SDL_WINDOW_ALWAYS_ON_TOP)
 
 -- | Flash operation enumeration.
 newtype SDLFlashOperation = SDLFlashOperation CInt
   deriving newtype (Show, Eq, Ord, Storable, Enum) -- Added Ord, Storable, Enum
 
-pattern SDL_FLASH_CANCEL :: SDLFlashOperation
-pattern SDL_FLASH_CANCEL         = SDLFlashOperation #{const SDL_FLASH_CANCEL}
-pattern SDL_FLASH_BRIEFLY :: SDLFlashOperation
-pattern SDL_FLASH_BRIEFLY        = SDLFlashOperation #{const SDL_FLASH_BRIEFLY}
-pattern SDL_FLASH_UNTIL_FOCUSED :: SDLFlashOperation
-pattern SDL_FLASH_UNTIL_FOCUSED  = SDLFlashOperation #{const SDL_FLASH_UNTIL_FOCUSED}
+pattern SDL_FLASH_CANCEL         = SDLFlashOperation (#const SDL_FLASH_CANCEL)
+pattern SDL_FLASH_BRIEFLY        = SDLFlashOperation (#const SDL_FLASH_BRIEFLY)
+pattern SDL_FLASH_UNTIL_FOCUSED  = SDLFlashOperation (#const SDL_FLASH_UNTIL_FOCUSED)
 
 -- | Opaque OpenGL context handle.
 newtype SDLGLContext = SDLGLContext (Ptr ())

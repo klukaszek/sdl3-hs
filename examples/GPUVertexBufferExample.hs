@@ -1,4 +1,3 @@
--- To define Storable for our custom type
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}

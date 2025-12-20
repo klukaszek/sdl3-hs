@@ -167,11 +167,8 @@ newtype SDLScaleMode = SDLScaleMode CInt
   deriving stock (Show, Eq)
   deriving newtype (Storable, Enum)
 
-pattern SDL_SCALEMODE_NEAREST   :: SDLScaleMode
 pattern SDL_SCALEMODE_NEAREST   = SDLScaleMode #{const SDL_SCALEMODE_NEAREST}
-pattern SDL_SCALEMODE_LINEAR    :: SDLScaleMode
 pattern SDL_SCALEMODE_LINEAR    = SDLScaleMode #{const SDL_SCALEMODE_LINEAR}
-pattern SDL_SCALEMODE_PIXELART  :: SDLScaleMode
 pattern SDL_SCALEMODE_PIXELART  = SDLScaleMode #{const SDL_SCALEMODE_PIXELART}
 
 -- | Flip mode for surface transformations.
@@ -179,11 +176,8 @@ newtype SDLFlipMode = SDLFlipMode CInt
   deriving stock (Show, Eq)
   deriving newtype (Storable, Enum)
 
-pattern SDL_FLIP_NONE        :: SDLFlipMode
 pattern SDL_FLIP_NONE        = SDLFlipMode #{const SDL_FLIP_NONE}
-pattern SDL_FLIP_HORIZONTAL  :: SDLFlipMode
 pattern SDL_FLIP_HORIZONTAL  = SDLFlipMode #{const SDL_FLIP_HORIZONTAL}
-pattern SDL_FLIP_VERTICAL    :: SDLFlipMode
 pattern SDL_FLIP_VERTICAL    = SDLFlipMode #{const SDL_FLIP_VERTICAL}
 
 -- Bitmask Types
@@ -193,13 +187,9 @@ newtype SDLSurfaceFlags = SDLSurfaceFlags CUInt -- Use CUInt for flags
   deriving stock (Show, Eq)
   deriving newtype (Storable, Bits, Num, Enum) -- Add Bits, Num
 
-pattern SDL_SURFACE_PREALLOCATED :: SDLSurfaceFlags
 pattern SDL_SURFACE_PREALLOCATED = SDLSurfaceFlags #{const SDL_SURFACE_PREALLOCATED}
-pattern SDL_SURFACE_LOCK_NEEDED   :: SDLSurfaceFlags
-pattern SDL_SURFACE_LOCK_NEEDED   = SDLSurfaceFlags #{const SDL_SURFACE_LOCK_NEEDED}
-pattern SDL_SURFACE_LOCKED       :: SDLSurfaceFlags
+pattern SDL_SURFACE_LOCK_NEEDED  = SDLSurfaceFlags #{const SDL_SURFACE_LOCK_NEEDED}
 pattern SDL_SURFACE_LOCKED       = SDLSurfaceFlags #{const SDL_SURFACE_LOCKED}
-pattern SDL_SURFACE_SIMD_ALIGNED :: SDLSurfaceFlags
 pattern SDL_SURFACE_SIMD_ALIGNED = SDLSurfaceFlags #{const SDL_SURFACE_SIMD_ALIGNED}
 
 -- Struct Types (Storable)
@@ -249,20 +239,12 @@ instance Storable SDLSurface where -- Use the original name
 
 -- Property Key Patterns
 -- Use pattern synonyms for the property name strings defined in C.
-pattern SDL_PROP_SURFACE_SDR_WHITE_POINT_FLOAT :: String
 pattern SDL_PROP_SURFACE_SDR_WHITE_POINT_FLOAT = #{const_str SDL_PROP_SURFACE_SDR_WHITE_POINT_FLOAT}
-
-pattern SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT :: String
 pattern SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT = #{const_str SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT}
-
-pattern SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING :: String
 pattern SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING = #{const_str SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING}
-
-pattern SDL_PROP_SURFACE_HOTSPOT_X_NUMBER :: String
 pattern SDL_PROP_SURFACE_HOTSPOT_X_NUMBER = #{const_str SDL_PROP_SURFACE_HOTSPOT_X_NUMBER}
-
-pattern SDL_PROP_SURFACE_HOTSPOT_Y_NUMBER :: String
 pattern SDL_PROP_SURFACE_HOTSPOT_Y_NUMBER = #{const_str SDL_PROP_SURFACE_HOTSPOT_Y_NUMBER}
+
 -- Functions
 
 -- | Check if a surface needs locking before pixel access.

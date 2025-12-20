@@ -1,35 +1,31 @@
 -- SDL/Metal.hsc
 {-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-} -- Keep if SDLMetalView needs it later
 
-{-|
-Module      : SDL.Metal
-Description : SDL Metal layer and view creation functions
-Copyright   : Kyle Lukaszek, 2025
-License     : BSD3
-
-This module provides bindings to the SDL3 Metal API, allowing Haskell applications
-to create Metal layers and views on SDL windows for Apple platforms (macOS, iOS, tvOS).
-These functions are useful for specific OS-level integration tasks with Metal.
-
-Note: On macOS, SDL does not automatically associate a MTLDevice with the CAMetalLayer;
-this must be handled in user code.
--}
-
+-- |
+-- Module      : SDL.Metal
+-- Description : SDL Metal layer and view creation functions
+-- Copyright   : Kyle Lukaszek, 2025
+-- License     : BSD3
+--
+-- This module provides bindings to the SDL3 Metal API, allowing Haskell applications
+-- to create Metal layers and views on SDL windows for Apple platforms (macOS, iOS, tvOS).
+-- These functions are useful for specific OS-level integration tasks with Metal.
+--
+-- Note: On macOS, SDL does not automatically associate a MTLDevice with the CAMetalLayer;
+-- this must be handled in user code.
 module SDL3.Metal
   ( -- * Types
-    SDLMetalView(..)
+    SDLMetalView (..),
 
     -- * Metal Support Functions
-  , sdlMetalCreateView
-  , sdlMetalDestroyView
-  , sdlMetalGetLayer
-  ) where
+    sdlMetalCreateView,
+    sdlMetalDestroyView,
+    sdlMetalGetLayer,
+  )
+where
 
 import Foreign hiding (void) -- Avoid hiding void from Prelude if Ptr () is okay
-import SDL3.Video (SDLWindow(..))
-
-#include <SDL3/SDL_metal.h>
+import SDL3.Video (SDLWindow (..))
 
 -- | A handle to a CAMetalLayer-backed NSView (macOS) or UIView (iOS/tvOS).
 -- Using Ptr () as the C API returns void*.
@@ -43,8 +39,9 @@ foreign import ccall unsafe "SDL_Metal_CreateView"
 -- | Create a CAMetalLayer-backed NSView/UIView and attach it to the specified window.
 -- Returns Nothing if creation fails.
 sdlMetalCreateView :: SDLWindow -> IO (Maybe SDLMetalView)
-sdlMetalCreateView (SDLWindow windowPtr) = do -- Unpack SDLWindow
-  view <- sdlMetalCreateViewRaw windowPtr      -- Pass unwrapped Ptr SDL_Window
+sdlMetalCreateView (SDLWindow windowPtr) = do
+  -- Unpack SDLWindow
+  view <- sdlMetalCreateViewRaw windowPtr -- Pass unwrapped Ptr SDL_Window
   if view == nullPtr
     then return Nothing
     else return $ Just $ SDLMetalView view

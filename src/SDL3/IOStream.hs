@@ -97,7 +97,7 @@ import Foreign.C.Types
 import Foreign.Marshal.Alloc
 import Foreign.Ptr
 import Foreign.Storable
-import SDL3.Properties (SDLPropertiesID)
+import SDL3.Properties (SDLPropertiesID, SDLPropertyType (SDLPropertyTypeString))
 
 -- | SDL_IOStream status, set by a read or write operation
 data SDLIOStatus
@@ -166,29 +166,21 @@ newtype SDLIOStream = SDLIOStream (Ptr SDLIOStream)
   deriving (Eq, Show)
 
 -- | Property constants
-sdlPropIOStreamWindowsHandle :: String
-sdlPropIOStreamWindowsHandle = "SDL.iostream.windows.handle"
+sdlPropIOStreamWindowsHandle = "SDL.iostream.windows.handle" :: String
 
-sdlPropIOStreamStdioFile :: String
-sdlPropIOStreamStdioFile = "SDL.iostream.stdio.file"
+sdlPropIOStreamStdioFile = "SDL.iostream.stdio.file" :: String
 
-sdlPropIOStreamFileDescriptor :: String
-sdlPropIOStreamFileDescriptor = "SDL.iostream.file_descriptor"
+sdlPropIOStreamFileDescriptor = "SDL.iostream.file_descriptor" :: String
 
-sdlPropIOStreamAndroidAAsset :: String
-sdlPropIOStreamAndroidAAsset = "SDL.iostream.android.aasset"
+sdlPropIOStreamAndroidAAsset = "SDL.iostream.android.aasset" :: String
 
-sdlPropIOStreamMemoryPointer :: String
-sdlPropIOStreamMemoryPointer = "SDL.iostream.memory.base"
+sdlPropIOStreamMemoryPointer = "SDL.iostream.memory.base" :: String
 
-sdlPropIOStreamMemorySize :: String
-sdlPropIOStreamMemorySize = "SDL.iostream.memory.size"
+sdlPropIOStreamMemorySize = "SDL.iostream.memory.size" :: String
 
-sdlPropIOStreamDynamicMemory :: String
-sdlPropIOStreamDynamicMemory = "SDL.iostream.dynamic.memory"
+sdlPropIOStreamDynamicMemory = "SDL.iostream.dynamic.memory" :: String
 
-sdlPropIOStreamDynamicChunksize :: String
-sdlPropIOStreamDynamicChunksize = "SDL.iostream.dynamic.chunksize"
+sdlPropIOStreamDynamicChunksize = "SDL.iostream.dynamic.chunksize" :: String
 
 -- | Create a new SDL_IOStream structure for reading from and/or writing to a named file
 --

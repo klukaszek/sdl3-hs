@@ -89,16 +89,11 @@ newtype SDLTrayEntry = SDLTrayEntry (Ptr SDL_TrayEntry) deriving (Show, Eq)
 newtype SDLTrayEntryFlags = SDLTrayEntryFlags CUInt
   deriving newtype (Show, Eq, Bits, Num, Storable) -- Added Num for zeroBits
 
-pattern SDL_TRAYENTRY_BUTTON :: SDLTrayEntryFlags
-pattern SDL_TRAYENTRY_BUTTON   = SDLTrayEntryFlags #{const SDL_TRAYENTRY_BUTTON}
-pattern SDL_TRAYENTRY_CHECKBOX :: SDLTrayEntryFlags
-pattern SDL_TRAYENTRY_CHECKBOX = SDLTrayEntryFlags #{const SDL_TRAYENTRY_CHECKBOX}
-pattern SDL_TRAYENTRY_SUBMENU :: SDLTrayEntryFlags
-pattern SDL_TRAYENTRY_SUBMENU  = SDLTrayEntryFlags #{const SDL_TRAYENTRY_SUBMENU}
-pattern SDL_TRAYENTRY_DISABLED :: SDLTrayEntryFlags
-pattern SDL_TRAYENTRY_DISABLED = SDLTrayEntryFlags #{const SDL_TRAYENTRY_DISABLED}
-pattern SDL_TRAYENTRY_CHECKED :: SDLTrayEntryFlags
-pattern SDL_TRAYENTRY_CHECKED  = SDLTrayEntryFlags #{const SDL_TRAYENTRY_CHECKED}
+pattern SDL_TRAYENTRY_BUTTON   = SDLTrayEntryFlags (#const SDL_TRAYENTRY_BUTTON)
+pattern SDL_TRAYENTRY_CHECKBOX = SDLTrayEntryFlags (#const SDL_TRAYENTRY_CHECKBOX)
+pattern SDL_TRAYENTRY_SUBMENU  = SDLTrayEntryFlags (#const SDL_TRAYENTRY_SUBMENU)
+pattern SDL_TRAYENTRY_DISABLED = SDLTrayEntryFlags (#const SDL_TRAYENTRY_DISABLED)
+pattern SDL_TRAYENTRY_CHECKED  = SDLTrayEntryFlags (#const SDL_TRAYENTRY_CHECKED)
 
 -- | Callback function prototype for when a tray menu entry is clicked.
 --   Arguments: userdata pointer, SDLTrayEntry handle.

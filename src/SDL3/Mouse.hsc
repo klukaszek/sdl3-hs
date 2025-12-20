@@ -3,6 +3,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- |
 -- Module      : SDL.Mouse
@@ -137,79 +138,47 @@ type SDLMouseMotionTransformCallback =
 newtype SDLSystemCursor = SDLSystemCursor CInt
   deriving newtype (Show, Eq, Ord, Storable, Enum)
 
-pattern SDL_SYSTEM_CURSOR_DEFAULT :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_DEFAULT      = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_DEFAULT}
-pattern SDL_SYSTEM_CURSOR_TEXT :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_TEXT         = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_TEXT}
-pattern SDL_SYSTEM_CURSOR_WAIT :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_WAIT         = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_WAIT}
-pattern SDL_SYSTEM_CURSOR_CROSSHAIR :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_CROSSHAIR    = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_CROSSHAIR}
-pattern SDL_SYSTEM_CURSOR_PROGRESS :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_PROGRESS     = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_PROGRESS}
-pattern SDL_SYSTEM_CURSOR_NWSE_RESIZE :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_NWSE_RESIZE  = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_NWSE_RESIZE}
-pattern SDL_SYSTEM_CURSOR_NESW_RESIZE :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_NESW_RESIZE  = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_NESW_RESIZE}
-pattern SDL_SYSTEM_CURSOR_EW_RESIZE :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_EW_RESIZE    = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_EW_RESIZE}
-pattern SDL_SYSTEM_CURSOR_NS_RESIZE :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_NS_RESIZE    = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_NS_RESIZE}
-pattern SDL_SYSTEM_CURSOR_MOVE :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_MOVE         = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_MOVE}
-pattern SDL_SYSTEM_CURSOR_NOT_ALLOWED :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_NOT_ALLOWED  = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_NOT_ALLOWED}
-pattern SDL_SYSTEM_CURSOR_POINTER :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_POINTER      = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_POINTER}
-pattern SDL_SYSTEM_CURSOR_NW_RESIZE :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_NW_RESIZE    = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_NW_RESIZE}
-pattern SDL_SYSTEM_CURSOR_N_RESIZE :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_N_RESIZE     = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_N_RESIZE}
-pattern SDL_SYSTEM_CURSOR_NE_RESIZE :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_NE_RESIZE    = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_NE_RESIZE}
-pattern SDL_SYSTEM_CURSOR_E_RESIZE :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_E_RESIZE     = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_E_RESIZE}
-pattern SDL_SYSTEM_CURSOR_SE_RESIZE :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_SE_RESIZE    = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_SE_RESIZE}
-pattern SDL_SYSTEM_CURSOR_S_RESIZE :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_S_RESIZE     = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_S_RESIZE}
-pattern SDL_SYSTEM_CURSOR_SW_RESIZE :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_SW_RESIZE    = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_SW_RESIZE}
-pattern SDL_SYSTEM_CURSOR_W_RESIZE :: SDLSystemCursor
 pattern SDL_SYSTEM_CURSOR_W_RESIZE     = SDLSystemCursor #{const SDL_SYSTEM_CURSOR_W_RESIZE}
 
 -- | Scroll direction types for the Scroll event
 newtype SDLMouseWheelDirection = SDLMouseWheelDirection CUInt -- C enum uses Uint32
   deriving newtype (Show, Eq, Ord, Storable, Enum)
 
-pattern SDL_MOUSEWHEEL_NORMAL :: SDLMouseWheelDirection
 pattern SDL_MOUSEWHEEL_NORMAL = SDLMouseWheelDirection #{const SDL_MOUSEWHEEL_NORMAL}
-pattern SDL_MOUSEWHEEL_FLIPPED :: SDLMouseWheelDirection
 pattern SDL_MOUSEWHEEL_FLIPPED = SDLMouseWheelDirection #{const SDL_MOUSEWHEEL_FLIPPED}
 
 -- Mouse button constants (Indices)
-pattern SDL_BUTTON_LEFT :: Int
-pattern SDL_BUTTON_LEFT   = #{const SDL_BUTTON_LEFT}
-pattern SDL_BUTTON_MIDDLE :: Int
-pattern SDL_BUTTON_MIDDLE = #{const SDL_BUTTON_MIDDLE}
-pattern SDL_BUTTON_RIGHT :: Int
-pattern SDL_BUTTON_RIGHT  = #{const SDL_BUTTON_RIGHT}
-pattern SDL_BUTTON_X1 :: Int
-pattern SDL_BUTTON_X1     = #{const SDL_BUTTON_X1}
-pattern SDL_BUTTON_X2 :: Int
-pattern SDL_BUTTON_X2     = #{const SDL_BUTTON_X2}
+pattern SDL_BUTTON_LEFT   = (#{const SDL_BUTTON_LEFT}) :: Int
+pattern SDL_BUTTON_MIDDLE = (#{const SDL_BUTTON_MIDDLE}) :: Int
+pattern SDL_BUTTON_RIGHT  = (#{const SDL_BUTTON_RIGHT}) :: Int
+pattern SDL_BUTTON_X1     = (#{const SDL_BUTTON_X1}) :: Int
+pattern SDL_BUTTON_X2     = (#{const SDL_BUTTON_X2}) :: Int
 
 -- Mouse button masks (Flags)
-pattern SDL_BUTTON_LMASK :: SDLMouseButtonFlags
-pattern SDL_BUTTON_LMASK  = #{const SDL_BUTTON_LMASK}
-pattern SDL_BUTTON_MMASK :: SDLMouseButtonFlags
-pattern SDL_BUTTON_MMASK  = #{const SDL_BUTTON_MMASK}
-pattern SDL_BUTTON_RMASK :: SDLMouseButtonFlags
-pattern SDL_BUTTON_RMASK  = #{const SDL_BUTTON_RMASK}
-pattern SDL_BUTTON_X1MASK :: SDLMouseButtonFlags
-pattern SDL_BUTTON_X1MASK = #{const SDL_BUTTON_X1MASK}
-pattern SDL_BUTTON_X2MASK :: SDLMouseButtonFlags
-pattern SDL_BUTTON_X2MASK = #{const SDL_BUTTON_X2MASK}
+pattern SDL_BUTTON_LMASK = (#{const SDL_BUTTON_LMASK}) :: SDLMouseButtonFlags
+pattern SDL_BUTTON_MMASK = (#{const SDL_BUTTON_MMASK}) :: SDLMouseButtonFlags
+pattern SDL_BUTTON_RMASK = (#{const SDL_BUTTON_RMASK}) :: SDLMouseButtonFlags
+pattern SDL_BUTTON_X1MASK = (#{const SDL_BUTTON_X1MASK}) :: SDLMouseButtonFlags
+pattern SDL_BUTTON_X2MASK = (#{const SDL_BUTTON_X2MASK}) :: SDLMouseButtonFlags
 
 -- * Mouse Management
 

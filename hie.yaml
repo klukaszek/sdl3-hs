@@ -3,6 +3,5 @@ cradle:
     - path: "./src"
       component: "lib:sdl3"
     - path: "./examples"
-      component: "lib:sdl3"
     - path: "./test"
       component: "exe:binding-checker"

@@ -3,6 +3,7 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 -- |
 -- Module      : SDL.Power
@@ -39,18 +40,12 @@ newtype SDLPowerState = SDLPowerState CInt
   deriving newtype (Eq, Ord, Storable, Enum) -- Deriving common instances
 
 -- Define pattern synonyms using the C constants
-pattern SDL_POWERSTATE_ERROR :: SDLPowerState
-pattern SDL_POWERSTATE_ERROR     = SDLPowerState (#{const SDL_POWERSTATE_ERROR})
-pattern SDL_POWERSTATE_UNKNOWN :: SDLPowerState
-pattern SDL_POWERSTATE_UNKNOWN   = SDLPowerState #{const SDL_POWERSTATE_UNKNOWN}
-pattern SDL_POWERSTATE_ON_BATTERY :: SDLPowerState
-pattern SDL_POWERSTATE_ON_BATTERY = SDLPowerState #{const SDL_POWERSTATE_ON_BATTERY}
-pattern SDL_POWERSTATE_NO_BATTERY :: SDLPowerState
-pattern SDL_POWERSTATE_NO_BATTERY = SDLPowerState #{const SDL_POWERSTATE_NO_BATTERY}
-pattern SDL_POWERSTATE_CHARGING :: SDLPowerState
-pattern SDL_POWERSTATE_CHARGING  = SDLPowerState #{const SDL_POWERSTATE_CHARGING}
-pattern SDL_POWERSTATE_CHARGED :: SDLPowerState
-pattern SDL_POWERSTATE_CHARGED   = SDLPowerState #{const SDL_POWERSTATE_CHARGED}
+pattern SDL_POWERSTATE_ERROR = SDLPowerState (#const SDL_POWERSTATE_ERROR)
+pattern SDL_POWERSTATE_UNKNOWN = SDLPowerState (#const SDL_POWERSTATE_UNKNOWN)
+pattern SDL_POWERSTATE_ON_BATTERY = SDLPowerState (#const SDL_POWERSTATE_ON_BATTERY)
+pattern SDL_POWERSTATE_NO_BATTERY = SDLPowerState (#const SDL_POWERSTATE_NO_BATTERY)
+pattern SDL_POWERSTATE_CHARGING = SDLPowerState (#const SDL_POWERSTATE_CHARGING)
+pattern SDL_POWERSTATE_CHARGED = SDLPowerState (#const SDL_POWERSTATE_CHARGED)
 
 -- Provide a more informative Show instance using patterns
 instance Show SDLPowerState where

@@ -102,20 +102,15 @@ instance Storable SDLDateTime where
 newtype SDLDateFormat = SDLDateFormat CInt
   deriving newtype (Show, Eq, Ord, Storable, Enum)
 
-pattern SDL_DATE_FORMAT_YYYYMMDD :: SDLDateFormat
 pattern SDL_DATE_FORMAT_YYYYMMDD = SDLDateFormat #{const SDL_DATE_FORMAT_YYYYMMDD}
-pattern SDL_DATE_FORMAT_DDMMYYYY :: SDLDateFormat
 pattern SDL_DATE_FORMAT_DDMMYYYY = SDLDateFormat #{const SDL_DATE_FORMAT_DDMMYYYY}
-pattern SDL_DATE_FORMAT_MMDDYYYY :: SDLDateFormat
 pattern SDL_DATE_FORMAT_MMDDYYYY = SDLDateFormat #{const SDL_DATE_FORMAT_MMDDYYYY}
 
 -- | The preferred time format of the current system locale (SDL_TimeFormat).
 newtype SDLTimeFormat = SDLTimeFormat CInt
   deriving newtype (Show, Eq, Ord, Storable, Enum)
 
-pattern SDL_TIME_FORMAT_24HR :: SDLTimeFormat
 pattern SDL_TIME_FORMAT_24HR = SDLTimeFormat #{const SDL_TIME_FORMAT_24HR}
-pattern SDL_TIME_FORMAT_12HR :: SDLTimeFormat
 pattern SDL_TIME_FORMAT_12HR = SDLTimeFormat #{const SDL_TIME_FORMAT_12HR}
 
 -- | Gets the current preferred date and time format for the system locale (SDL_GetDateTimeLocalePreferences).

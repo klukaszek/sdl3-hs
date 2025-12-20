@@ -1,29 +1,27 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
-{-|
-Module      : SDL.LoadSO
-Description : SDL shared object loading utilities
-Copyright   : (c) Kyle Lukaszek, 2025
-License     : BS3
 
-System-dependent library loading routines for working with shared objects
-(DLLs on Windows, shared libraries on Linux, etc.).
--}
-
+-- |
+-- Module      : SDL.LoadSO
+-- Description : SDL shared object loading utilities
+-- Copyright   : (c) Kyle Lukaszek, 2025
+-- License     : BS3
+--
+-- System-dependent library loading routines for working with shared objects
+-- (DLLs on Windows, shared libraries on Linux, etc.).
 module SDL3.LoadSO
   ( -- * Types
-    SDLSharedObject
-  , SDLFunctionPointer
+    SDLSharedObject,
+    SDLFunctionPointer,
 
     -- * Functions
-  , sdlLoadObject
-  , sdlLoadFunction
-  , sdlUnloadObject
-  ) where
+    sdlLoadObject,
+    sdlLoadFunction,
+    sdlUnloadObject,
+  )
+where
 
-#include <SDL3/SDL_loadso.h>
-
-import Foreign.Ptr (Ptr, nullPtr, FunPtr, nullFunPtr)
 import Foreign.C.String (CString, withCString)
+import Foreign.Ptr (FunPtr, Ptr, nullFunPtr, nullPtr)
 
 -- | Opaque type representing a loaded shared object
 data SDLSharedObject
@@ -38,9 +36,10 @@ foreign import ccall "SDL_LoadObject"
 sdlLoadObject :: String -> IO (Maybe (Ptr SDLSharedObject))
 sdlLoadObject sofile = withCString sofile $ \cstr -> do
   handle <- sdlLoadObjectRaw cstr
-  return $ if handle == nullPtr
-             then Nothing
-             else Just handle
+  return $
+    if handle == nullPtr
+      then Nothing
+      else Just handle
 
 -- | Look up a function in a shared object
 foreign import ccall "SDL_LoadFunction"
@@ -49,9 +48,10 @@ foreign import ccall "SDL_LoadFunction"
 sdlLoadFunction :: Ptr SDLSharedObject -> String -> IO (Maybe SDLFunctionPointer)
 sdlLoadFunction handle name = withCString name $ \cstr -> do
   ptr <- sdlLoadFunctionRaw handle cstr
-  return $ if ptr == nullFunPtr
-             then Nothing
-             else Just ptr
+  return $
+    if ptr == nullFunPtr
+      then Nothing
+      else Just ptr
 
 -- | Unload a shared object
 foreign import ccall "SDL_UnloadObject"
