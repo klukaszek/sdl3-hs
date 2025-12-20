@@ -154,7 +154,6 @@ echo ""
 echo "### Notes"
 echo "- Status reflects core SDL3 headers (test/internal headers excluded)"
 echo "- Missing function details are available in the \`broken/\` directory after running the binding checker"
-echo "- Use \`./check-sdl-bindings -i\` for interactive binding status checking"
 echo "- Some modules may intentionally have no bindings if not applicable to Haskell"
 echo ""
 

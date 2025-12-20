@@ -1,10 +1,13 @@
 # GitHub Actions Integration Guide
 
-This directory contains the complete GitHub Actions integration for SDL3 Haskell bindings, providing automated binding status updates and documentation deployment.
+This directory contains the complete GitHub Actions integration for SDL3 Haskell
+bindings, providing automated binding status updates and documentation
+deployment.
 
 ## 🚀 Quick Start
 
-The GitHub integration is **fully automated** - simply push to the `main` branch and everything happens automatically:
+The GitHub integration is **fully automated** - simply push to the `main` branch
+and everything happens automatically:
 
 1. **SDL3 installation** (following README instructions)
 2. **Binding status generation** (live analysis of all modules)
@@ -13,13 +16,13 @@ The GitHub integration is **fully automated** - simply push to the `main` branch
 
 ## 📁 Directory Contents
 
-| File | Purpose |
-|------|---------|
-| `workflows/deploy-readme.yml` | Main GitHub Actions workflow |
-| `template.html` | Haskell-themed Pandoc template for documentation |
-| `generate-binding-status.sh` | Analyzes bindings and creates status tables |
-| `update-readme.sh` | Intelligently updates README with fresh status |
-| `validate.sh` | Complete validation script (replaces multiple test scripts) |
+| File                          | Purpose                                                     |
+| ----------------------------- | ----------------------------------------------------------- |
+| `workflows/deploy-readme.yml` | Main GitHub Actions workflow                                |
+| `template.html`               | Haskell-themed Pandoc template for documentation            |
+| `generate-binding-status.sh`  | Analyzes bindings and creates status tables                 |
+| `update-readme.sh`            | Intelligently updates README with fresh status              |
+| `validate.sh`                 | Complete validation script (replaces multiple test scripts) |
 
 ## ⚡ Quick Validation
 
@@ -79,9 +82,8 @@ The automated binding status includes:
 # Direct usage
 cabal exec binding-checker
 
-# Smart helper (modern tools)
-./check-sdl-bindings -i  # Interactive mode
-./check-sdl-bindings -c GPU  # Find GPU-related headers
+# Direct usage
+cabal exec binding-checker
 ```
 
 ## 🎨 Documentation Styling
@@ -93,27 +95,32 @@ The HTML documentation uses a custom Haskell-themed design:
 - **Responsive**: Mobile-friendly layout
 - **Accessibility**: High contrast and clear visual hierarchy
 
-**Note**: The `template.html` file contains Pandoc template variables like `$title$` and `$body$` which are not valid HTML by themselves. These get substituted by Pandoc during HTML generation. The validation scripts check for template structure, not HTML syntax.
+**Note**: The `template.html` file contains Pandoc template variables like
+`$title$` and `$body$` which are not valid HTML by themselves. These get
+substituted by Pandoc during HTML generation. The validation scripts check for
+template structure, not HTML syntax.
 
 ## 📈 Status Indicators
 
-| Symbol | Meaning |
-|--------|---------|
-| ✅ | **Complete** - All functions from header are bound |
-| ⚠️ `X missing` | **Partial** - Header has bindings but X functions missing |
-| ❌ | **No bindings** - No Haskell bindings exist for this header |
-| ❓ | **Unknown** - Status could not be determined |
+| Symbol         | Meaning                                                     |
+| -------------- | ----------------------------------------------------------- |
+| ✅             | **Complete** - All functions from header are bound          |
+| ⚠️ `X missing` | **Partial** - Header has bindings but X functions missing   |
+| ❌             | **No bindings** - No Haskell bindings exist for this header |
+| ❓             | **Unknown** - Status could not be determined                |
 
 ## 🔧 Troubleshooting
 
 ### Common Issues
 
 **Build Fails**: Run validation to diagnose
+
 ```bash
 ./.github/validate.sh full  # Shows detailed error information
 ```
 
 **Status Generation Fails**: Check SDL3 installation and binding checker
+
 ```bash
 pkg-config --exists sdl3  # Should succeed
 cabal build binding-checker  # Should build successfully
@@ -121,12 +128,15 @@ echo "/usr/local/include/SDL3/SDL_init.h" | cabal exec binding-checker  # Should
 ```
 
 **README Not Updated**: Check script permissions and git status
+
 ```bash
 ls -la .github/*.sh  # Should show executable permissions
 git status  # Check for uncommitted changes
 ```
 
-**Template Issues**: Remember that `template.html` contains Pandoc variables, not valid HTML
+**Template Issues**: Remember that `template.html` contains Pandoc variables,
+not valid HTML
+
 ```bash
 # This will fail - template.html is NOT valid HTML by itself
 html5validator .github/template.html  # ❌ Will fail
@@ -152,18 +162,20 @@ Monitor the workflow execution:
 - **Professional Docs**: Beautiful, accessible documentation
 - **Developer Friendly**: Modern CLI tools integration
 - **Transparent**: Clear status reporting and error handling
-- **Simplified Testing**: Single validation script replaces multiple test scripts
+- **Simplified Testing**: Single validation script replaces multiple test
+  scripts
 
 ## 🤝 Contributing
 
 When contributing to SDL3 bindings:
 
 1. Make your changes to binding files
-2. Test locally with `./check-sdl-bindings`
+2. Test locally with `cabal exec binding-checker`
 3. Run `./.github/validate.sh` to ensure integration works
 4. Push to main - GitHub Actions handles the rest!
 
 The system will automatically:
+
 - Detect new or changed bindings
 - Update completion percentages
 - Generate fresh documentation
@@ -171,4 +183,5 @@ The system will automatically:
 
 ---
 
-*This integration provides a seamless, maintenance-free solution for keeping SDL3 binding documentation current and accessible.*
+_This integration provides a seamless, maintenance-free solution for keeping
+SDL3 binding documentation current and accessible._
