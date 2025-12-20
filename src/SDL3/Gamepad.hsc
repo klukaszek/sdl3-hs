@@ -213,61 +213,33 @@ data SDLGamepadType
 newtype SDLGamepadButton = SDLGamepadButton CChar
   deriving newtype (Show, Eq, Ord, Num, Storable) -- Cannot reliably derive Enum
 
-pattern SDL_GAMEPAD_BUTTON_INVALID :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_INVALID        = SDLGamepadButton (#{const SDL_GAMEPAD_BUTTON_INVALID})        -- (-1)
-pattern SDL_GAMEPAD_BUTTON_SOUTH :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_SOUTH          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_SOUTH}          -- (0)  Bottom face button (e.g. Xbox A button)
-pattern SDL_GAMEPAD_BUTTON_EAST :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_EAST           = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_EAST}           -- (1)  Right face button (e.g. Xbox B button)
-pattern SDL_GAMEPAD_BUTTON_WEST :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_WEST           = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_WEST}           -- (2)  Left face button (e.g. Xbox X button)
-pattern SDL_GAMEPAD_BUTTON_NORTH :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_NORTH          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_NORTH}          -- (3)  Top face button (e.g. Xbox Y button)
-pattern SDL_GAMEPAD_BUTTON_BACK :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_BACK           = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_BACK}           -- (4)
-pattern SDL_GAMEPAD_BUTTON_GUIDE :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_GUIDE          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_GUIDE}          -- (5)
-pattern SDL_GAMEPAD_BUTTON_START :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_START          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_START}          -- (6)
-pattern SDL_GAMEPAD_BUTTON_LEFT_STICK :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_LEFT_STICK     = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_LEFT_STICK}     -- (7)
-pattern SDL_GAMEPAD_BUTTON_RIGHT_STICK :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_RIGHT_STICK    = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_RIGHT_STICK}    -- (8)
-pattern SDL_GAMEPAD_BUTTON_LEFT_SHOULDER :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_LEFT_SHOULDER  = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_LEFT_SHOULDER}  -- (9)
-pattern SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER} -- (10)
-pattern SDL_GAMEPAD_BUTTON_DPAD_UP :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_DPAD_UP        = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_DPAD_UP}        -- (11)
-pattern SDL_GAMEPAD_BUTTON_DPAD_DOWN :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_DPAD_DOWN      = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_DPAD_DOWN}      -- (12)
-pattern SDL_GAMEPAD_BUTTON_DPAD_LEFT :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_DPAD_LEFT      = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_DPAD_LEFT}      -- (13)
-pattern SDL_GAMEPAD_BUTTON_DPAD_RIGHT :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_DPAD_RIGHT     = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_DPAD_RIGHT}     -- (14)
-pattern SDL_GAMEPAD_BUTTON_MISC1 :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_MISC1          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_MISC1}          -- (15) Xbox Series X share button, PS5 microphone button, etc.
-pattern SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1 :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1  = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1}  -- (16) Upper right paddle
-pattern SDL_GAMEPAD_BUTTON_LEFT_PADDLE1 :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_LEFT_PADDLE1   = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_LEFT_PADDLE1}   -- (17) Upper left paddle
-pattern SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2 :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2  = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2}  -- (18) Lower right paddle
-pattern SDL_GAMEPAD_BUTTON_LEFT_PADDLE2 :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_LEFT_PADDLE2   = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_LEFT_PADDLE2}   -- (19) Lower left paddle
-pattern SDL_GAMEPAD_BUTTON_TOUCHPAD :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_TOUCHPAD       = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_TOUCHPAD}       -- (20) PS4/PS5 touchpad button
-pattern SDL_GAMEPAD_BUTTON_MISC2 :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_MISC2          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_MISC2}          -- (21) Additional button
-pattern SDL_GAMEPAD_BUTTON_MISC3 :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_MISC3          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_MISC3}          -- (22) Additional button
-pattern SDL_GAMEPAD_BUTTON_MISC4 :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_MISC4          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_MISC4}          -- (23) Additional button
-pattern SDL_GAMEPAD_BUTTON_MISC5 :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_MISC5          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_MISC5}          -- (24) Additional button
-pattern SDL_GAMEPAD_BUTTON_MISC6 :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_MISC6          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_MISC6}          -- (25) Additional button
-pattern SDL_GAMEPAD_BUTTON_COUNT :: SDLGamepadButton
 pattern SDL_GAMEPAD_BUTTON_COUNT          = SDLGamepadButton #{const SDL_GAMEPAD_BUTTON_COUNT}          -- (26)
 
 -- | Gamepad button labels
@@ -287,21 +259,13 @@ data SDLGamepadButtonLabel
 newtype SDLGamepadAxis = SDLGamepadAxis CInt
   deriving newtype (Show, Eq, Num, Ord, Storable) -- Cannot reliably derive Enum
 
-pattern SDL_GAMEPAD_AXIS_INVALID :: SDLGamepadAxis
 pattern SDL_GAMEPAD_AXIS_INVALID        = SDLGamepadAxis (#{const SDL_GAMEPAD_AXIS_INVALID})        -- (-1)
-pattern SDL_GAMEPAD_AXIS_LEFTX :: SDLGamepadAxis
 pattern SDL_GAMEPAD_AXIS_LEFTX          = SDLGamepadAxis #{const SDL_GAMEPAD_AXIS_LEFTX}          -- (0)
-pattern SDL_GAMEPAD_AXIS_LEFTY :: SDLGamepadAxis
 pattern SDL_GAMEPAD_AXIS_LEFTY          = SDLGamepadAxis #{const SDL_GAMEPAD_AXIS_LEFTY}          -- (1)
-pattern SDL_GAMEPAD_AXIS_RIGHTX :: SDLGamepadAxis
 pattern SDL_GAMEPAD_AXIS_RIGHTX         = SDLGamepadAxis #{const SDL_GAMEPAD_AXIS_RIGHTX}         -- (2)
-pattern SDL_GAMEPAD_AXIS_RIGHTY :: SDLGamepadAxis
 pattern SDL_GAMEPAD_AXIS_RIGHTY         = SDLGamepadAxis #{const SDL_GAMEPAD_AXIS_RIGHTY}         -- (3)
-pattern SDL_GAMEPAD_AXIS_LEFT_TRIGGER :: SDLGamepadAxis
 pattern SDL_GAMEPAD_AXIS_LEFT_TRIGGER   = SDLGamepadAxis #{const SDL_GAMEPAD_AXIS_LEFT_TRIGGER}   -- (4)
-pattern SDL_GAMEPAD_AXIS_RIGHT_TRIGGER :: SDLGamepadAxis
 pattern SDL_GAMEPAD_AXIS_RIGHT_TRIGGER  = SDLGamepadAxis #{const SDL_GAMEPAD_AXIS_RIGHT_TRIGGER}  -- (5)
-pattern SDL_GAMEPAD_AXIS_COUNT :: SDLGamepadAxis
 pattern SDL_GAMEPAD_AXIS_COUNT          = SDLGamepadAxis #{const SDL_GAMEPAD_AXIS_COUNT}          -- (6)
 
 -- | Types of gamepad control bindings

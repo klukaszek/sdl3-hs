@@ -62,19 +62,12 @@ type SDLPenID = Word32
 newtype SDLPenInputFlags = SDLPenInputFlags Word32
   deriving newtype (Show, Eq, Bits, Num, Storable) -- Added Num for convenience with bitwise OR
 
-pattern SDL_PEN_INPUT_DOWN :: SDLPenInputFlags
 pattern SDL_PEN_INPUT_DOWN = SDLPenInputFlags #{const SDL_PEN_INPUT_DOWN}
-pattern SDL_PEN_INPUT_BUTTON_1 :: SDLPenInputFlags
 pattern SDL_PEN_INPUT_BUTTON_1 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_1}
-pattern SDL_PEN_INPUT_BUTTON_2 :: SDLPenInputFlags
 pattern SDL_PEN_INPUT_BUTTON_2 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_2}
-pattern SDL_PEN_INPUT_BUTTON_3 :: SDLPenInputFlags
 pattern SDL_PEN_INPUT_BUTTON_3 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_3}
-pattern SDL_PEN_INPUT_BUTTON_4 :: SDLPenInputFlags
 pattern SDL_PEN_INPUT_BUTTON_4 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_4}
-pattern SDL_PEN_INPUT_BUTTON_5 :: SDLPenInputFlags
 pattern SDL_PEN_INPUT_BUTTON_5 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_5}
-pattern SDL_PEN_INPUT_ERASER_TIP :: SDLPenInputFlags
 pattern SDL_PEN_INPUT_ERASER_TIP = SDLPenInputFlags #{const SDL_PEN_INPUT_ERASER_TIP}
 
 -- | Pen axis indices for SDL_PenAxisEvent.
@@ -82,27 +75,17 @@ pattern SDL_PEN_INPUT_ERASER_TIP = SDLPenInputFlags #{const SDL_PEN_INPUT_ERASER
 newtype SDLPenAxis = SDLPenAxis CInt
   deriving newtype (Show, Eq, Ord, Storable, Enum)
 
-pattern SDL_PEN_AXIS_PRESSURE :: SDLPenAxis
 pattern SDL_PEN_AXIS_PRESSURE = SDLPenAxis #{const SDL_PEN_AXIS_PRESSURE}
-pattern SDL_PEN_AXIS_XTILT :: SDLPenAxis
 pattern SDL_PEN_AXIS_XTILT = SDLPenAxis #{const SDL_PEN_AXIS_XTILT}
-pattern SDL_PEN_AXIS_YTILT :: SDLPenAxis
 pattern SDL_PEN_AXIS_YTILT = SDLPenAxis #{const SDL_PEN_AXIS_YTILT}
-pattern SDL_PEN_AXIS_DISTANCE :: SDLPenAxis
 pattern SDL_PEN_AXIS_DISTANCE = SDLPenAxis #{const SDL_PEN_AXIS_DISTANCE}
-pattern SDL_PEN_AXIS_ROTATION :: SDLPenAxis
 pattern SDL_PEN_AXIS_ROTATION = SDLPenAxis #{const SDL_PEN_AXIS_ROTATION}
-pattern SDL_PEN_AXIS_SLIDER :: SDLPenAxis
 pattern SDL_PEN_AXIS_SLIDER = SDLPenAxis #{const SDL_PEN_AXIS_SLIDER}
-pattern SDL_PEN_AXIS_TANGENTIAL_PRESSURE :: SDLPenAxis
 pattern SDL_PEN_AXIS_TANGENTIAL_PRESSURE = SDLPenAxis #{const SDL_PEN_AXIS_TANGENTIAL_PRESSURE}
-pattern SDL_PEN_AXIS_COUNT :: SDLPenAxis
 pattern SDL_PEN_AXIS_COUNT = SDLPenAxis #{const SDL_PEN_AXIS_COUNT}
 
 -- | Mouse ID for mouse events simulated with pen input.
-pattern SDL_PEN_MOUSEID :: SDLMouseID
 pattern SDL_PEN_MOUSEID = #{const SDL_PEN_MOUSEID}
 
 -- | Touch ID for touch events simulated with pen input.
-pattern SDL_PEN_TOUCHID :: SDLTouchID
 pattern SDL_PEN_TOUCHID = #{const SDL_PEN_TOUCHID}

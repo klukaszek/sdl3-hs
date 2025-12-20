@@ -23,6 +23,7 @@ import Control.Monad (unless, when)
 -- For path manipulation (optional but clean)
 
 import Data.Bits ((.&.), (.|.))
+import Data.Functor
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Word (Word16, Word32, Word8)
 import Foreign.C.String
@@ -367,7 +368,7 @@ commonInit exampleName windowFlags = do
       sdlQuit
       return Nothing
     Just device -> do
-      deviceName <- sdlGetGPUDeviceDriver device >>= return . fromMaybe "Unknown Driver"
+      deviceName <- sdlGetGPUDeviceDriver device <&> fromMaybe "Unknown Driver"
       sdlLog $ "GPU Device created successfully with driver: " ++ deviceName
 
       maybeWindow <- sdlCreateWindow exampleName 640 480 windowFlags
@@ -537,8 +538,8 @@ createComputePipelineFromShader device baseFilename baseCreateInfo = do
       sdlLog $ "Attempting to load compute shader from: " ++ absolutePath
       bracket
         (sdlLoadFile absolutePath)
-        (\loadResult -> case loadResult of Just (ptr, _) -> free ptr; Nothing -> return ())
-        ( \loadResult -> case loadResult of
+        (\case Just (ptr, _) -> free ptr; Nothing -> return ())
+        ( \case
             Nothing -> do
               sdlLog $ "SDL_LoadFile failed for compute shader: " ++ absolutePath
               return Nothing
@@ -812,7 +813,7 @@ loadHDRImageFromFile baseImageFilename desiredChannels = do
   case eitherAbsolutePath of
     Left ex -> do
       sdlLog $ "Error resolving HDR image path for '" ++ relativePath ++ "' using getDataFileName: " ++ show ex
-      sdlLog $ "Ensure the file is listed in your .cabal's data-files and accessible."
+      sdlLog "Ensure the file is listed in your .cabal's data-files and accessible."
       return Nothing
     Right absolutePath -> do
       sdlLog $ "Attempting to load HDR image from resolved absolute path: " ++ absolutePath

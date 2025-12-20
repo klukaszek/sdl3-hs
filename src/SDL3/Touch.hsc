@@ -3,6 +3,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-} -- Added for Storable SDLFinger
 
 {-|
@@ -67,14 +68,10 @@ type SDLFingerID = Word64
 newtype SDLTouchDeviceType = SDLTouchDeviceType CInt
   deriving newtype (Show, Eq, Ord, Storable, Enum, Bounded)
 
-pattern SDL_TOUCH_DEVICE_INVALID :: SDLTouchDeviceType
-pattern SDL_TOUCH_DEVICE_INVALID           = SDLTouchDeviceType (#{const SDL_TOUCH_DEVICE_INVALID})
-pattern SDL_TOUCH_DEVICE_DIRECT :: SDLTouchDeviceType
-pattern SDL_TOUCH_DEVICE_DIRECT            = SDLTouchDeviceType #{const SDL_TOUCH_DEVICE_DIRECT}
-pattern SDL_TOUCH_DEVICE_INDIRECT_ABSOLUTE :: SDLTouchDeviceType
-pattern SDL_TOUCH_DEVICE_INDIRECT_ABSOLUTE  = SDLTouchDeviceType #{const SDL_TOUCH_DEVICE_INDIRECT_ABSOLUTE}
-pattern SDL_TOUCH_DEVICE_INDIRECT_RELATIVE :: SDLTouchDeviceType
-pattern SDL_TOUCH_DEVICE_INDIRECT_RELATIVE  = SDLTouchDeviceType #{const SDL_TOUCH_DEVICE_INDIRECT_RELATIVE}
+pattern SDL_TOUCH_DEVICE_INVALID           = SDLTouchDeviceType (#const SDL_TOUCH_DEVICE_INVALID)
+pattern SDL_TOUCH_DEVICE_DIRECT            = SDLTouchDeviceType (#const SDL_TOUCH_DEVICE_DIRECT)
+pattern SDL_TOUCH_DEVICE_INDIRECT_ABSOLUTE  = SDLTouchDeviceType (#const SDL_TOUCH_DEVICE_INDIRECT_ABSOLUTE)
+pattern SDL_TOUCH_DEVICE_INDIRECT_RELATIVE  = SDLTouchDeviceType (#const SDL_TOUCH_DEVICE_INDIRECT_RELATIVE)
 
 -- | Data about a single finger in a multitouch event (SDL_Finger).
 data SDLFinger = SDLFinger
@@ -100,17 +97,14 @@ instance Storable SDLFinger where
     #{poke SDL_Finger, pressure} ptr fingerPressure
 
 -- | The SDL_MouseID for mouse events simulated with touch input (SDL_TOUCH_MOUSEID).
-pattern SDL_TOUCH_MOUSEID :: SDLMouseID
-pattern SDL_TOUCH_MOUSEID = #{const SDL_TOUCH_MOUSEID}
+pattern SDL_TOUCH_MOUSEID = (#const SDL_TOUCH_MOUSEID) :: SDLMouseID
 
 -- | The SDL_TouchID for touch events simulated with mouse input (SDL_MOUSE_TOUCHID).
-pattern SDL_MOUSE_TOUCHID :: SDLTouchID
-pattern SDL_MOUSE_TOUCHID = #{const SDL_MOUSE_TOUCHID}
+pattern SDL_MOUSE_TOUCHID = (#const SDL_MOUSE_TOUCHID) :: SDLTouchID
 
 -- | Get a list of registered touch devices (SDL_GetTouchDevices).
--- Memory allocated by SDL must be freed by the caller.
 foreign import ccall unsafe "SDL_GetTouchDevices"
-  c_sdlGetTouchDevices :: Ptr CInt -> IO (Ptr SDLTouchID) -- SDL_TouchID is Uint64
+  c_sdlGetTouchDevices :: Ptr CInt -> IO (Ptr SDLTouchID)
 
 -- | Haskell wrapper for SDL_GetTouchDevices.
 sdlGetTouchDevices :: IO [SDLTouchID]
@@ -121,7 +115,6 @@ sdlGetTouchDevices = alloca $ \countPtr -> do
     else do
       count <- peek countPtr
       ids <- peekArray (fromIntegral count) idPtr
-      -- Free the memory allocated by SDL for the ID list
       free (castPtr idPtr)
       return ids
 

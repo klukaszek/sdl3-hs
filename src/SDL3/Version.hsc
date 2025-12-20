@@ -36,16 +36,13 @@ import Foreign.C.Types
 import Foreign.C.String (CString, peekCString)
 
 -- | The current major version of SDL headers (SDL_MAJOR_VERSION).
-sdlMajorVersion :: Int
-sdlMajorVersion = #const SDL_MAJOR_VERSION
+sdlMajorVersion = (#const SDL_MAJOR_VERSION)
 
 -- | The current minor version of SDL headers (SDL_MINOR_VERSION).
-sdlMinorVersion :: Int
-sdlMinorVersion = #const SDL_MINOR_VERSION
+sdlMinorVersion = (#const SDL_MINOR_VERSION)
 
 -- | The current micro (patchlevel) version of SDL headers (SDL_MICRO_VERSION).
-sdlMicroVersion :: Int
-sdlMicroVersion = #const SDL_MICRO_VERSION
+sdlMicroVersion = (#const SDL_MICRO_VERSION)
 
 -- | Turns the version numbers into a numeric value (SDL_VERSIONNUM).
 -- For example, (1, 2, 3) becomes 1002003.

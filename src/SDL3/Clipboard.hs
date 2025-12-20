@@ -60,8 +60,7 @@ type SDLClipboardCleanupCallback =
 -- | Set clipboard text
 --
 -- Returns True on success, False on failure
-foreign import ccall "SDL_SetClipboardText"
-  sdlSetClipboardTextRaw :: CString -> IO CBool
+foreign import ccall "SDL_SetClipboardText" sdlSetClipboardTextRaw :: CString -> IO CBool
 
 sdlSetClipboardText :: String -> IO Bool
 sdlSetClipboardText text = do

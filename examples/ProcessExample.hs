@@ -1,7 +1,7 @@
 module Main where
 
-import SDL3
 import Control.Monad (unless)
+import SDL3
 import System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()
@@ -13,8 +13,8 @@ main = do
     exitFailure
 
   -- Create a process to run 'ls' (or 'dir' on Windows)
-  let args = ["ls", "-l"]  -- Use "dir" on Windows
-  process <- sdlCreateProcess args True  -- Pipe stdio
+  let args = ["ls", "-l"] -- Use "dir" on Windows
+  process <- sdlCreateProcess args True -- Pipe stdio
   case process of
     Nothing -> do
       sdlLog "Failed to create process!"

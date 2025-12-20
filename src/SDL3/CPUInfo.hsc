@@ -59,8 +59,7 @@ import Data.Word
 -- Most x86 processors have a 64 byte cache line.
 -- 64-bit PowerPC processors have a 128 byte cache line.
 -- We use the larger value to be generally safe.
-sdlCachelineSize :: Int
-sdlCachelineSize = #{const SDL_CACHELINE_SIZE}
+sdlCachelineSize = (#{const SDL_CACHELINE_SIZE}) :: Int
 
 -- | Get the number of logical CPU cores available.
 foreign import ccall "SDL_GetNumLogicalCPUCores"
@@ -131,5 +130,4 @@ foreign import ccall "SDL_GetSystemRAM"
   sdlGetSystemRAM :: IO CInt
 
 -- | Get the alignment needed for SIMD allocations on this system.
-foreign import ccall "SDL_GetSIMDAlignment"
-  sdlGetSIMDAlignment :: IO #{type size_t}
+foreign import ccall "SDL_GetSIMDAlignment" sdlGetSIMDAlignment :: IO #{type size_t}

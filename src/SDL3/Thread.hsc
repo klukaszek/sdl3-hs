@@ -101,27 +101,19 @@ type SDLThreadFunction = FunPtr (Ptr () -> IO CInt)
 newtype SDLThreadPriority = SDLThreadPriority CInt
   deriving newtype (Show, Eq, Ord, Storable, Enum)
 
-pattern SDL_THREAD_PRIORITY_LOW :: SDLThreadPriority
 pattern SDL_THREAD_PRIORITY_LOW = SDLThreadPriority #{const SDL_THREAD_PRIORITY_LOW}
-pattern SDL_THREAD_PRIORITY_NORMAL :: SDLThreadPriority
 pattern SDL_THREAD_PRIORITY_NORMAL = SDLThreadPriority #{const SDL_THREAD_PRIORITY_NORMAL}
-pattern SDL_THREAD_PRIORITY_HIGH :: SDLThreadPriority
 pattern SDL_THREAD_PRIORITY_HIGH = SDLThreadPriority #{const SDL_THREAD_PRIORITY_HIGH}
-pattern SDL_THREAD_PRIORITY_TIME_CRITICAL :: SDLThreadPriority
 pattern SDL_THREAD_PRIORITY_TIME_CRITICAL = SDLThreadPriority #{const SDL_THREAD_PRIORITY_TIME_CRITICAL}
 
 -- | The current state of a thread enumeration.
 newtype SDLThreadState = SDLThreadState CInt
   deriving newtype (Show, Eq, Ord, Storable, Enum)
 
-pattern SDL_THREAD_UNKNOWN :: SDLThreadState
-pattern SDL_THREAD_UNKNOWN   = SDLThreadState #{const SDL_THREAD_UNKNOWN}   -- ^ The thread is not valid
-pattern SDL_THREAD_ALIVE :: SDLThreadState
-pattern SDL_THREAD_ALIVE     = SDLThreadState #{const SDL_THREAD_ALIVE}     -- ^ The thread is currently running
-pattern SDL_THREAD_DETACHED :: SDLThreadState
-pattern SDL_THREAD_DETACHED  = SDLThreadState #{const SDL_THREAD_DETACHED}  -- ^ The thread is detached and can't be waited on
-pattern SDL_THREAD_COMPLETE :: SDLThreadState
-pattern SDL_THREAD_COMPLETE  = SDLThreadState #{const SDL_THREAD_COMPLETE}  -- ^ The thread has finished and should be cleaned up with 'sdlWaitThread'
+pattern SDL_THREAD_UNKNOWN = SDLThreadState #{const SDL_THREAD_UNKNOWN}
+pattern SDL_THREAD_ALIVE = SDLThreadState #{const SDL_THREAD_ALIVE}
+pattern SDL_THREAD_DETACHED = SDLThreadState #{const SDL_THREAD_DETACHED}
+pattern SDL_THREAD_COMPLETE = SDLThreadState #{const SDL_THREAD_COMPLETE}
 
 -- | The callback used to cleanup data passed to 'sdlSetTLS'.
 -- The function takes the userdata pointer that needs cleanup.
@@ -129,13 +121,9 @@ type SDLTLSDestructorCallback = FunPtr (Ptr () -> IO ())
 
 -- | Thread property identifiers (use pattern synonyms if defined in header)
 -- Assuming these are string literals for now
-pattern SDL_PROP_THREAD_CREATE_ENTRY_FUNCTION :: String
-pattern SDL_PROP_THREAD_CREATE_ENTRY_FUNCTION = "SDL.thread.create.entry_function" -- Check if #{const_str ...} exists
-pattern SDL_PROP_THREAD_CREATE_NAME :: String
+pattern SDL_PROP_THREAD_CREATE_ENTRY_FUNCTION = "SDL.thread.create.entry_function"
 pattern SDL_PROP_THREAD_CREATE_NAME = "SDL.thread.create.name"
-pattern SDL_PROP_THREAD_CREATE_USERDATA :: String
 pattern SDL_PROP_THREAD_CREATE_USERDATA = "SDL.thread.create.userdata"
-pattern SDL_PROP_THREAD_CREATE_STACKSIZE :: String
 pattern SDL_PROP_THREAD_CREATE_STACKSIZE = "SDL.thread.create.stacksize"
 
 -- Internal FFI interface to the actual SDL runtime function

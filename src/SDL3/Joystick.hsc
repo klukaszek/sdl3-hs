@@ -1,6 +1,8 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NegativeLiterals #-}
 
 {-|
 Module      : SDL.Joystick
@@ -38,17 +40,17 @@ module SDL3.Joystick
   , SDLVirtualJoystickDesc(..)
 
     -- * Constants
-  , sdlJoystickAxisMax
-  , sdlJoystickAxisMin
-  , sdlHatCentered
-  , sdlHatUp
-  , sdlHatRight
-  , sdlHatDown
-  , sdlHatLeft
-  , sdlHatRightUp
-  , sdlHatRightDown
-  , sdlHatLeftUp
-  , sdlHatLeftDown
+  , pattern SDL_JOYSTICK_AXIS_MAX
+  , pattern SDL_JOYSTICK_AXIS_MIN
+  , pattern SDL_HAT_CENTERED
+  , pattern SDL_HAT_UP
+  , pattern SDL_HAT_RIGHT
+  , pattern SDL_HAT_DOWN
+  , pattern SDL_HAT_LEFT
+  , pattern SDL_HAT_RIGHTUP
+  , pattern SDL_HAT_RIGHTDOWN
+  , pattern SDL_HAT_LEFTUP
+  , pattern SDL_HAT_LEFTDOWN
 
     -- * Joystick Functions
   , sdlLockJoysticks
@@ -159,13 +161,9 @@ data SDLJoystickType
 newtype SDLJoystickConnectionState = SDLJoystickConnectionState CInt
   deriving (Eq, Ord, Show, Storable, Num)
 
-pattern SDL_JOYSTICK_CONNECTION_INVALID :: SDLJoystickConnectionState
 pattern SDL_JOYSTICK_CONNECTION_INVALID  = SDLJoystickConnectionState (#{const SDL_JOYSTICK_CONNECTION_INVALID})  -- ^ Invalid state (-1)
-pattern SDL_JOYSTICK_CONNECTION_UNKNOWN :: SDLJoystickConnectionState
 pattern SDL_JOYSTICK_CONNECTION_UNKNOWN  = SDLJoystickConnectionState #{const SDL_JOYSTICK_CONNECTION_UNKNOWN}  -- ^ Unknown connection state (0)
-pattern SDL_JOYSTICK_CONNECTION_WIRED :: SDLJoystickConnectionState
 pattern SDL_JOYSTICK_CONNECTION_WIRED    = SDLJoystickConnectionState #{const SDL_JOYSTICK_CONNECTION_WIRED}    -- ^ Wired connection (1)
-pattern SDL_JOYSTICK_CONNECTION_WIRELESS :: SDLJoystickConnectionState
 pattern SDL_JOYSTICK_CONNECTION_WIRELESS = SDLJoystickConnectionState #{const SDL_JOYSTICK_CONNECTION_WIRELESS} -- ^ Wireless connection (2)
 
 -- | Virtual joystick touchpad description
@@ -259,38 +257,18 @@ instance Storable SDLVirtualJoystickDesc where
     (#poke SDL_VirtualJoystickDesc, Cleanup) ptr clean
 
 -- | Constants
-sdlJoystickAxisMax :: Int16
-sdlJoystickAxisMax = #const SDL_JOYSTICK_AXIS_MAX
+pattern SDL_JOYSTICK_AXIS_MAX = (#const SDL_JOYSTICK_AXIS_MAX) :: Int16
+pattern SDL_JOYSTICK_AXIS_MIN = (#const SDL_JOYSTICK_AXIS_MIN) :: Int16
 
-sdlJoystickAxisMin :: Int16
-sdlJoystickAxisMin = #const SDL_JOYSTICK_AXIS_MIN
-
-sdlHatCentered :: Word8
-sdlHatCentered = #const SDL_HAT_CENTERED
-
-sdlHatUp :: Word8
-sdlHatUp = #const SDL_HAT_UP
-
-sdlHatRight :: Word8
-sdlHatRight = #const SDL_HAT_RIGHT
-
-sdlHatDown :: Word8
-sdlHatDown = #const SDL_HAT_DOWN
-
-sdlHatLeft :: Word8
-sdlHatLeft = #const SDL_HAT_LEFT
-
-sdlHatRightUp :: Word8
-sdlHatRightUp = #const SDL_HAT_RIGHTUP
-
-sdlHatRightDown :: Word8
-sdlHatRightDown = #const SDL_HAT_RIGHTDOWN
-
-sdlHatLeftUp :: Word8
-sdlHatLeftUp = #const SDL_HAT_LEFTUP
-
-sdlHatLeftDown :: Word8
-sdlHatLeftDown = #const SDL_HAT_LEFTDOWN
+pattern SDL_HAT_CENTERED = (#const SDL_HAT_CENTERED) :: Word8
+pattern SDL_HAT_UP = (#const SDL_HAT_UP) :: Word8
+pattern SDL_HAT_RIGHT = (#const SDL_HAT_RIGHT) :: Word8
+pattern SDL_HAT_DOWN = (#const SDL_HAT_DOWN) :: Word8
+pattern SDL_HAT_LEFT = (#const SDL_HAT_LEFT) :: Word8
+pattern SDL_HAT_RIGHTUP = (#const SDL_HAT_RIGHTUP) :: Word8
+pattern SDL_HAT_RIGHTDOWN = (#const SDL_HAT_RIGHTDOWN) :: Word8
+pattern SDL_HAT_LEFTUP = (#const SDL_HAT_LEFTUP) :: Word8
+pattern SDL_HAT_LEFTDOWN = (#const SDL_HAT_LEFTDOWN) :: Word8
 
 -- | Lock joystick API
 foreign import ccall "SDL_LockJoysticks"

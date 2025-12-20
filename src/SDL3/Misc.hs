@@ -1,23 +1,20 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-{-|
-Module      : SDL.Misc
-Description : Miscellaneous SDL functions
-Copyright   : Kyle Lukaszek, 2025
-License     : BSD3
-
-This module provides bindings to SDL3 API functions that don't fit elsewhere,
-such as opening URLs in the system browser.
--}
-
+-- |
+-- Module      : SDL.Misc
+-- Description : Miscellaneous SDL functions
+-- Copyright   : Kyle Lukaszek, 2025
+-- License     : BSD3
+--
+-- This module provides bindings to SDL3 API functions that don't fit elsewhere,
+-- such as opening URLs in the system browser.
 module SDL3.Misc
   ( -- * URL Handling
-    sdlOpenURL
-  ) where
+    sdlOpenURL,
+  )
+where
 
-import Foreign.C.String
-
-#include <SDL3/SDL_misc.h>
+import Foreign.C.String (CString, withCString)
 
 -- | Open a URL/URI in the browser or other appropriate external application.
 foreign import ccall "SDL_OpenURL" sdlOpenURLRaw :: CString -> IO Bool

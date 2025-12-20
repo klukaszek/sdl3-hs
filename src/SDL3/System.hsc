@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {-|
 Module      : SDL.System
 Description : Platform-specific SDL API functions

@@ -85,48 +85,29 @@ import Foreign.Marshal.Utils (maybeWith)
 newtype SDLLogCategory = SDLLogCategory CInt
   deriving newtype (Show, Eq, Ord, Storable, Enum)
 
-pattern SDL_LOG_CATEGORY_APPLICATION :: SDLLogCategory
 pattern SDL_LOG_CATEGORY_APPLICATION = SDLLogCategory #{const SDL_LOG_CATEGORY_APPLICATION}
-pattern SDL_LOG_CATEGORY_ERROR :: SDLLogCategory
 pattern SDL_LOG_CATEGORY_ERROR = SDLLogCategory #{const SDL_LOG_CATEGORY_ERROR}
-pattern SDL_LOG_CATEGORY_ASSERT :: SDLLogCategory
 pattern SDL_LOG_CATEGORY_ASSERT = SDLLogCategory #{const SDL_LOG_CATEGORY_ASSERT}
-pattern SDL_LOG_CATEGORY_SYSTEM :: SDLLogCategory
 pattern SDL_LOG_CATEGORY_SYSTEM = SDLLogCategory #{const SDL_LOG_CATEGORY_SYSTEM}
-pattern SDL_LOG_CATEGORY_AUDIO :: SDLLogCategory
 pattern SDL_LOG_CATEGORY_AUDIO = SDLLogCategory #{const SDL_LOG_CATEGORY_AUDIO}
-pattern SDL_LOG_CATEGORY_VIDEO :: SDLLogCategory
 pattern SDL_LOG_CATEGORY_VIDEO = SDLLogCategory #{const SDL_LOG_CATEGORY_VIDEO}
-pattern SDL_LOG_CATEGORY_RENDER :: SDLLogCategory
 pattern SDL_LOG_CATEGORY_RENDER = SDLLogCategory #{const SDL_LOG_CATEGORY_RENDER}
-pattern SDL_LOG_CATEGORY_INPUT :: SDLLogCategory
 pattern SDL_LOG_CATEGORY_INPUT = SDLLogCategory #{const SDL_LOG_CATEGORY_INPUT}
-pattern SDL_LOG_CATEGORY_TEST :: SDLLogCategory
 pattern SDL_LOG_CATEGORY_TEST = SDLLogCategory #{const SDL_LOG_CATEGORY_TEST}
-pattern SDL_LOG_CATEGORY_GPU :: SDLLogCategory
 pattern SDL_LOG_CATEGORY_GPU = SDLLogCategory #{const SDL_LOG_CATEGORY_GPU}
-pattern SDL_LOG_CATEGORY_CUSTOM :: SDLLogCategory
 pattern SDL_LOG_CATEGORY_CUSTOM = SDLLogCategory #{const SDL_LOG_CATEGORY_CUSTOM}
 
 -- | Log priorities.
 newtype SDLLogPriority = SDLLogPriority CInt
   deriving newtype (Show, Eq, Ord, Storable, Enum)
 
-pattern SDL_LOG_PRIORITY_INVALID :: SDLLogPriority
 pattern SDL_LOG_PRIORITY_INVALID = SDLLogPriority #{const SDL_LOG_PRIORITY_INVALID}
-pattern SDL_LOG_PRIORITY_TRACE :: SDLLogPriority
 pattern SDL_LOG_PRIORITY_TRACE = SDLLogPriority #{const SDL_LOG_PRIORITY_TRACE}
-pattern SDL_LOG_PRIORITY_VERBOSE :: SDLLogPriority
 pattern SDL_LOG_PRIORITY_VERBOSE = SDLLogPriority #{const SDL_LOG_PRIORITY_VERBOSE}
-pattern SDL_LOG_PRIORITY_DEBUG :: SDLLogPriority
 pattern SDL_LOG_PRIORITY_DEBUG = SDLLogPriority #{const SDL_LOG_PRIORITY_DEBUG}
-pattern SDL_LOG_PRIORITY_INFO :: SDLLogPriority
 pattern SDL_LOG_PRIORITY_INFO = SDLLogPriority #{const SDL_LOG_PRIORITY_INFO}
-pattern SDL_LOG_PRIORITY_WARN :: SDLLogPriority
 pattern SDL_LOG_PRIORITY_WARN = SDLLogPriority #{const SDL_LOG_PRIORITY_WARN}
-pattern SDL_LOG_PRIORITY_ERROR :: SDLLogPriority
 pattern SDL_LOG_PRIORITY_ERROR = SDLLogPriority #{const SDL_LOG_PRIORITY_ERROR}
-pattern SDL_LOG_PRIORITY_CRITICAL :: SDLLogPriority
 pattern SDL_LOG_PRIORITY_CRITICAL = SDLLogPriority #{const SDL_LOG_PRIORITY_CRITICAL}
 
 -- | The prototype for the log output function

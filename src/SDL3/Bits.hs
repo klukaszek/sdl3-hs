@@ -1,20 +1,19 @@
-{-|
-Module      : SDL.Bits
-Description : Bit manipulation functions
-Copyright   : (c) Kyle Lukaszek, 2025
-License     : BSD3
-
-Functions for fiddling with bits and bitmasks.
--}
-
+-- |
+-- Module      : SDL.Bits
+-- Description : Bit manipulation functions
+-- Copyright   : (c) Kyle Lukaszek, 2025
+-- License     : BSD3
+--
+-- Functions for fiddling with bits and bitmasks.
 module SDL3.Bits
   ( -- * Bit Manipulation Functions
-    sdlMostSignificantBitIndex32
-  , sdlHasExactlyOneBitSet32
-  ) where
+    sdlMostSignificantBitIndex32,
+    sdlHasExactlyOneBitSet32,
+  )
+where
 
-import Data.Word
 import Data.Bits
+import Data.Word
 
 -- | Get the index of the most significant (set) bit in a 32-bit number.
 --

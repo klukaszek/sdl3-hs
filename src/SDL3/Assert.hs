@@ -1,63 +1,75 @@
-{-|
-Module      : SDL.Assert
-Description : Bindings to SDL assertion functionality
-Copyright   : (c) Kyle Lukaszek, 2025
-License     : BSD3
+{-# LANGUAGE CPP #-}
 
-This module provides Haskell bindings to the SDL assertion functionality.
-SDL assertions operate like your usual assert macro, but with additional features.
--}
-
+-- |
+-- Module      : SDL.Assert
+-- Description : Bindings to SDL assertion functionality
+-- Copyright   : (c) Kyle Lukaszek, 2025
+-- License     : BSD3
+--
+-- This module provides Haskell bindings to the SDL assertion functionality.
+-- SDL assertions operate like your usual assert macro, but with additional features.
 module SDL3.Assert
-  (
-  -- * Types
-    SDLAssertState(..)
-  , SDLAssertData(..)
-  , SDLAssertionHandler
+  ( -- * Types
+    SDLAssertState (..),
+    SDLAssertData (..),
+    SDLAssertionHandler,
 
-  -- * Functions
-  , sdlReportAssertion
-  , sdlSetAssertionHandler
-  , sdlGetDefaultAssertionHandler
-  , sdlGetAssertionHandler
-  , sdlGetAssertionReport
-  , sdlResetAssertionReport
+    -- * Functions
+    sdlReportAssertion,
+    sdlSetAssertionHandler,
+    sdlGetDefaultAssertionHandler,
+    sdlGetAssertionHandler,
+    sdlGetAssertionReport,
+    sdlResetAssertionReport,
 
-  -- * Assertion macros (as functions in Haskell)
-  , sdlAssert
-  , sdlAssertRelease
-  , sdlAssertParanoid
-  , sdlAssertAlways
-  , sdlTriggerBreakpoint
+    -- * Assertion macros (as functions in Haskell)
+    sdlAssert,
+    sdlAssertRelease,
+    sdlAssertParanoid,
+    sdlAssertAlways,
+    sdlTriggerBreakpoint,
 
-  -- * Constants
-  , sdlAssertLevel
-  ) where
+    -- * Constants
+    sdlAssertLevel,
+  )
+where
 
-import Foreign.Ptr
-import Foreign.C.Types
-import Foreign.C.String
 import Control.Monad
+import Foreign.C.String
+import Foreign.C.Types
+import Foreign.Ptr
 
 -- | Possible outcomes from a triggered assertion
-data SDLAssertState =
-    SDL_ASSERTION_RETRY         -- ^ Retry the assert immediately
-  | SDL_ASSERTION_BREAK         -- ^ Make the debugger trigger a breakpoint
-  | SDL_ASSERTION_ABORT         -- ^ Terminate the program
-  | SDL_ASSERTION_IGNORE        -- ^ Ignore the assert
-  | SDL_ASSERTION_ALWAYS_IGNORE -- ^ Ignore the assert from now on
+data SDLAssertState
+  = -- | Retry the assert immediately
+    SDL_ASSERTION_RETRY
+  | -- | Make the debugger trigger a breakpoint
+    SDL_ASSERTION_BREAK
+  | -- | Terminate the program
+    SDL_ASSERTION_ABORT
+  | -- | Ignore the assert
+    SDL_ASSERTION_IGNORE
+  | -- | Ignore the assert from now on
+    SDL_ASSERTION_ALWAYS_IGNORE
   deriving (Eq, Show, Enum)
 
 -- | Information about an assertion failure
-data SDLAssertData = SDLAssertData {
-    alwaysIgnore  :: Bool,             -- ^ true if app should always continue when assertion is triggered
-    triggerCount  :: Word,             -- ^ Number of times this assertion has been triggered
-    condition     :: String,           -- ^ A string of this assert's test code
-    filename      :: String,           -- ^ The source file where this assert lives
-    linenum       :: Int,              -- ^ The line in `filename` where this assert lives
-    function      :: String,           -- ^ The name of the function where this assert lives
-    next          :: Maybe SDLAssertData -- ^ next item in the linked list
-}
+data SDLAssertData = SDLAssertData
+  { -- | true if app should always continue when assertion is triggered
+    alwaysIgnore :: Bool,
+    -- | Number of times this assertion has been triggered
+    triggerCount :: Word,
+    -- | A string of this assert's test code
+    condition :: String,
+    -- | The source file where this assert lives
+    filename :: String,
+    -- | The line in `filename` where this assert lives
+    linenum :: Int,
+    -- | The name of the function where this assert lives
+    function :: String,
+    -- | next item in the linked list
+    next :: Maybe SDLAssertData
+  }
 
 -- | Foreign representation of the SDLAssertData structure
 data SDLAssertDataFFI

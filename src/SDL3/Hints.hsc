@@ -189,13 +189,8 @@ import Foreign.C
 newtype SDLHintPriority = SDLHintPriority CInt
   deriving newtype (Show, Eq, Ord, Storable, Enum) -- Added Ord, Storable, Enum
 
-pattern SDL_HINT_DEFAULT :: SDLHintPriority
 pattern SDL_HINT_DEFAULT = SDLHintPriority #{const SDL_HINT_DEFAULT}
-
-pattern SDL_HINT_NORMAL :: SDLHintPriority
 pattern SDL_HINT_NORMAL = SDLHintPriority #{const SDL_HINT_NORMAL}
-
-pattern SDL_HINT_OVERRIDE :: SDLHintPriority
 pattern SDL_HINT_OVERRIDE = SDLHintPriority #{const SDL_HINT_OVERRIDE}
 
 -- FFI Imports

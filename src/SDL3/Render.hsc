@@ -35,7 +35,7 @@ module SDL3.Render
   , SDLRendererLogicalPresentation(..)
     -- ** Structs
   , SDLVertex(..)
-  , SDLGPURenderStateDesc(..) -- Note: CreateInfo struct
+  , SDLGPURenderStateDesc(..)
 
     -- * Pattern Synonyms
     -- ** Constants
@@ -302,35 +302,23 @@ newtype SDLGPURenderState = SDLGPURenderState (Ptr SDLGPURenderState) deriving (
 -- Enum Types
 newtype SDLTextureAccess = SDLTextureAccess CInt deriving (Show, Eq, Storable)
 
-pattern SDL_TEXTUREACCESS_STATIC :: SDLTextureAccess
 pattern SDL_TEXTUREACCESS_STATIC = SDLTextureAccess #{const SDL_TEXTUREACCESS_STATIC}
-pattern SDL_TEXTUREACCESS_STREAMING :: SDLTextureAccess
 pattern SDL_TEXTUREACCESS_STREAMING = SDLTextureAccess #{const SDL_TEXTUREACCESS_STREAMING}
-pattern SDL_TEXTUREACCESS_TARGET :: SDLTextureAccess
 pattern SDL_TEXTUREACCESS_TARGET = SDLTextureAccess #{const SDL_TEXTUREACCESS_TARGET}
 
 newtype SDLTextureAddressMode = SDLTextureAddressMode CInt deriving (Show, Eq, Storable)
 
-pattern SDL_TEXTURE_ADDRESS_INVALID :: SDLTextureAddressMode
 pattern SDL_TEXTURE_ADDRESS_INVALID = SDLTextureAddressMode (-1)
-pattern SDL_TEXTURE_ADDRESS_AUTO :: SDLTextureAddressMode
 pattern SDL_TEXTURE_ADDRESS_AUTO = SDLTextureAddressMode #{const SDL_TEXTURE_ADDRESS_AUTO}
-pattern SDL_TEXTURE_ADDRESS_CLAMP :: SDLTextureAddressMode
 pattern SDL_TEXTURE_ADDRESS_CLAMP = SDLTextureAddressMode #{const SDL_TEXTURE_ADDRESS_CLAMP}
-pattern SDL_TEXTURE_ADDRESS_WRAP :: SDLTextureAddressMode
 pattern SDL_TEXTURE_ADDRESS_WRAP = SDLTextureAddressMode #{const SDL_TEXTURE_ADDRESS_WRAP}
 
 newtype SDLRendererLogicalPresentation = SDLRendererLogicalPresentation CInt deriving (Show, Eq, Storable)
 
-pattern SDL_LOGICAL_PRESENTATION_DISABLED :: SDLRendererLogicalPresentation
 pattern SDL_LOGICAL_PRESENTATION_DISABLED = SDLRendererLogicalPresentation #{const SDL_LOGICAL_PRESENTATION_DISABLED}
-pattern SDL_LOGICAL_PRESENTATION_STRETCH :: SDLRendererLogicalPresentation
 pattern SDL_LOGICAL_PRESENTATION_STRETCH = SDLRendererLogicalPresentation #{const SDL_LOGICAL_PRESENTATION_STRETCH}
-pattern SDL_LOGICAL_PRESENTATION_LETTERBOX :: SDLRendererLogicalPresentation
 pattern SDL_LOGICAL_PRESENTATION_LETTERBOX = SDLRendererLogicalPresentation #{const SDL_LOGICAL_PRESENTATION_LETTERBOX}
-pattern SDL_LOGICAL_PRESENTATION_OVERSCAN :: SDLRendererLogicalPresentation
 pattern SDL_LOGICAL_PRESENTATION_OVERSCAN = SDLRendererLogicalPresentation #{const SDL_LOGICAL_PRESENTATION_OVERSCAN}
-pattern SDL_LOGICAL_PRESENTATION_INTEGER_SCALE :: SDLRendererLogicalPresentation
 pattern SDL_LOGICAL_PRESENTATION_INTEGER_SCALE = SDLRendererLogicalPresentation #{const SDL_LOGICAL_PRESENTATION_INTEGER_SCALE}
 
 -- Struct Types
@@ -354,15 +342,9 @@ instance Storable SDLVertex where
         poke (#{ptr SDL_Vertex, tex_coord} ptr) vertexTexCoord
 
 -- Constants
-pattern SDL_SOFTWARE_RENDERER :: String
-pattern SDL_SOFTWARE_RENDERER = "software"
-
-pattern SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE :: Int
+pattern SDL_SOFTWARE_RENDERER = "software" :: String
 pattern SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE = #{const SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE}
-
-pattern SDL_RENDERER_VSYNC_DISABLED :: Int
 pattern SDL_RENDERER_VSYNC_DISABLED = #{const SDL_RENDERER_VSYNC_DISABLED}
-pattern SDL_RENDERER_VSYNC_ADAPTIVE :: Int
 pattern SDL_RENDERER_VSYNC_ADAPTIVE = #{const SDL_RENDERER_VSYNC_ADAPTIVE}
 
 
@@ -1397,183 +1379,95 @@ sdlDestroyGPURenderState (SDLGPURenderState state) = c_sdlDestroyGPURenderState 
 
 
 -- Property String Definitions (Moved after types/enums for clarity)
-pattern SDL_PROP_RENDERER_CREATE_NAME_STRING :: String
 pattern SDL_PROP_RENDERER_CREATE_NAME_STRING                                = "SDL.renderer.create.name"
-pattern SDL_PROP_RENDERER_CREATE_WINDOW_POINTER :: String
 pattern SDL_PROP_RENDERER_CREATE_WINDOW_POINTER                             = "SDL.renderer.create.window"
-pattern SDL_PROP_RENDERER_CREATE_SURFACE_POINTER :: String
 pattern SDL_PROP_RENDERER_CREATE_SURFACE_POINTER                            = "SDL.renderer.create.surface"
-pattern SDL_PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER :: String
 pattern SDL_PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER                   = "SDL.renderer.create.output_colorspace"
-pattern SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER :: String
 pattern SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER                       = "SDL.renderer.create.present_vsync"
-pattern SDL_PROP_RENDERER_CREATE_GPU_SHADERS_SPIRV_BOOLEAN :: String
 pattern SDL_PROP_RENDERER_CREATE_GPU_SHADERS_SPIRV_BOOLEAN                  = "SDL.renderer.create.gpu.shaders_spirv"
-pattern SDL_PROP_RENDERER_CREATE_GPU_SHADERS_DXIL_BOOLEAN :: String
 pattern SDL_PROP_RENDERER_CREATE_GPU_SHADERS_DXIL_BOOLEAN                   = "SDL.renderer.create.gpu.shaders_dxil"
-pattern SDL_PROP_RENDERER_CREATE_GPU_SHADERS_MSL_BOOLEAN :: String
 pattern SDL_PROP_RENDERER_CREATE_GPU_SHADERS_MSL_BOOLEAN                    = "SDL.renderer.create.gpu.shaders_msl"
-pattern SDL_PROP_RENDERER_CREATE_VULKAN_INSTANCE_POINTER :: String
 pattern SDL_PROP_RENDERER_CREATE_VULKAN_INSTANCE_POINTER                    = "SDL.renderer.create.vulkan.instance"
-pattern SDL_PROP_RENDERER_CREATE_VULKAN_SURFACE_NUMBER :: String
 pattern SDL_PROP_RENDERER_CREATE_VULKAN_SURFACE_NUMBER                      = "SDL.renderer.create.vulkan.surface"
-pattern SDL_PROP_RENDERER_CREATE_VULKAN_PHYSICAL_DEVICE_POINTER :: String
 pattern SDL_PROP_RENDERER_CREATE_VULKAN_PHYSICAL_DEVICE_POINTER             = "SDL.renderer.create.vulkan.physical_device"
-pattern SDL_PROP_RENDERER_CREATE_VULKAN_DEVICE_POINTER :: String
 pattern SDL_PROP_RENDERER_CREATE_VULKAN_DEVICE_POINTER                      = "SDL.renderer.create.vulkan.device"
-pattern SDL_PROP_RENDERER_CREATE_VULKAN_GRAPHICS_QUEUE_FAMILY_INDEX_NUMBER :: String
 pattern SDL_PROP_RENDERER_CREATE_VULKAN_GRAPHICS_QUEUE_FAMILY_INDEX_NUMBER  = "SDL.renderer.create.vulkan.graphics_queue_family_index"
-pattern SDL_PROP_RENDERER_CREATE_VULKAN_PRESENT_QUEUE_FAMILY_INDEX_NUMBER :: String
 pattern SDL_PROP_RENDERER_CREATE_VULKAN_PRESENT_QUEUE_FAMILY_INDEX_NUMBER   = "SDL.renderer.create.vulkan.present_queue_family_index"
+pattern SDL_PROP_RENDERER_NAME_STRING                                       = "SDL.renderer.name"
+pattern SDL_PROP_RENDERER_WINDOW_POINTER                                    = "SDL.renderer.window"
+pattern SDL_PROP_RENDERER_SURFACE_POINTER                                   = "SDL.renderer.surface"
+pattern SDL_PROP_RENDERER_VSYNC_NUMBER                                      = "SDL.renderer.vsync"
+pattern SDL_PROP_RENDERER_MAX_TEXTURE_SIZE_NUMBER                           = "SDL.renderer.max_texture_size"
+pattern SDL_PROP_RENDERER_TEXTURE_FORMATS_POINTER                            = "SDL.renderer.texture_formats"
+pattern SDL_PROP_RENDERER_OUTPUT_COLORSPACE_NUMBER                          = "SDL.renderer.output_colorspace"
+pattern SDL_PROP_RENDERER_HDR_ENABLED_BOOLEAN                               = "SDL.renderer.HDR_enabled"
+pattern SDL_PROP_RENDERER_SDR_WHITE_POINT_FLOAT                             = "SDL.renderer.SDR_white_point"
+pattern SDL_PROP_RENDERER_HDR_HEADROOM_FLOAT                                = "SDL.renderer.HDR_headroom"
+pattern SDL_PROP_RENDERER_D3D9_DEVICE_POINTER                               = "SDL.renderer.d3d9.device"
+pattern SDL_PROP_RENDERER_D3D11_DEVICE_POINTER                              = "SDL.renderer.d3d11.device"
+pattern SDL_PROP_RENDERER_D3D11_SWAPCHAIN_POINTER                           = "SDL.renderer.d3d11.swap_chain"
+pattern SDL_PROP_RENDERER_D3D12_DEVICE_POINTER                              = "SDL.renderer.d3d12.device"
+pattern SDL_PROP_RENDERER_D3D12_SWAPCHAIN_POINTER                           = "SDL.renderer.d3d12.swap_chain"
+pattern SDL_PROP_RENDERER_D3D12_COMMAND_QUEUE_POINTER                       = "SDL.renderer.d3d12.command_queue"
+pattern SDL_PROP_RENDERER_VULKAN_INSTANCE_POINTER                           = "SDL.renderer.vulkan.instance"
+pattern SDL_PROP_RENDERER_VULKAN_SURFACE_NUMBER                             = "SDL.renderer.vulkan.surface"
+pattern SDL_PROP_RENDERER_VULKAN_PHYSICAL_DEVICE_POINTER                    = "SDL.renderer.vulkan.physical_device"
+pattern SDL_PROP_RENDERER_VULKAN_DEVICE_POINTER                             = "SDL.renderer.vulkan.device"
+pattern SDL_PROP_RENDERER_VULKAN_GRAPHICS_QUEUE_FAMILY_INDEX_NUMBER         = "SDL.renderer.vulkan.graphics_queue_family_index"
+pattern SDL_PROP_RENDERER_VULKAN_PRESENT_QUEUE_FAMILY_INDEX_NUMBER          = "SDL.renderer.vulkan.present_queue_family_index"
+pattern SDL_PROP_RENDERER_VULKAN_SWAPCHAIN_IMAGE_COUNT_NUMBER               = "SDL.renderer.vulkan.swapchain_image_count"
+pattern SDL_PROP_RENDERER_GPU_DEVICE_POINTER                                = "SDL.renderer.gpu.device"
 
-pattern SDL_PROP_RENDERER_NAME_STRING :: String
-pattern SDL_PROP_RENDERER_NAME_STRING                               = "SDL.renderer.name"
-pattern SDL_PROP_RENDERER_WINDOW_POINTER :: String
-pattern SDL_PROP_RENDERER_WINDOW_POINTER                            = "SDL.renderer.window"
-pattern SDL_PROP_RENDERER_SURFACE_POINTER :: String
-pattern SDL_PROP_RENDERER_SURFACE_POINTER                           = "SDL.renderer.surface"
-pattern SDL_PROP_RENDERER_VSYNC_NUMBER :: String
-pattern SDL_PROP_RENDERER_VSYNC_NUMBER                              = "SDL.renderer.vsync"
-pattern SDL_PROP_RENDERER_MAX_TEXTURE_SIZE_NUMBER :: String
-pattern SDL_PROP_RENDERER_MAX_TEXTURE_SIZE_NUMBER                   = "SDL.renderer.max_texture_size"
-pattern SDL_PROP_RENDERER_TEXTURE_FORMATS_POINTER :: String
-pattern SDL_PROP_RENDERER_TEXTURE_FORMATS_POINTER                   = "SDL.renderer.texture_formats"
-pattern SDL_PROP_RENDERER_OUTPUT_COLORSPACE_NUMBER :: String
-pattern SDL_PROP_RENDERER_OUTPUT_COLORSPACE_NUMBER                  = "SDL.renderer.output_colorspace"
-pattern SDL_PROP_RENDERER_HDR_ENABLED_BOOLEAN :: String
-pattern SDL_PROP_RENDERER_HDR_ENABLED_BOOLEAN                       = "SDL.renderer.HDR_enabled"
-pattern SDL_PROP_RENDERER_SDR_WHITE_POINT_FLOAT :: String
-pattern SDL_PROP_RENDERER_SDR_WHITE_POINT_FLOAT                     = "SDL.renderer.SDR_white_point"
-pattern SDL_PROP_RENDERER_HDR_HEADROOM_FLOAT :: String
-pattern SDL_PROP_RENDERER_HDR_HEADROOM_FLOAT                        = "SDL.renderer.HDR_headroom"
-pattern SDL_PROP_RENDERER_D3D9_DEVICE_POINTER :: String
-pattern SDL_PROP_RENDERER_D3D9_DEVICE_POINTER                       = "SDL.renderer.d3d9.device"
-pattern SDL_PROP_RENDERER_D3D11_DEVICE_POINTER :: String
-pattern SDL_PROP_RENDERER_D3D11_DEVICE_POINTER                      = "SDL.renderer.d3d11.device"
-pattern SDL_PROP_RENDERER_D3D11_SWAPCHAIN_POINTER :: String
-pattern SDL_PROP_RENDERER_D3D11_SWAPCHAIN_POINTER                   = "SDL.renderer.d3d11.swap_chain"
-pattern SDL_PROP_RENDERER_D3D12_DEVICE_POINTER :: String
-pattern SDL_PROP_RENDERER_D3D12_DEVICE_POINTER                      = "SDL.renderer.d3d12.device"
-pattern SDL_PROP_RENDERER_D3D12_SWAPCHAIN_POINTER :: String
-pattern SDL_PROP_RENDERER_D3D12_SWAPCHAIN_POINTER                   = "SDL.renderer.d3d12.swap_chain"
-pattern SDL_PROP_RENDERER_D3D12_COMMAND_QUEUE_POINTER :: String
-pattern SDL_PROP_RENDERER_D3D12_COMMAND_QUEUE_POINTER               = "SDL.renderer.d3d12.command_queue"
-pattern SDL_PROP_RENDERER_VULKAN_INSTANCE_POINTER :: String
-pattern SDL_PROP_RENDERER_VULKAN_INSTANCE_POINTER                   = "SDL.renderer.vulkan.instance"
-pattern SDL_PROP_RENDERER_VULKAN_SURFACE_NUMBER :: String
-pattern SDL_PROP_RENDERER_VULKAN_SURFACE_NUMBER                     = "SDL.renderer.vulkan.surface"
-pattern SDL_PROP_RENDERER_VULKAN_PHYSICAL_DEVICE_POINTER :: String
-pattern SDL_PROP_RENDERER_VULKAN_PHYSICAL_DEVICE_POINTER            = "SDL.renderer.vulkan.physical_device"
-pattern SDL_PROP_RENDERER_VULKAN_DEVICE_POINTER :: String
-pattern SDL_PROP_RENDERER_VULKAN_DEVICE_POINTER                     = "SDL.renderer.vulkan.device"
-pattern SDL_PROP_RENDERER_VULKAN_GRAPHICS_QUEUE_FAMILY_INDEX_NUMBER :: String
-pattern SDL_PROP_RENDERER_VULKAN_GRAPHICS_QUEUE_FAMILY_INDEX_NUMBER = "SDL.renderer.vulkan.graphics_queue_family_index"
-pattern SDL_PROP_RENDERER_VULKAN_PRESENT_QUEUE_FAMILY_INDEX_NUMBER :: String
-pattern SDL_PROP_RENDERER_VULKAN_PRESENT_QUEUE_FAMILY_INDEX_NUMBER  = "SDL.renderer.vulkan.present_queue_family_index"
-pattern SDL_PROP_RENDERER_VULKAN_SWAPCHAIN_IMAGE_COUNT_NUMBER :: String
-pattern SDL_PROP_RENDERER_VULKAN_SWAPCHAIN_IMAGE_COUNT_NUMBER       = "SDL.renderer.vulkan.swapchain_image_count"
-pattern SDL_PROP_RENDERER_GPU_DEVICE_POINTER :: String
-pattern SDL_PROP_RENDERER_GPU_DEVICE_POINTER                        = "SDL.renderer.gpu.device"
+pattern SDL_PROP_TEXTURE_CREATE_COLORSPACE_NUMBER                            = "SDL.texture.create.colorspace"
+pattern SDL_PROP_TEXTURE_CREATE_FORMAT_NUMBER                                = "SDL.texture.create.format"
+pattern SDL_PROP_TEXTURE_CREATE_ACCESS_NUMBER                                = "SDL.texture.create.access"
+pattern SDL_PROP_TEXTURE_CREATE_WIDTH_NUMBER                                 = "SDL.texture.create.width"
+pattern SDL_PROP_TEXTURE_CREATE_HEIGHT_NUMBER                                = "SDL.texture.create.height"
+pattern SDL_PROP_TEXTURE_CREATE_SDR_WHITE_POINT_FLOAT                        = "SDL.texture.create.SDR_white_point"
+pattern SDL_PROP_TEXTURE_CREATE_HDR_HEADROOM_FLOAT                           = "SDL.texture.create.HDR_headroom"
+pattern SDL_PROP_TEXTURE_CREATE_D3D11_TEXTURE_POINTER                       = "SDL.texture.create.d3d11.texture"
+pattern SDL_PROP_TEXTURE_CREATE_D3D11_TEXTURE_U_POINTER                     = "SDL.texture.create.d3d11.texture_u"
+pattern SDL_PROP_TEXTURE_CREATE_D3D11_TEXTURE_V_POINTER                     = "SDL.texture.create.d3d11.texture_v"
+pattern SDL_PROP_TEXTURE_CREATE_D3D12_TEXTURE_POINTER                       = "SDL.texture.create.d3d12.texture"
+pattern SDL_PROP_TEXTURE_CREATE_D3D12_TEXTURE_U_POINTER                     = "SDL.texture.create.d3d12.texture_u"
+pattern SDL_PROP_TEXTURE_CREATE_D3D12_TEXTURE_V_POINTER                     = "SDL.texture.create.d3d12.texture_v"
+pattern SDL_PROP_TEXTURE_CREATE_METAL_PIXELBUFFER_POINTER                   = "SDL.texture.create.metal.pixelbuffer"
+pattern SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_NUMBER                       = "SDL.texture.create.opengl.texture"
+pattern SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_UV_NUMBER                    = "SDL.texture.create.opengl.texture_uv"
+pattern SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_U_NUMBER                     = "SDL.texture.create.opengl.texture_u"
+pattern SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_V_NUMBER                     = "SDL.texture.create.opengl.texture_v"
+pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_NUMBER                    = "SDL.texture.create.opengles2.texture"
+pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_UV_NUMBER                 = "SDL.texture.create.opengles2.texture_uv"
+pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_U_NUMBER                  = "SDL.texture.create.opengles2.texture_u"
+pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_V_NUMBER                  = "SDL.texture.create.opengles2.texture_v"
+pattern SDL_PROP_TEXTURE_CREATE_VULKAN_TEXTURE_NUMBER                       = "SDL.texture.create.vulkan.texture"
 
-pattern SDL_PROP_TEXTURE_CREATE_COLORSPACE_NUMBER :: String
-pattern SDL_PROP_TEXTURE_CREATE_COLORSPACE_NUMBER           = "SDL.texture.create.colorspace"
-pattern SDL_PROP_TEXTURE_CREATE_FORMAT_NUMBER :: String
-pattern SDL_PROP_TEXTURE_CREATE_FORMAT_NUMBER               = "SDL.texture.create.format"
-pattern SDL_PROP_TEXTURE_CREATE_ACCESS_NUMBER :: String
-pattern SDL_PROP_TEXTURE_CREATE_ACCESS_NUMBER               = "SDL.texture.create.access"
-pattern SDL_PROP_TEXTURE_CREATE_WIDTH_NUMBER :: String
-pattern SDL_PROP_TEXTURE_CREATE_WIDTH_NUMBER                = "SDL.texture.create.width"
-pattern SDL_PROP_TEXTURE_CREATE_HEIGHT_NUMBER :: String
-pattern SDL_PROP_TEXTURE_CREATE_HEIGHT_NUMBER               = "SDL.texture.create.height"
-pattern SDL_PROP_TEXTURE_CREATE_SDR_WHITE_POINT_FLOAT :: String
-pattern SDL_PROP_TEXTURE_CREATE_SDR_WHITE_POINT_FLOAT       = "SDL.texture.create.SDR_white_point"
-pattern SDL_PROP_TEXTURE_CREATE_HDR_HEADROOM_FLOAT :: String
-pattern SDL_PROP_TEXTURE_CREATE_HDR_HEADROOM_FLOAT          = "SDL.texture.create.HDR_headroom"
-pattern SDL_PROP_TEXTURE_CREATE_D3D11_TEXTURE_POINTER :: String
-pattern SDL_PROP_TEXTURE_CREATE_D3D11_TEXTURE_POINTER       = "SDL.texture.create.d3d11.texture"
-pattern SDL_PROP_TEXTURE_CREATE_D3D11_TEXTURE_U_POINTER :: String
-pattern SDL_PROP_TEXTURE_CREATE_D3D11_TEXTURE_U_POINTER     = "SDL.texture.create.d3d11.texture_u"
-pattern SDL_PROP_TEXTURE_CREATE_D3D11_TEXTURE_V_POINTER :: String
-pattern SDL_PROP_TEXTURE_CREATE_D3D11_TEXTURE_V_POINTER     = "SDL.texture.create.d3d11.texture_v"
-pattern SDL_PROP_TEXTURE_CREATE_D3D12_TEXTURE_POINTER :: String
-pattern SDL_PROP_TEXTURE_CREATE_D3D12_TEXTURE_POINTER       = "SDL.texture.create.d3d12.texture"
-pattern SDL_PROP_TEXTURE_CREATE_D3D12_TEXTURE_U_POINTER :: String
-pattern SDL_PROP_TEXTURE_CREATE_D3D12_TEXTURE_U_POINTER     = "SDL.texture.create.d3d12.texture_u"
-pattern SDL_PROP_TEXTURE_CREATE_D3D12_TEXTURE_V_POINTER :: String
-pattern SDL_PROP_TEXTURE_CREATE_D3D12_TEXTURE_V_POINTER     = "SDL.texture.create.d3d12.texture_v"
-pattern SDL_PROP_TEXTURE_CREATE_METAL_PIXELBUFFER_POINTER :: String
-pattern SDL_PROP_TEXTURE_CREATE_METAL_PIXELBUFFER_POINTER   = "SDL.texture.create.metal.pixelbuffer"
-pattern SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_NUMBER :: String
-pattern SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_NUMBER       = "SDL.texture.create.opengl.texture"
-pattern SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_UV_NUMBER :: String
-pattern SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_UV_NUMBER    = "SDL.texture.create.opengl.texture_uv"
-pattern SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_U_NUMBER :: String
-pattern SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_U_NUMBER     = "SDL.texture.create.opengl.texture_u"
-pattern SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_V_NUMBER :: String
-pattern SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_V_NUMBER     = "SDL.texture.create.opengl.texture_v"
-pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_NUMBER :: String
-pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_NUMBER    = "SDL.texture.create.opengles2.texture"
-pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_UV_NUMBER :: String
-pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_UV_NUMBER = "SDL.texture.create.opengles2.texture_uv"
-pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_U_NUMBER :: String
-pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_U_NUMBER  = "SDL.texture.create.opengles2.texture_u"
-pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_V_NUMBER :: String
-pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_V_NUMBER  = "SDL.texture.create.opengles2.texture_v"
-pattern SDL_PROP_TEXTURE_CREATE_VULKAN_TEXTURE_NUMBER :: String
-pattern SDL_PROP_TEXTURE_CREATE_VULKAN_TEXTURE_NUMBER       = "SDL.texture.create.vulkan.texture"
-
-pattern SDL_PROP_TEXTURE_COLORSPACE_NUMBER :: String
-pattern SDL_PROP_TEXTURE_COLORSPACE_NUMBER                  = "SDL.texture.colorspace"
-pattern SDL_PROP_TEXTURE_FORMAT_NUMBER :: String
-pattern SDL_PROP_TEXTURE_FORMAT_NUMBER                      = "SDL.texture.format"
-pattern SDL_PROP_TEXTURE_ACCESS_NUMBER :: String
-pattern SDL_PROP_TEXTURE_ACCESS_NUMBER                      = "SDL.texture.access"
-pattern SDL_PROP_TEXTURE_WIDTH_NUMBER :: String
-pattern SDL_PROP_TEXTURE_WIDTH_NUMBER                       = "SDL.texture.width"
-pattern SDL_PROP_TEXTURE_HEIGHT_NUMBER :: String
-pattern SDL_PROP_TEXTURE_HEIGHT_NUMBER                      = "SDL.texture.height"
-pattern SDL_PROP_TEXTURE_SDR_WHITE_POINT_FLOAT :: String
-pattern SDL_PROP_TEXTURE_SDR_WHITE_POINT_FLOAT              = "SDL.texture.SDR_white_point"
-pattern SDL_PROP_TEXTURE_HDR_HEADROOM_FLOAT :: String
-pattern SDL_PROP_TEXTURE_HDR_HEADROOM_FLOAT                 = "SDL.texture.HDR_headroom"
-pattern SDL_PROP_TEXTURE_D3D11_TEXTURE_POINTER :: String
-pattern SDL_PROP_TEXTURE_D3D11_TEXTURE_POINTER              = "SDL.texture.d3d11.texture"
-pattern SDL_PROP_TEXTURE_D3D11_TEXTURE_U_POINTER :: String
-pattern SDL_PROP_TEXTURE_D3D11_TEXTURE_U_POINTER            = "SDL.texture.d3d11.texture_u"
-pattern SDL_PROP_TEXTURE_D3D11_TEXTURE_V_POINTER :: String
-pattern SDL_PROP_TEXTURE_D3D11_TEXTURE_V_POINTER            = "SDL.texture.d3d11.texture_v"
-pattern SDL_PROP_TEXTURE_D3D12_TEXTURE_POINTER :: String
-pattern SDL_PROP_TEXTURE_D3D12_TEXTURE_POINTER              = "SDL.texture.d3d12.texture"
-pattern SDL_PROP_TEXTURE_D3D12_TEXTURE_U_POINTER :: String
-pattern SDL_PROP_TEXTURE_D3D12_TEXTURE_U_POINTER            = "SDL.texture.d3d12.texture_u"
-pattern SDL_PROP_TEXTURE_D3D12_TEXTURE_V_POINTER :: String
-pattern SDL_PROP_TEXTURE_D3D12_TEXTURE_V_POINTER            = "SDL.texture.d3d12.texture_v"
-pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_NUMBER :: String
-pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_NUMBER              = "SDL.texture.opengl.texture"
-pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_UV_NUMBER :: String
-pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_UV_NUMBER           = "SDL.texture.opengl.texture_uv"
-pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_U_NUMBER :: String
-pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_U_NUMBER            = "SDL.texture.opengl.texture_u"
-pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_V_NUMBER :: String
-pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_V_NUMBER            = "SDL.texture.opengl.texture_v"
-pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_TARGET_NUMBER :: String
-pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_TARGET_NUMBER       = "SDL.texture.opengl.target"
-pattern SDL_PROP_TEXTURE_OPENGL_TEX_W_FLOAT :: String
-pattern SDL_PROP_TEXTURE_OPENGL_TEX_W_FLOAT                 = "SDL.texture.opengl.tex_w"
-pattern SDL_PROP_TEXTURE_OPENGL_TEX_H_FLOAT :: String
-pattern SDL_PROP_TEXTURE_OPENGL_TEX_H_FLOAT                 = "SDL.texture.opengl.tex_h"
-pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_NUMBER :: String
-pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_NUMBER           = "SDL.texture.opengles2.texture"
-pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_UV_NUMBER :: String
-pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_UV_NUMBER        = "SDL.texture.opengles2.texture_uv"
-pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_U_NUMBER :: String
-pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_U_NUMBER         = "SDL.texture.opengles2.texture_u"
-pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_V_NUMBER :: String
-pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_V_NUMBER         = "SDL.texture.opengles2.texture_v"
-pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_TARGET_NUMBER :: String
-pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_TARGET_NUMBER    = "SDL.texture.opengles2.target"
-pattern SDL_PROP_TEXTURE_VULKAN_TEXTURE_NUMBER :: String
-pattern SDL_PROP_TEXTURE_VULKAN_TEXTURE_NUMBER              = "SDL.texture.vulkan.texture"
+pattern SDL_PROP_TEXTURE_COLORSPACE_NUMBER                                  = "SDL.texture.colorspace"
+pattern SDL_PROP_TEXTURE_FORMAT_NUMBER                                      = "SDL.texture.format"
+pattern SDL_PROP_TEXTURE_ACCESS_NUMBER                                      = "SDL.texture.access"
+pattern SDL_PROP_TEXTURE_WIDTH_NUMBER                                       = "SDL.texture.width"
+pattern SDL_PROP_TEXTURE_HEIGHT_NUMBER                                      = "SDL.texture.height"
+pattern SDL_PROP_TEXTURE_SDR_WHITE_POINT_FLOAT                              = "SDL.texture.SDR_white_point"
+pattern SDL_PROP_TEXTURE_HDR_HEADROOM_FLOAT                                 = "SDL.texture.HDR_headroom"
+pattern SDL_PROP_TEXTURE_D3D11_TEXTURE_POINTER                              = "SDL.texture.d3d11.texture"
+pattern SDL_PROP_TEXTURE_D3D11_TEXTURE_U_POINTER                            = "SDL.texture.d3d11.texture_u"
+pattern SDL_PROP_TEXTURE_D3D11_TEXTURE_V_POINTER                            = "SDL.texture.d3d11.texture_v"
+pattern SDL_PROP_TEXTURE_D3D12_TEXTURE_POINTER                              = "SDL.texture.d3d12.texture"
+pattern SDL_PROP_TEXTURE_D3D12_TEXTURE_U_POINTER                            = "SDL.texture.d3d12.texture_u"
+pattern SDL_PROP_TEXTURE_D3D12_TEXTURE_V_POINTER                            = "SDL.texture.d3d12.texture_v"
+pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_NUMBER                              = "SDL.texture.opengl.texture"
+pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_UV_NUMBER                           = "SDL.texture.opengl.texture_uv"
+pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_U_NUMBER                            = "SDL.texture.opengl.texture_u"
+pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_V_NUMBER                            = "SDL.texture.opengl.texture_v"
+pattern SDL_PROP_TEXTURE_OPENGL_TEXTURE_TARGET_NUMBER                       = "SDL.texture.opengl.target"
+pattern SDL_PROP_TEXTURE_OPENGL_TEX_W_FLOAT                                 = "SDL.texture.opengl.tex_w"
+pattern SDL_PROP_TEXTURE_OPENGL_TEX_H_FLOAT                                 = "SDL.texture.opengl.tex_h"
+pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_NUMBER                           = "SDL.texture.opengles2.texture"
+pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_UV_NUMBER                        = "SDL.texture.opengles2.texture_uv"
+pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_U_NUMBER                         = "SDL.texture.opengles2.texture_u"
+pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_V_NUMBER                         = "SDL.texture.opengles2.texture_v"
+pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_TARGET_NUMBER                    = "SDL.texture.opengles2.target"
+pattern SDL_PROP_TEXTURE_VULKAN_TEXTURE_NUMBER                              = "SDL.texture.vulkan.texture"
 
 fromCBool :: CBool -> Bool
 fromCBool = toBool

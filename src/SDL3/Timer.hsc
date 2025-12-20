@@ -60,24 +60,19 @@ import Foreign.Ptr (Ptr, FunPtr, freeHaskellFunPtr)
 import Data.Word (Word32, Word64)
 
 -- | Number of milliseconds in a second (SDL_MS_PER_SECOND).
-sdlMsPerSecond :: Int
-sdlMsPerSecond = #const SDL_MS_PER_SECOND
+sdlMsPerSecond = (#const SDL_MS_PER_SECOND) :: Word32
 
 -- | Number of microseconds in a second (SDL_US_PER_SECOND).
-sdlUsPerSecond :: Int
-sdlUsPerSecond = #const SDL_US_PER_SECOND
+sdlUsPerSecond = (#const SDL_US_PER_SECOND) :: Word32
 
 -- | Number of nanoseconds in a second (SDL_NS_PER_SECOND).
-sdlNsPerSecond :: Word64
-sdlNsPerSecond = #const SDL_NS_PER_SECOND
+sdlNsPerSecond = (#const SDL_NS_PER_SECOND) :: Word64
 
 -- | Number of nanoseconds in a millisecond (SDL_NS_PER_MS).
-sdlNsPerMs :: Int
-sdlNsPerMs = #const SDL_NS_PER_MS
+sdlNsPerMs = (#const SDL_NS_PER_MS) :: Word32
 
 -- | Number of nanoseconds in a microsecond (SDL_NS_PER_US).
-sdlNsPerUs :: Int
-sdlNsPerUs = #const SDL_NS_PER_US
+sdlNsPerUs = (#const SDL_NS_PER_US) :: Word32
 
 -- | Convert seconds to nanoseconds (SDL_SECONDS_TO_NS).
 sdlSecondsToNs :: Word64 -> Word64

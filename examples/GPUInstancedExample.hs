@@ -1,5 +1,5 @@
-{-# LANGUAGE LambdaCase #-}
 -- For defining lists directly in records
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
