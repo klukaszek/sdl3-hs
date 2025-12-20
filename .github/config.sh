@@ -14,7 +14,8 @@ BINDING_SRC_DIR="src/${BINDING_MODULE_NAME}"
 SDL_HEADER_COMMIT="e1a623f129e75ad532315852d656fb26c80382a6"
 
 # Search paths for SDL3 headers (colon-separated)
-SDL_HEADER_PATHS="/usr/local/include/SDL3:/usr/include/SDL3:/opt/homebrew/include/SDL3"
+# Includes local submodule path first, then system paths
+SDL_HEADER_PATHS="SDL3/include/SDL3:/usr/local/include/SDL3:/usr/include/SDL3:/opt/homebrew/include/SDL3"
 
 # Export for subprocesses
 export BINDING_MODULE_NAME BINDING_SRC_DIR SDL_HEADER_COMMIT SDL_HEADER_PATHS

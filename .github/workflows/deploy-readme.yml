@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Set up Haskell
         uses: haskell-actions/setup@v2
@@ -22,29 +24,33 @@ jobs:
           ghc-version: "9.8.4"
           cabal-version: "latest"
 
-      - name: Clone SDL3 headers for binding validation
+      - name: Set up SDL3 headers from submodule
         run: |
-          echo "Cloning SDL3 headers for binding checker..."
+          echo "Setting up SDL3 headers from submodule..."
 
-          # Clone SDL3 source to get headers (using specific commit e1a623f129e75ad532315852d656fb26c80382a6 for SDL3 3.3.0 pre-release)
-          git clone https://github.com/libsdl-org/SDL.git /tmp/SDL3-headers
-          cd /tmp/SDL3-headers
-          git checkout e1a623f129e75ad532315852d656fb26c80382a6
-          cd -
+          # Source config to get the expected commit
+          source .github/config.sh
 
-          # Create include directory structure that binding checker expects
-          sudo mkdir -p /usr/local/include/SDL3
+          # Verify submodule is at expected commit
+          cd SDL3
+          current_commit=$(git rev-parse HEAD)
+          echo "SDL3 submodule at commit: $current_commit"
+          if [ "$current_commit" != "$SDL_HEADER_COMMIT" ]; then
+            echo "⚠️  Warning: Submodule commit ($current_commit) differs from config ($SDL_HEADER_COMMIT)"
+          fi
+          cd ..
 
-          # Copy all SDL3 headers
-          sudo cp /tmp/SDL3-headers/include/SDL3/*.h /usr/local/include/SDL3/
+          # Create symlink to system include path for compatibility
+          sudo mkdir -p /usr/local/include
+          sudo ln -sf "$(pwd)/SDL3/include/SDL3" /usr/local/include/SDL3
 
           # Verify headers are available
           echo "Verifying SDL3 headers..."
-          header_count=$(find /usr/local/include/SDL3 -name "SDL_*.h" | wc -l)
-          echo "✅ Found $header_count SDL3 headers in /usr/local/include/SDL3"
+          header_count=$(find SDL3/include/SDL3 -name "SDL_*.h" | wc -l)
+          echo "✅ Found $header_count SDL3 headers in SDL3/include/SDL3"
 
           # List first few headers for verification
-          ls /usr/local/include/SDL3/SDL_*.h | head -5
+          ls SDL3/include/SDL3/SDL_*.h | head -5
 
       - name: Cache Cabal packages
         uses: actions/cache@v4

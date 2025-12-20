@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <!--
   Pandoc HTML Template for SDL3 Haskell Bindings Documentation
 
@@ -145,6 +145,52 @@
             img {
                 max-width: 100%;
                 height: auto;
+            }
+
+            /* Dark mode support */
+            @media (prefers-color-scheme: dark) {
+                body {
+                    background-color: #1a1625;
+                    color: #e0dce8;
+                }
+                h1, h2, h3, h4, h5, h6 {
+                    color: #f0ecf8;
+                }
+                h1 {
+                    border-bottom-color: #4a4060;
+                }
+                h2 {
+                    border-bottom-color: #3a3050;
+                }
+                pre {
+                    background-color: #252030;
+                    border-color: #3a3050;
+                }
+                p > code, li > code, td > code {
+                    background-color: rgba(200, 180, 220, 0.15);
+                }
+                table {
+                    border-color: #4a4060;
+                }
+                th, td {
+                    border-color: #3a3050;
+                }
+                th {
+                    background-color: #2a2540;
+                }
+                blockquote {
+                    border-left-color: #6a5090;
+                    background-color: #252035;
+                    color: #c8c0d8;
+                }
+                a {
+                    color: #a090d0;
+                }
+                .note {
+                    background-color: #2a2820;
+                    border-left-color: #a09020;
+                    color: #d8d0a0;
+                }
             }
         </style>
     </head>

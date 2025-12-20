@@ -23,8 +23,8 @@ fi
 echo "Building binding checker..." >&2
 cabal build exe:binding-checker -f-pkgconfig >/dev/null 2>&1
 
-# Find SDL3 headers
-SDL_PATHS="/usr/local/include/SDL3:/usr/include/SDL3:/opt/homebrew/include/SDL3"
+# Find SDL3 headers (check submodule first, then system paths)
+SDL_PATHS="SDL3/include/SDL3:/usr/local/include/SDL3:/usr/include/SDL3:/opt/homebrew/include/SDL3"
 sdl_dir=""
 
 IFS=':' read -ra PATHS <<< "$SDL_PATHS"
