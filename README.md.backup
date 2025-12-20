@@ -6,18 +6,37 @@ Please report any bugs or suggestions you have for the bindings!
 
 ## Setup Instructions
 
-::: {.note}
-**NOTE:** These bindings are for SDL version 3.3 as of right now.
+::: {.note} **NOTE:** These bindings are for SDL version 3.3 as of right now.
 :::
+
+### Cloning the Repository
+
+This repository uses a git submodule for SDL3 headers. Clone with:
+
+```bash
+git clone --recurse-submodules https://github.com/klukaszek/sdl3-hs.git
+```
+
+Or if you've already cloned without submodules:
+
+```bash
+git submodule update --init
+```
+
+### Installing SDL3
 
 Install SDL3 from source: [SDL GitHub](https://github.com/libsdl-org/SDL/)
 
-### Linux
-To build SDL3 from source on Linux:
+> **Tip:** If you cloned with `--recurse-submodules`, the `SDL3/` directory in
+> this repository is your SDL3 source.
+
+### Unix-like
+
+To build SDL3 from source on Unix-like systems (Linux, macOS, BSD):
 
 ```bash
 # Navigate to SDL3 source directory
-cd path/to/SDL3/source
+cd SDL3/
 
 # Create and enter build directory
 mkdir build
@@ -33,17 +52,21 @@ cmake --build . --config Release --parallel
 # Install (requires sudo)
 sudo cmake --install . --config Release
 ```
-This will install SDL3 to your system so that cabal can find and build the sdl3 package.
 
-Find your way back to this project's directory and run `cabal build sdl3` to build just the package.
+This will install SDL3 to your system so that cabal can find and build the sdl3
+package.
+
+Find your way back to this project's directory and run `cabal build sdl3` to
+build just the package.
 
 ### Windows
 
-> **Recommendation:** Use the Developer PowerShell or Developer Command Prompt that comes with Visual Studio for best results.
+> **Recommendation:** Use the Developer PowerShell or Developer Command Prompt
+> that comes with Visual Studio for best results.
 
 ```bash
 # Navigate to SDL3 source directory
-cd path/to/SDL3/source
+cd SDL3/
 
 # Create and enter build directory
 mkdir build
@@ -60,16 +83,19 @@ cmake --build . --config Release --parallel
 cmake --install . --config Release
 ```
 
-Make sure SDL3 compiles a .DLL file, and `pkgconfig` knows that SDL3 exists. (You might have to install `pkgconfig` using your pacman of choice.)
+Make sure SDL3 compiles a .DLL file, and `pkgconfig` knows that SDL3 exists.
+(You might have to install `pkgconfig` using your pacman of choice.)
 
 You can do this by setting:
+
 ```bash
 set PKG_CONFIG_PATH="path\to\SDL3\lib\pkgconfig"
 # or
 $env:PKG_CONFIG_PATH="path\to\SDL3\lib\pkgconfig\"
 ```
 
-Ensure the .DLL file is present in your `PATH` environment variable or within the root directory for this project.
+Ensure the .DLL file is present in your `PATH` environment variable or within
+the root directory for this project.
 
 You'll also want to add a `cabal.project.local` file to the root directory with:
 
@@ -79,57 +105,72 @@ package *
   extra-lib-dirs: "path/to/SDL3/lib/"
 ```
 
-Once all of this is done, you can find your way into this directory and run `cabal build sdl3` to build just the package.
+Once all of this is done, you can find your way into this directory and run
+`cabal build sdl3` to build just the package.
 
 ## Building and Running Examples
 
 To build all examples:
+
 ```bash
 cabal build --flag examples
 ```
 
 To see a list of all available examples:
+
 ```bash
 cabal run --flag examples
 ```
 
 To run a specific example:
+
 ```bash
 cabal run --flag examples EXAMPLE_NAME
 ```
 
 For example, to run the init example:
+
 ```bash
 cabal run --flag examples init
 ```
 
-You can also build specific executables in a similar manner by specifying the target name.
+You can also build specific executables in a similar manner by specifying the
+target name.
 
 ## Build Options
 
 The bindings support two main build configurations:
 
 ### Dynamic Linking (Default)
+
 ```bash
 cabal build sdl3                    # Build library only
 cabal build --flag examples        # Build with examples
 ```
 
-This is the default and recommended approach for development. Your executable will depend on SDL3 shared libraries.
+This is the default and recommended approach for development. Your executable
+will depend on SDL3 shared libraries.
 
 ### Static Linking
+
 ```bash
 cabal build --flag static-linking  # Build with static SDL3 (Linux only)
 ```
 
-Creates self-contained executables with SDL3 compiled in. Requires SDL3 to be built with static libraries enabled.
+Creates self-contained executables with SDL3 compiled in. Requires SDL3 to be
+built with static libraries enabled.
 
-**⚠️ macOS Limitation:** Static linking is not supported on macOS due to Apple's linking restrictions. The `static-linking` flag is ignored on macOS. Use dynamic linking with bundled libraries instead (see [DISTRIBUTION.md](DISTRIBUTION.md)).
+**⚠️ macOS Limitation:** Static linking is not supported on macOS due to Apple's
+linking restrictions. The `static-linking` flag is ignored on macOS. Use dynamic
+linking with bundled libraries instead (see [DISTRIBUTION.md](DISTRIBUTION.md)).
 
-**Note:** Static linking requires SDL3 built with `-DBUILD_SHARED_LIBS=OFF`. See [DISTRIBUTION.md](DISTRIBUTION.md) for details.
+**Note:** Static linking requires SDL3 built with `-DBUILD_SHARED_LIBS=OFF`. See
+[DISTRIBUTION.md](DISTRIBUTION.md) for details.
 
 ### Cabal Project Configuration
+
 Add to `cabal.project.local`:
+
 ```
 package sdl3
   flags: +static-linking  # Enable static linking
@@ -137,7 +178,8 @@ package sdl3
 
 ## Distribution
 
-For distributing applications to end users, see our comprehensive [**Distribution Guide**](DISTRIBUTION.md) which covers:
+For distributing applications to end users, see our comprehensive
+[**Distribution Guide**](DISTRIBUTION.md) which covers:
 
 - Bundling official SDL3 releases (recommended)
 - Static linking strategies
@@ -146,15 +188,19 @@ For distributing applications to end users, see our comprehensive [**Distributio
 - Production considerations
 
 **Quick Summary:**
+
 - **Development**: Use dynamic linking (default)
 - **Distribution**: Bundle SDL3 libraries with your executable
-- **Self-contained**: Use static linking for single-file distribution (Linux only)
+- **Self-contained**: Use static linking for single-file distribution (Linux
+  only)
 - **macOS**: Use dynamic linking with bundled libraries
 
 # Working Examples
 
 ## Core Functionality
+
 ### Initialization & System
+
 - [Init](examples/InitExample.hs) - Basic SDL initialization
 - [System](examples/SystemExample.hs) - System information and capabilities
 - [Platform](examples/PlatformExample.hs) - Platform-specific functionality
@@ -163,80 +209,113 @@ For distributing applications to end users, see our comprehensive [**Distributio
 - [Hints](examples/HintsExample.hs) - SDL configuration hints
 
 ## Window & Rendering
+
 ### Rendering
+
 - [Render](examples/RenderExample.hs) - 2D rendering basics
+
 ### Misc
+
 - [Rect](examples/RectExample.hs) - Rectangle basics (no rendering here)
 
 ### GPU & Graphics
-These examples are based off of the original [SDL3 GPU Examples](https://github.com/TheSpydog/SDL_gpu_examples/)
+
+These examples are based off of the original
+[SDL3 GPU Examples](https://github.com/TheSpydog/SDL_gpu_examples/)
+
 - [GPU Triangle](examples/GPURawTriangleExample.hs) - Raw triangle rendering
 - [GPU Clear](examples/GPUClearExample.hs) - Basic screen clearing
-- [GPU Vertex Buffer](examples/GPUVertexBufferExample.hs) - Vertex buffer usage (matches `gpu-vbuf`)
+- [GPU Vertex Buffer](examples/GPUVertexBufferExample.hs) - Vertex buffer usage
+  (matches `gpu-vbuf`)
 - [GPU Textured Quad](examples/GPUTexturedQuadExample.hs) - Texture mapping
-- [GPU Custom Sampling](examples/GPUCustomSamplingExample.hs) - Implementing custom texture sampling logic
+- [GPU Custom Sampling](examples/GPUCustomSamplingExample.hs) - Implementing
+  custom texture sampling logic
 - [GPU Animated Quad](examples/GPUAnimatedQuadExample.hs) - Animation basics
 - [GPU Instanced](examples/GPUInstancedExample.hs) - Instanced rendering
 - [GPU Stencil](examples/GPUStencilExample.hs) - Stencil buffer operations
 - [GPU Cull](examples/GPUCullExample.hs) - Culling techniques
-- [GPU Multi-Window](examples/GPUMultiWindowExample.hs) - Multiple window rendering
-- [GPU Draw Indirect](examples/GPUDrawIndirectExample.hs) - Leveraging indirect draw commands for GPU-driven rendering
-- [GPU Basic Compute](examples/GPUBasicComputeExample.hs) - Basic compute shader usage
-- [GPU Clear 3D Slice](examples/GPUClear3DSliceExample.hs) - Clearing a slice of a 3D texture
-- [GPU Compute Uniforms](examples/GPUComputeUniformsExample.hs) - Using uniforms with compute shaders
-- [GPU Compute Sampler](examples/GPUComputeSamplerExample.hs) - Using samplers within compute shaders
-- [GPU Compute Tonemapping](examples/GPUTonemappingExample.hs) - Using compute pipelines for HDRI texture tonemapping.
-- [GPU Copy Consistency](examples/GPUCopyConsistencyExample.hs) - Copy a texture to the GPU, alter it, and draw it to the framebuffer.
-- [GPU Copy & Readback](examples/GPUCopyAndReadbackExample.hs) - Write texture to GPU and read it back, verifying data integrity.
+- [GPU Multi-Window](examples/GPUMultiWindowExample.hs) - Multiple window
+  rendering
+- [GPU Draw Indirect](examples/GPUDrawIndirectExample.hs) - Leveraging indirect
+  draw commands for GPU-driven rendering
+- [GPU Basic Compute](examples/GPUBasicComputeExample.hs) - Basic compute shader
+  usage
+- [GPU Clear 3D Slice](examples/GPUClear3DSliceExample.hs) - Clearing a slice of
+  a 3D texture
+- [GPU Compute Uniforms](examples/GPUComputeUniformsExample.hs) - Using uniforms
+  with compute shaders
+- [GPU Compute Sampler](examples/GPUComputeSamplerExample.hs) - Using samplers
+  within compute shaders
+- [GPU Compute Tonemapping](examples/GPUTonemappingExample.hs) - Using compute
+  pipelines for HDRI texture tonemapping.
+- [GPU Copy Consistency](examples/GPUCopyConsistencyExample.hs) - Copy a texture
+  to the GPU, alter it, and draw it to the framebuffer.
+- [GPU Copy & Readback](examples/GPUCopyAndReadbackExample.hs) - Write texture
+  to GPU and read it back, verifying data integrity.
 - (... More coming ...)
 
 ## Input & Interaction
+
 ### User Input
+
 - [Events](examples/EventsExample.hs) - Event handling
 - [Gamepad](examples/GamepadExample.hs) - Controller input
-- [Touch Device](examples/TouchDeviceExample.hs) - Touch input handling (Can't test properly but compiles.)
-- [Haptic](examples/HapticExample.hs) - Force feedback (Can't test properly but compiles.)
+- [Touch Device](examples/TouchDeviceExample.hs) - Touch input handling (Can't
+  test properly but compiles.)
+- [Haptic](examples/HapticExample.hs) - Force feedback (Can't test properly but
+  compiles.)
 
 ### User Interface
+
 - [Dialog](examples/DialogExample.hs) - Dialog boxes
 - [Message Box](examples/MessageBoxExample.hs) - Simple message dialogs
 - [Clipboard](examples/ClipboardExample.hs) - Clipboard manipulation
 - [Tray](examples/TrayExample.hs) - System tray integration
 
 ## Audio & Media
+
 ### Audio
+
 - [Audio](examples/AudioExample.hs) - Audio playback
 - [WAV](examples/WAVExample.hs) - WAV file handling
 
 ### Camera
+
 - [Camera](examples/CameraExample.hs) - Camera device access (tested on macOS)
 
 ## System Integration
+
 ### File & Data
+
 - [Filesystem](examples/FilesystemExample.hs) - File system operations
 - [Storage](examples/StorageExample.hs) - Persistent storage
 - [GUID](examples/GUIDExample.hs) - Globally unique identifier handling
 
 ### Internationalization
+
 - [Locale](examples/LocaleExample.hs) - Localization support
 
 ## Time & Process Management
+
 ### Time
+
 - [Time](examples/TimeExample.hs) - Time functions
 - [Timer](examples/TimerExample.hs) - Timer functionality
 
 ### Process
+
 - [Process](examples/ProcessExample.hs) - Process management
 
 ## Sensors
+
 ### Hardware
-- [Sensor](examples/SensorExample.hs) - Hardware sensor access (Can't test properly but compiles.)
+
+- [Sensor](examples/SensorExample.hs) - Hardware sensor access (Can't test
+  properly but compiles.)
 
 ## 📊 Binding Status
 
-*Last updated: 2025-12-20 00:07 UTC*
-
-*SDL3 commit: `e1a623f129e75ad532315852d656fb26c80382a6`*
+*Last updated: 2025-12-20 00:41 UTC*
 
 ### Summary
 - **Total Modules**: 55
