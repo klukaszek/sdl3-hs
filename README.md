@@ -252,6 +252,32 @@ These examples are based off of the original
   to the GPU, alter it, and draw it to the framebuffer.
 - [GPU Copy & Readback](examples/GPUCopyAndReadbackExample.hs) - Write texture
   to GPU and read it back, verifying data integrity.
+- [GPU Texture 2D Array](examples/GPUTexture2DArrayExample.hs) - Rendering with
+  2D texture arrays
+- [GPU Texture Type Test](examples/GPUTextureTypeTestExample.hs) - Testing
+  various texture types and formats
+- [GPU Compressed Textures](examples/GPUCompressedTexturesExample.hs) - BCn and
+  ASTC texture loading
+- [GPU Generate Mipmaps](examples/GPUGenerateMipmapsExample.hs) - On-the-fly
+  mipmap generation
+- [GPU Blit 2D Array](examples/GPUBlit2DArrayExample.hs) - Blitting 2D texture
+  array layers
+- [GPU Blit Cube](examples/GPUBlitCubeExample.hs) - Blitting cubemap faces
+- [GPU Blit Mirror](examples/GPUBlitMirrorExample.hs) - Mirroring blit
+  operations
+- [GPU Latency](examples/GPULatencyExample.hs) - Measuring and managing
+  input-to-display latency
+- [GPU Window Resize](examples/GPUWindowResizeExample.hs) - Efficiently handling
+  window resizing with GPU resources
+- [GPU Triangle MSAA](examples/GPUTriangleMSAAExample.hs) - Multi-sample
+  anti-aliasing basics
+- [GPU Cubemap](examples/GPUCubemapExample.hs) - Cubemap rendering and skybox
+- [GPU Depth Sampler](examples/GPUDepthSamplerExample.hs) - Depth buffer
+  sampling and post-processing
+- [GPU Compute Sprite Batch](examples/GPUComputeSpriteBatchExample.hs) -
+  GPU-driven sprite batching with compute
+- [GPU Pull Sprite Batch](examples/GPUPullSpriteBatchExample.hs) - Pull-based
+  vertex shader sprite batching
 - (... More coming ...)
 
 ## Input & Interaction
@@ -315,9 +341,10 @@ These examples are based off of the original
 
 ## 📊 Binding Status
 
-*Last updated: 2025-12-20 00:44 UTC*
+_Last updated: 2025-12-20 03:29 UTC_
 
 ### Summary
+
 - **Total Modules**: 55
 - **Modules with Bindings**: 55
 - **Complete Bindings**: 55
@@ -326,72 +353,75 @@ These examples are based off of the original
 
 ### Status by Module
 
-| Module | Status |
-|--------|--------|
-| `SDL_assert` | ✅ Complete |
-| `SDL_asyncio` | ✅ Complete |
-| `SDL_atomic` | ✅ Complete |
-| `SDL_audio` | ✅ Complete |
-| `SDL_bits` | ✅ Complete |
-| `SDL_blendmode` | ✅ Complete |
-| `SDL_camera` | ✅ Complete |
-| `SDL_clipboard` | ✅ Complete |
-| `SDL_cpuinfo` | ✅ Complete |
-| `SDL_dialog` | ✅ Complete |
-| `SDL_endian` | ✅ Complete |
-| `SDL_error` | ✅ Complete |
-| `SDL_events` | ✅ Complete |
+| Module           | Status      |
+| ---------------- | ----------- |
+| `SDL_assert`     | ✅ Complete |
+| `SDL_asyncio`    | ✅ Complete |
+| `SDL_atomic`     | ✅ Complete |
+| `SDL_audio`      | ✅ Complete |
+| `SDL_bits`       | ✅ Complete |
+| `SDL_blendmode`  | ✅ Complete |
+| `SDL_camera`     | ✅ Complete |
+| `SDL_clipboard`  | ✅ Complete |
+| `SDL_cpuinfo`    | ✅ Complete |
+| `SDL_dialog`     | ✅ Complete |
+| `SDL_endian`     | ✅ Complete |
+| `SDL_error`      | ✅ Complete |
+| `SDL_events`     | ✅ Complete |
 | `SDL_filesystem` | ✅ Complete |
-| `SDL_gamepad` | ✅ Complete |
-| `SDL_gpu` | ✅ Complete |
-| `SDL_guid` | ✅ Complete |
-| `SDL_haptic` | ✅ Complete |
-| `SDL_hidapi` | ✅ Complete |
-| `SDL_hints` | ✅ Complete |
-| `SDL_init` | ✅ Complete |
-| `SDL_iostream` | ✅ Complete |
-| `SDL_joystick` | ✅ Complete |
-| `SDL_keyboard` | ✅ Complete |
-| `SDL_keycode` | ✅ Complete |
-| `SDL_loadso` | ✅ Complete |
-| `SDL_locale` | ✅ Complete |
-| `SDL_log` | ✅ Complete |
+| `SDL_gamepad`    | ✅ Complete |
+| `SDL_gpu`        | ✅ Complete |
+| `SDL_guid`       | ✅ Complete |
+| `SDL_haptic`     | ✅ Complete |
+| `SDL_hidapi`     | ✅ Complete |
+| `SDL_hints`      | ✅ Complete |
+| `SDL_init`       | ✅ Complete |
+| `SDL_iostream`   | ✅ Complete |
+| `SDL_joystick`   | ✅ Complete |
+| `SDL_keyboard`   | ✅ Complete |
+| `SDL_keycode`    | ✅ Complete |
+| `SDL_loadso`     | ✅ Complete |
+| `SDL_locale`     | ✅ Complete |
+| `SDL_log`        | ✅ Complete |
 | `SDL_messagebox` | ✅ Complete |
-| `SDL_metal` | ✅ Complete |
-| `SDL_misc` | ✅ Complete |
-| `SDL_mouse` | ✅ Complete |
-| `SDL_mutex` | ✅ Complete |
-| `SDL_pen` | ✅ Complete |
-| `SDL_pixels` | ✅ Complete |
-| `SDL_platform` | ✅ Complete |
-| `SDL_power` | ✅ Complete |
-| `SDL_process` | ✅ Complete |
+| `SDL_metal`      | ✅ Complete |
+| `SDL_misc`       | ✅ Complete |
+| `SDL_mouse`      | ✅ Complete |
+| `SDL_mutex`      | ✅ Complete |
+| `SDL_pen`        | ✅ Complete |
+| `SDL_pixels`     | ✅ Complete |
+| `SDL_platform`   | ✅ Complete |
+| `SDL_power`      | ✅ Complete |
+| `SDL_process`    | ✅ Complete |
 | `SDL_properties` | ✅ Complete |
-| `SDL_rect` | ✅ Complete |
-| `SDL_render` | ✅ Complete |
-| `SDL_scancode` | ✅ Complete |
-| `SDL_sensor` | ✅ Complete |
-| `SDL_stdinc` | ✅ Complete |
-| `SDL_storage` | ✅ Complete |
-| `SDL_surface` | ✅ Complete |
-| `SDL_system` | ✅ Complete |
-| `SDL_thread` | ✅ Complete |
-| `SDL_time` | ✅ Complete |
-| `SDL_timer` | ✅ Complete |
-| `SDL_touch` | ✅ Complete |
-| `SDL_tray` | ✅ Complete |
-| `SDL_version` | ✅ Complete |
-| `SDL_video` | ✅ Complete |
-| `SDL_vulkan` | ✅ Complete |
+| `SDL_rect`       | ✅ Complete |
+| `SDL_render`     | ✅ Complete |
+| `SDL_scancode`   | ✅ Complete |
+| `SDL_sensor`     | ✅ Complete |
+| `SDL_stdinc`     | ✅ Complete |
+| `SDL_storage`    | ✅ Complete |
+| `SDL_surface`    | ✅ Complete |
+| `SDL_system`     | ✅ Complete |
+| `SDL_thread`     | ✅ Complete |
+| `SDL_time`       | ✅ Complete |
+| `SDL_timer`      | ✅ Complete |
+| `SDL_touch`      | ✅ Complete |
+| `SDL_tray`       | ✅ Complete |
+| `SDL_version`    | ✅ Complete |
+| `SDL_video`      | ✅ Complete |
+| `SDL_vulkan`     | ✅ Complete |
 
 ### Legend
+
 - ✅ **Complete**: All functions from the header are bound
 - ⚠️ **X missing**: Header has bindings but X functions are missing
 - ❌ **No bindings**: No Haskell bindings exist for this header
 - ❓ **Unknown**: Status could not be determined
 
 ### Notes
+
 - Status reflects core SDL3 headers (test/internal headers excluded)
-- Missing function details are available in the `broken/` directory after running the binding checker
+- Missing function details are available in the `broken/` directory after
+  running the binding checker
 - Use `./check-sdl-bindings -i` for interactive binding status checking
 - Some modules may intentionally have no bindings if not applicable to Haskell
