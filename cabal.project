@@ -1,0 +1,4 @@
+packages: .
+
+package sdl3
+  flags: +examples
