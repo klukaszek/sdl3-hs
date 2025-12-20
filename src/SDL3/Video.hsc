@@ -118,7 +118,9 @@ module SDL3.Video
     sdlSetWindowMinimumSize,
     sdlGetWindowMinimumSize,
     sdlSetWindowMaximumSize,
-    sdlGetWindowMaximumSize
+    sdlGetWindowMaximumSize,
+    sdlSetWindowFullscreen,
+    sdlSyncWindow
   ) where
 
 #include <SDL3/SDL_video.h>
