@@ -1,0 +1,3 @@
+/Users/kylelukaszek/Projects/sdl3-hs/SDL_gpu_examples/CMakeFiles/SDL_gpu_examples.dir
+/Users/kylelukaszek/Projects/sdl3-hs/SDL_gpu_examples/CMakeFiles/edit_cache.dir
+/Users/kylelukaszek/Projects/sdl3-hs/SDL_gpu_examples/CMakeFiles/rebuild_cache.dir

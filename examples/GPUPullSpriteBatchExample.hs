@@ -37,8 +37,7 @@ data AppResources = AppResources
     resSampler :: SDLGPUSampler,
     resTexture :: SDLGPUTexture,
     resSpriteStorageTransferBuffer :: SDLGPUTransferBuffer,
-    resSpriteStorageBuffer :: SDLGPUBuffer,
-    resSpriteIndexBuffer :: SDLGPUBuffer
+    resSpriteStorageBuffer :: SDLGPUBuffer
   }
 
 -- | main
@@ -120,22 +119,13 @@ createResources Context {..} = do
 
           maybeStorageTB <- createTransferBuffer contextDevice (spriteCount * instSize) SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "SpriteStorageTransfer"
           maybeStorageBuf <- createGPUBuffer contextDevice SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ (spriteCount * instSize) "SpriteStorageBuffer"
-          maybeIndexBuf <- createGPUBuffer contextDevice SDL_GPU_BUFFERUSAGE_INDEX (spriteCount * 6 * 4) "SpriteIndexBuffer"
 
-          case (maybeTex, maybeSamp, maybeStorageTB, maybeStorageBuf, maybeIndexBuf) of
-            (Just tex, Just samp, Just stb, Just sb, Just ib) -> do
-              let indices = concat [[j, j + 1, j + 2, j + 3, j + 2, j + 1] | j <- [0, 4 .. spriteCount * 4 - 4]]
-
-              maybeIndexTB <- createTransferBuffer contextDevice (fromIntegral $ length indices * 4) SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "IndexTransfer"
+          case (maybeTex, maybeSamp, maybeStorageTB, maybeStorageBuf) of
+            (Just tex, Just samp, Just stb, Just sb) -> do
               maybeAtlasTB <- createTransferBuffer contextDevice (fromIntegral $ w * h * 4) SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "AtlasTransfer"
 
-              case (maybeIndexTB, maybeAtlasTB) of
-                (Just itb, Just atb) -> do
-                  mIndexPtr <- sdlMapGPUTransferBuffer contextDevice itb False
-                  case mIndexPtr of
-                    Just ptr -> pokeArray (castPtr ptr) (map fromIntegral indices :: [Word32]) >> sdlUnmapGPUTransferBuffer contextDevice itb
-                    Nothing -> return ()
-
+              case maybeAtlasTB of
+                Just atb -> do
                   mAtlasPtr <- sdlMapGPUTransferBuffer contextDevice atb False
                   case mAtlasPtr of
                     Just ptr -> copyBytes ptr (castPtr $ surfacePixels surf) (fromIntegral $ w * h * 4) >> sdlUnmapGPUTransferBuffer contextDevice atb
@@ -151,22 +141,17 @@ createResources Context {..} = do
                           let texRegion = SDLGPUTextureRegion tex 0 0 0 0 0 (fromIntegral w) (fromIntegral h) 1
                           sdlUploadToGPUTexture cp_pass texTrans texRegion False
 
-                          let bufLoc = SDLGPUTransferBufferLocation itb 0
-                          let bufRegion = SDLGPUBufferRegion ib 0 (fromIntegral $ length indices * 4)
-                          sdlUploadToGPUBuffer cp_pass bufLoc bufRegion False
-
                           sdlEndGPUCopyPass cp_pass
                         Nothing -> return ()
                       void $ sdlSubmitGPUCommandBuffer cmd
                     Nothing -> return ()
 
-                  sdlReleaseGPUTransferBuffer contextDevice itb
                   sdlReleaseGPUTransferBuffer contextDevice atb
                   sdlDestroySurface surfPtr
                   sdlReleaseGPUShader contextDevice vs
                   sdlReleaseGPUShader contextDevice fs
 
-                  return $ Just $ AppResources rp samp tex stb sb ib
+                  return $ Just $ AppResources rp samp tex stb sb
                 _ -> return Nothing
             _ -> return Nothing
         _ -> return Nothing
@@ -181,7 +166,6 @@ releaseResources Context {..} (Just AppResources {..}) = do
   sdlReleaseGPUTexture contextDevice resTexture
   sdlReleaseGPUTransferBuffer contextDevice resSpriteStorageTransferBuffer
   sdlReleaseGPUBuffer contextDevice resSpriteStorageBuffer
-  sdlReleaseGPUBuffer contextDevice resSpriteIndexBuffer
 
 -- | atlas coords
 uCoords, vCoords :: [CFloat]
@@ -254,13 +238,12 @@ renderFrameGPU Context {..} AppResources {..} = do
             Just rp -> do
               sdlBindGPUGraphicsPipeline rp resRenderPipeline
               sdlBindGPUVertexStorageBuffers rp 0 [resSpriteStorageBuffer]
-              sdlBindGPUIndexBuffer rp (SDLGPUBufferBinding resSpriteIndexBuffer 0) SDL_GPU_INDEXELEMENTSIZE_32BIT
               sdlBindGPUFragmentSamplers rp 0 [SDLGPUTextureSamplerBinding resTexture resSampler]
 
               let projection = ortho 0 640 480 0 0 (-1) :: M44 CFloat
               sdlPushGPUVertexUniformData cmd 0 (transpose projection)
 
-              sdlDrawGPUIndexedPrimitives rp (spriteCount * 6) 1 0 0 0
+              sdlDrawGPUPrimitives rp (spriteCount * 6) 1 0 0
               sdlEndGPURenderPass rp
             Nothing -> return ()
 
