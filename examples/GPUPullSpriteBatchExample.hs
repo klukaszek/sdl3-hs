@@ -4,26 +4,25 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -- |
--- Example     : GPUComputeSpriteBatch
--- Description : Demonstrates a compute-to-graphics workflow.
+-- Example     : GPUPullSpriteBatch
+-- Description : Demonstrates a pull-based vertex shader workflow.
 -- Copyright   : (c) Kyle Lukaszek, 2025
 -- License     : BSD3
 --
--- Ported from SDL_gpu_examples/ComputeSpriteBatch.c
+-- Ported from SDL_gpu_examples/PullSpriteBatch.c
 module Main where
 
 import Control.Exception (bracket)
-import Control.Monad (forM, forM_, unless, void, when)
-import Data.Bits ((.|.))
+import Control.Monad (forM, unless, void)
 import Data.IORef (IORef, newIORef, readIORef)
 import Data.Word (Word32)
 import Foreign.C.Types (CFloat)
 import Foreign.Marshal.Array (pokeArray)
 import Foreign.Marshal.Utils (copyBytes)
-import Foreign.Ptr (Ptr, castPtr, plusPtr)
+import Foreign.Ptr (castPtr)
 import Foreign.Storable (Storable (..))
 import GPUCommon
-import Linear (M44, V4 (..), ortho, transpose)
+import Linear (M44, ortho, transpose)
 import SDL3
 import System.Exit (exitFailure, exitSuccess)
 import System.FilePath ((</>))
@@ -34,20 +33,18 @@ spriteCount = 8192
 
 -- | Resources
 data AppResources = AppResources
-  { resComputePipeline :: SDLGPUComputePipeline,
-    resRenderPipeline :: SDLGPUGraphicsPipeline,
+  { resRenderPipeline :: SDLGPUGraphicsPipeline,
     resSampler :: SDLGPUSampler,
     resTexture :: SDLGPUTexture,
-    resSpriteComputeTransferBuffer :: SDLGPUTransferBuffer,
-    resSpriteComputeBuffer :: SDLGPUBuffer,
-    resSpriteVertexBuffer :: SDLGPUBuffer,
+    resSpriteStorageTransferBuffer :: SDLGPUTransferBuffer,
+    resSpriteStorageBuffer :: SDLGPUBuffer,
     resSpriteIndexBuffer :: SDLGPUBuffer
   }
 
 -- | main
 main :: IO ()
 main = do
-  maybeResult <- withContext "SDL3 Haskell GPU ComputeSpriteBatch" [] runAppGPU
+  maybeResult <- withContext "SDL3 Haskell GPU PullSpriteBatch" [] runAppGPU
   case maybeResult of
     Nothing -> exitFailure
     Just _ -> exitSuccess
@@ -69,7 +66,7 @@ runAppGPU context@Context {..} = do
 createResources :: Context -> IO (Maybe AppResources)
 createResources Context {..} = do
   -- Shaders
-  vertShader <- loadShader contextDevice "TexturedQuadColorWithMatrix.vert" SDL_GPU_SHADERSTAGE_VERTEX (defaultShaderCreateInfo {shaderNumUniformBuffers = 1})
+  vertShader <- loadShader contextDevice "PullSpriteBatch.vert" SDL_GPU_SHADERSTAGE_VERTEX (defaultShaderCreateInfo {shaderNumStorageBuffers = 1, shaderNumUniformBuffers = 1})
   fragShader <- loadShader contextDevice "TexturedQuadColor.frag" SDL_GPU_SHADERSTAGE_FRAGMENT (defaultShaderCreateInfo {shaderNumSamplers = 1})
 
   case (vertShader, fragShader) of
@@ -78,15 +75,7 @@ createResources Context {..} = do
 
       let renderPipelineCI =
             (defaultGraphicsPipelineCreateInfo vs fs swapchainFormat)
-              { vertexInputState =
-                  SDLGPUVertexInputState
-                    { inputVertexBuffers = [SDLGPUVertexBufferDescription 0 (fromIntegral $ sizeOf (undefined :: PositionTextureColorVertex)) SDL_GPU_VERTEXINPUTRATE_VERTEX 0],
-                      inputVertexAttribs =
-                        [ SDLGPUVertexAttribute 0 0 SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4 0,
-                          SDLGPUVertexAttribute 1 0 SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2 16,
-                          SDLGPUVertexAttribute 2 0 SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4 32
-                        ]
-                    },
+              { vertexInputState = SDLGPUVertexInputState [] [],
                 targetInfo =
                   (defaultGraphicsPipelineTargetInfo swapchainFormat)
                     { colorTargets =
@@ -107,19 +96,10 @@ createResources Context {..} = do
               }
 
       maybeRenderPipeline <- sdlCreateGPUGraphicsPipeline contextDevice renderPipelineCI
-
-      let computePipelineCI =
-            defaultComputePipelineCreateInfo
-              { numReadOnlyStorageBuffers = 1,
-                numReadWriteStorageBuffers = 1,
-                threadCountX = 64
-              }
-      maybeComputePipeline <- createComputePipelineFromShader contextDevice "SpriteBatch.comp" computePipelineCI
-
       maybeAtlasSurface <- loadImage ("Content" </> "Images" </> "ravioli_atlas.bmp")
 
-      case (maybeRenderPipeline, maybeComputePipeline, maybeAtlasSurface) of
-        (Just rp, Just cp, Just surfPtr) -> do
+      case (maybeRenderPipeline, maybeAtlasSurface) of
+        (Just rp, Just surfPtr) -> do
           surf <- peek surfPtr
           let w = fromIntegral $ surfaceW surf
               h = fromIntegral $ surfaceH surf
@@ -137,15 +117,13 @@ createResources Context {..} = do
           maybeSamp <- sdlCreateGPUSampler contextDevice samplerCI
 
           let instSize = fromIntegral $ sizeOf (undefined :: ComputeSpriteInstance)
-              vertSize = fromIntegral $ sizeOf (undefined :: PositionTextureColorVertex)
 
-          maybeComputeTB <- createTransferBuffer contextDevice (spriteCount * instSize) SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "SpriteComputeTransfer"
-          maybeComputeBuf <- createGPUBuffer contextDevice SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ (spriteCount * instSize) "SpriteComputeBuffer"
-          maybeVertexBuf <- createGPUBuffer contextDevice (SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE .|. SDL_GPU_BUFFERUSAGE_VERTEX) (spriteCount * 4 * vertSize) "SpriteVertexBuffer"
+          maybeStorageTB <- createTransferBuffer contextDevice (spriteCount * instSize) SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "SpriteStorageTransfer"
+          maybeStorageBuf <- createGPUBuffer contextDevice SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ (spriteCount * instSize) "SpriteStorageBuffer"
           maybeIndexBuf <- createGPUBuffer contextDevice SDL_GPU_BUFFERUSAGE_INDEX (spriteCount * 6 * 4) "SpriteIndexBuffer"
 
-          case (maybeTex, maybeSamp, maybeComputeTB, maybeComputeBuf, maybeVertexBuf, maybeIndexBuf) of
-            (Just tex, Just samp, Just ctb, Just cb, Just vb, Just ib) -> do
+          case (maybeTex, maybeSamp, maybeStorageTB, maybeStorageBuf, maybeIndexBuf) of
+            (Just tex, Just samp, Just stb, Just sb, Just ib) -> do
               let indices = concat [[j, j + 1, j + 2, j + 3, j + 2, j + 1] | j <- [0, 4 .. spriteCount * 4 - 4]]
 
               maybeIndexTB <- createTransferBuffer contextDevice (fromIntegral $ length indices * 4) SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD "IndexTransfer"
@@ -188,7 +166,7 @@ createResources Context {..} = do
                   sdlReleaseGPUShader contextDevice vs
                   sdlReleaseGPUShader contextDevice fs
 
-                  return $ Just $ AppResources cp rp samp tex ctb cb vb ib
+                  return $ Just $ AppResources rp samp tex stb sb ib
                 _ -> return Nothing
             _ -> return Nothing
         _ -> return Nothing
@@ -198,13 +176,11 @@ createResources Context {..} = do
 releaseResources :: Context -> Maybe AppResources -> IO ()
 releaseResources _ Nothing = return ()
 releaseResources Context {..} (Just AppResources {..}) = do
-  sdlReleaseGPUComputePipeline contextDevice resComputePipeline
   sdlReleaseGPUGraphicsPipeline contextDevice resRenderPipeline
   sdlReleaseGPUSampler contextDevice resSampler
   sdlReleaseGPUTexture contextDevice resTexture
-  sdlReleaseGPUTransferBuffer contextDevice resSpriteComputeTransferBuffer
-  sdlReleaseGPUBuffer contextDevice resSpriteComputeBuffer
-  sdlReleaseGPUBuffer contextDevice resSpriteVertexBuffer
+  sdlReleaseGPUTransferBuffer contextDevice resSpriteStorageTransferBuffer
+  sdlReleaseGPUBuffer contextDevice resSpriteStorageBuffer
   sdlReleaseGPUBuffer contextDevice resSpriteIndexBuffer
 
 -- | atlas coords
@@ -224,7 +200,7 @@ renderFrameGPU Context {..} AppResources {..} = do
         Nothing -> void $ sdlSubmitGPUCommandBuffer cmd
         Just (swapTex, _, _) -> do
           let instSize = fromIntegral $ sizeOf (undefined :: ComputeSpriteInstance)
-          mPtr <- sdlMapGPUTransferBuffer contextDevice resSpriteComputeTransferBuffer True
+          mPtr <- sdlMapGPUTransferBuffer contextDevice resSpriteStorageTransferBuffer True
           case mPtr of
             Just ptr -> do
               instances <- forM [0 .. spriteCount - 1] $ \_ -> do
@@ -254,26 +230,16 @@ renderFrameGPU Context {..} AppResources {..} = do
                       csiA = 1
                     }
               pokeArray (castPtr ptr) instances
-              sdlUnmapGPUTransferBuffer contextDevice resSpriteComputeTransferBuffer
+              sdlUnmapGPUTransferBuffer contextDevice resSpriteStorageTransferBuffer
             Nothing -> return ()
 
           maybeCP <- sdlBeginGPUCopyPass cmd
           case maybeCP of
             Just cp -> do
-              let loc = SDLGPUTransferBufferLocation resSpriteComputeTransferBuffer 0
-              let region = SDLGPUBufferRegion resSpriteComputeBuffer 0 (spriteCount * instSize)
+              let loc = SDLGPUTransferBufferLocation resSpriteStorageTransferBuffer 0
+              let region = SDLGPUBufferRegion resSpriteStorageBuffer 0 (spriteCount * instSize)
               sdlUploadToGPUBuffer cp loc region True
               sdlEndGPUCopyPass cp
-            Nothing -> return ()
-
-          let rwBinding = SDLGPUStorageBufferReadWriteBinding resSpriteVertexBuffer True
-          maybeCompP <- sdlBeginGPUComputePass cmd [] [rwBinding]
-          case maybeCompP of
-            Just compP -> do
-              sdlBindGPUComputePipeline compP resComputePipeline
-              sdlBindGPUComputeStorageBuffers compP 0 [resSpriteComputeBuffer]
-              sdlDispatchGPUCompute compP (spriteCount `div` 64) 1 1
-              sdlEndGPUComputePass compP
             Nothing -> return ()
 
           let colorTarget =
@@ -283,16 +249,16 @@ renderFrameGPU Context {..} AppResources {..} = do
                     storeOp = SDL_GPU_STOREOP_STORE,
                     clearColor = SDLFColor 0 0 0 1
                   }
-          let projection = ortho 0 640 480 0 0 (-1) :: M44 CFloat
-          sdlPushGPUVertexUniformData cmd 0 (transpose projection)
-
           maybeRP <- sdlBeginGPURenderPass cmd [colorTarget] Nothing
           case maybeRP of
             Just rp -> do
               sdlBindGPUGraphicsPipeline rp resRenderPipeline
-              sdlBindGPUVertexBuffers rp 0 [SDLGPUBufferBinding resSpriteVertexBuffer 0]
+              sdlBindGPUVertexStorageBuffers rp 0 [resSpriteStorageBuffer]
               sdlBindGPUIndexBuffer rp (SDLGPUBufferBinding resSpriteIndexBuffer 0) SDL_GPU_INDEXELEMENTSIZE_32BIT
               sdlBindGPUFragmentSamplers rp 0 [SDLGPUTextureSamplerBinding resTexture resSampler]
+
+              let projection = ortho 0 640 480 0 0 (-1) :: M44 CFloat
+              sdlPushGPUVertexUniformData cmd 0 (transpose projection)
 
               sdlDrawGPUIndexedPrimitives rp (spriteCount * 6) 1 0 0 0
               sdlEndGPURenderPass rp
