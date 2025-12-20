@@ -1,4 +1,4 @@
-import SDL
+import SDL3
 import Control.Monad (unless)
 import System.Exit (exitFailure)
 

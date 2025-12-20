@@ -259,10 +259,9 @@ createDrawPipeline dev win vertShader fragShader = do
           }
     let colorTargetDesc = defaultColorTargetDescription { targetFormat = swapchainFormat, targetBlendState = blendState }
         targetInfo = SDLGPUGraphicsPipelineTargetInfo [colorTargetDesc] SDL_GPU_TEXTUREFORMAT_INVALID False
-        pipelineCI = defaultGraphicsPipelineCreateInfo
-            { vertexShader = vertShader
-            , fragmentShader = fragShader
-            , vertexInputState = vertexInputState
+        basePipelineCI = defaultGraphicsPipelineCreateInfo vertShader fragShader swapchainFormat
+        pipelineCI = basePipelineCI
+            { vertexInputState = vertexInputState
             , targetInfo = targetInfo
             }
     sdlCreateGPUGraphicsPipeline dev pipelineCI
