@@ -18,6 +18,14 @@ jobs:
         with:
           submodules: true
 
+      - name: Cache GHCup
+        uses: actions/cache@v4
+        with:
+          path: ~/.ghcup
+          key: ${{ runner.os }}-ghcup-9.8.4
+          restore-keys: |
+            ${{ runner.os }}-ghcup-
+
       - name: Set up Haskell
         uses: haskell-actions/setup@v2
         with:
