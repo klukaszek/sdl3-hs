@@ -423,5 +423,4 @@ _Last updated: 2025-12-20 03:29 UTC_
 - Status reflects core SDL3 headers (test/internal headers excluded)
 - Missing function details are available in the `broken/` directory after
   running the binding checker
-- Use `./check-sdl-bindings -i` for interactive binding status checking
 - Some modules may intentionally have no bindings if not applicable to Haskell

@@ -1228,9 +1228,6 @@ executable wav
   default-language: Haskell2010
 
 -- SDL3 Binding Checker - Core tool for detecting missing bindings
--- Also available as smart helper script: ./check-sdl-bindings
--- The helper script provides modern tool integration (fzf, ripgrep, fd)
--- and interactive selection features for better user experience.
 executable binding-checker
   main-is: binding-checker.hs
   build-depends:

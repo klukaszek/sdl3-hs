@@ -341,7 +341,7 @@ These examples are based off of the original
 
 ## 📊 Binding Status
 
-*Last updated: 2025-12-20 09:32 UTC*
+*Last updated: 2025-12-20 09:40 UTC*
 
 ### Summary
 - **Total Modules**: 55
@@ -419,5 +419,4 @@ These examples are based off of the original
 ### Notes
 - Status reflects core SDL3 headers (test/internal headers excluded)
 - Missing function details are available in the `broken/` directory after running the binding checker
-- Use `./check-sdl-bindings -i` for interactive binding status checking
 - Some modules may intentionally have no bindings if not applicable to Haskell
