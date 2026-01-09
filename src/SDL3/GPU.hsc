@@ -1905,6 +1905,8 @@ data SDLGPUDepthStencilTargetInfo = SDLGPUDepthStencilTargetInfo
   , depthStencilStencilStoreOp:: SDLGPUStoreOp
   , depthStencilCycle         :: Bool
   , depthStencilClearStencil  :: Word8
+  , depthMipLevel             :: Word8
+  , depthLayer                :: Word8
   } deriving (Show, Eq)
 
 instance Storable SDLGPUDepthStencilTargetInfo where
@@ -1920,7 +1922,12 @@ instance Storable SDLGPUDepthStencilTargetInfo where
     depthStencilStencilStoreOp<- SDLGPUStoreOp <$> (#{peek SDL_GPUDepthStencilTargetInfo, stencil_store_op} ptr :: IO CInt)
     depthStencilCycle         <- toBool <$> (#{peek SDL_GPUDepthStencilTargetInfo, cycle} ptr :: IO CBool)
     clear_stencil_c <- #{peek SDL_GPUDepthStencilTargetInfo, clear_stencil} ptr :: IO CUChar -- Peek as CUChar
+    mip_level_c     <- #{peek SDL_GPUDepthStencilTargetInfo, mip_level} ptr :: IO CUChar
+    layer_c         <- #{peek SDL_GPUDepthStencilTargetInfo, layer} ptr :: IO CUChar
     let depthStencilClearStencil = fromIntegral clear_stencil_c :: Word8 -- Convert to Word8
+        depthMipLevel = fromIntegral mip_level_c :: Word8
+        depthLayer = fromIntegral layer_c :: Word8
+
     return SDLGPUDepthStencilTargetInfo { depthStencilTexture       = depthStencilTexture
                                         , depthStencilClearDepth    = depthStencilClearDepth
                                         , depthStencilLoadOp        = depthStencilLoadOp
@@ -1929,6 +1936,8 @@ instance Storable SDLGPUDepthStencilTargetInfo where
                                         , depthStencilStencilStoreOp= depthStencilStencilStoreOp
                                         , depthStencilCycle         = depthStencilCycle
                                         , depthStencilClearStencil  = depthStencilClearStencil -- Use converted Word8
+                                        , depthMipLevel             = depthMipLevel
+                                        , depthLayer                = depthLayer
                                         }
   poke ptr SDLGPUDepthStencilTargetInfo{..} = do
     let (SDLGPUTexture texture_ptr) = depthStencilTexture
@@ -1940,8 +1949,8 @@ instance Storable SDLGPUDepthStencilTargetInfo where
     #{poke SDL_GPUDepthStencilTargetInfo, stencil_store_op} ptr ( (\(SDLGPUStoreOp i) -> i) depthStencilStencilStoreOp :: CInt)
     #{poke SDL_GPUDepthStencilTargetInfo, cycle} ptr (fromBool depthStencilCycle :: CBool)
     #{poke SDL_GPUDepthStencilTargetInfo, clear_stencil} ptr (fromIntegral depthStencilClearStencil :: CUChar) -- Convert Word8 to CUChar
-    #{poke SDL_GPUDepthStencilTargetInfo, padding1} ptr (0 :: CUChar)
-    #{poke SDL_GPUDepthStencilTargetInfo, padding2} ptr (0 :: CUChar)
+    #{poke SDL_GPUDepthStencilTargetInfo, mip_level} ptr (fromIntegral depthMipLevel :: CUChar)
+    #{poke SDL_GPUDepthStencilTargetInfo, layer} ptr (fromIntegral depthLayer :: CUChar)
 
 
 -- SDL_GPUBlitInfo

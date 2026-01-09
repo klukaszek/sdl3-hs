@@ -35,7 +35,7 @@ module SDL3.Render
   , SDLRendererLogicalPresentation(..)
     -- ** Structs
   , SDLVertex(..)
-  , SDLGPURenderStateDesc(..)
+  , SDLGPURenderStateCreateInfo(..)
 
     -- * Pattern Synonyms
     -- ** Constants
@@ -1312,37 +1312,37 @@ sdlGetDefaultTextureScaleMode (SDLRenderer renderer) =
                 return $ Just (toEnum $ fromIntegral modeCInt) -- Convert
 
 -- ** Custom GPU State (GPU Renderer) **
-data SDLGPURenderStateDesc = SDLGPURenderStateDesc
-    { gpuRenderStateDescVersion         :: Word32
-    , gpuRenderStateDescFragmentShader  :: SDLGPUShader
-    , gpuRenderStateDescSamplerBindings :: [SDLGPUTextureSamplerBinding]
-    , gpuRenderStateDescStorageTextures :: [SDLGPUTexture]
-    , gpuRenderStateDescStorageBuffers  :: [SDLGPUBuffer]
+data SDLGPURenderStateCreateInfo = SDLGPURenderStateCreateInfo
+    { gpuRenderStateCreateInfoFragmentShader  :: SDLGPUShader
+    , gpuRenderStateCreateInfoSamplerBindings :: [SDLGPUTextureSamplerBinding]
+    , gpuRenderStateCreateInfoStorageTextures :: [SDLGPUTexture]
+    , gpuRenderStateCreateInfoStorageBuffers  :: [SDLGPUBuffer]
+    , gpuRenderStateCreateInfoProps           :: SDLPropertiesID
     } deriving (Show, Eq)
 
--- Helper for marshalling SDL_GPURenderStateDesc
-withGPURenderStateDesc :: SDLGPURenderStateDesc -> (Ptr () -> IO a) -> IO a
-withGPURenderStateDesc SDLGPURenderStateDesc{..} f =
-    withArrayLen gpuRenderStateDescSamplerBindings $ \numSamplers samplersPtr ->
-    withArrayLen (map (\(SDLGPUTexture p) -> p) gpuRenderStateDescStorageTextures) $ \numTex texPtrs ->
-    withArrayLen (map (\(SDLGPUBuffer p) -> p) gpuRenderStateDescStorageBuffers) $ \numBuf bufPtrs ->
-    allocaBytes #{size SDL_GPURenderStateDesc} $ \descPtr -> do
-        let (SDLGPUShader fsPtr) = gpuRenderStateDescFragmentShader
+-- Helper for marshalling SDL_GPURenderStateCreateInfo
+withGPURenderStateDesc :: SDLGPURenderStateCreateInfo -> (Ptr () -> IO a) -> IO a
+withGPURenderStateDesc SDLGPURenderStateCreateInfo{..} f =
+    withArrayLen gpuRenderStateCreateInfoSamplerBindings $ \numSamplers samplersPtr ->
+    withArrayLen (map (\(SDLGPUTexture p) -> p) gpuRenderStateCreateInfoStorageTextures) $ \numTex texPtrs ->
+    withArrayLen (map (\(SDLGPUBuffer p) -> p) gpuRenderStateCreateInfoStorageBuffers) $ \numBuf bufPtrs ->
+    allocaBytes #{size SDL_GPURenderStateCreateInfo} $ \descPtr -> do
+        let (SDLGPUShader fsPtr) = gpuRenderStateCreateInfoFragmentShader
         -- Correct the poke for version:
-        #{poke SDL_GPURenderStateDesc, version} descPtr (fromIntegral gpuRenderStateDescVersion :: CUInt) -- Convert Word32 to CUInt
-        #{poke SDL_GPURenderStateDesc, fragment_shader} descPtr fsPtr
-        #{poke SDL_GPURenderStateDesc, num_sampler_bindings} descPtr (fromIntegral numSamplers :: CInt)
-        #{poke SDL_GPURenderStateDesc, sampler_bindings} descPtr samplersPtr
-        #{poke SDL_GPURenderStateDesc, num_storage_textures} descPtr (fromIntegral numTex :: CInt)
-        #{poke SDL_GPURenderStateDesc, storage_textures} descPtr texPtrs
-        #{poke SDL_GPURenderStateDesc, num_storage_buffers} descPtr (fromIntegral numBuf :: CInt)
-        #{poke SDL_GPURenderStateDesc, storage_buffers} descPtr bufPtrs
+        #{poke SDL_GPURenderStateCreateInfo, fragment_shader} descPtr fsPtr
+        #{poke SDL_GPURenderStateCreateInfo, num_sampler_bindings} descPtr (fromIntegral numSamplers :: CInt)
+        #{poke SDL_GPURenderStateCreateInfo, sampler_bindings} descPtr samplersPtr
+        #{poke SDL_GPURenderStateCreateInfo, num_storage_textures} descPtr (fromIntegral numTex :: CInt)
+        #{poke SDL_GPURenderStateCreateInfo, storage_textures} descPtr texPtrs
+        #{poke SDL_GPURenderStateCreateInfo, num_storage_buffers} descPtr (fromIntegral numBuf :: CInt)
+        #{poke SDL_GPURenderStateCreateInfo, storage_buffers} descPtr bufPtrs
+        #{poke SDL_GPURenderStateCreateInfo, props} descPtr (fromIntegral gpuRenderStateCreateInfoProps :: CUInt) -- Convert Word32 to CUInt
         f (castPtr descPtr)
 
 foreign import ccall unsafe "SDL_CreateGPURenderState"
     c_sdlCreateGPURenderState :: Ptr SDLRenderer -> Ptr () -> IO (Ptr SDLGPURenderState)
 
-sdlCreateGPURenderState :: SDLRenderer -> SDLGPURenderStateDesc -> IO (Maybe SDLGPURenderState)
+sdlCreateGPURenderState :: SDLRenderer -> SDLGPURenderStateCreateInfo -> IO (Maybe SDLGPURenderState)
 sdlCreateGPURenderState (SDLRenderer renderer) desc =
     withGPURenderStateDesc desc $ \descPtr -> do
         statePtr <- c_sdlCreateGPURenderState renderer descPtr
