@@ -6,7 +6,7 @@ Please report any bugs or suggestions you have for the bindings!
 
 ## Setup Instructions
 
-::: {.note} **NOTE:** These bindings are for SDL version 3.3 as of right now.
+::: {.note} **NOTE:** These bindings are for SDL version 3.4.0 as of right now.
 :::
 
 ### Cloning the Repository
