@@ -51,6 +51,7 @@ module SDL3.Atomic
   , sdlCompareAndSwapAtomicU32
   , sdlSetAtomicU32
   , sdlGetAtomicU32
+  , sdlAddAtomicU32
   
   -- * Atomic Pointer Functions
   , sdlCompareAndSwapAtomicPointer
@@ -154,6 +155,9 @@ foreign import ccall unsafe "SDL_SetAtomicU32"
 -- | Get the value of an atomic variable.
 foreign import ccall unsafe "SDL_GetAtomicU32"
   sdlGetAtomicU32 :: Ptr SDLAtomicU32 -> IO Word32
+
+foreign import ccall unsafe "SDL_AddAtomicU32"
+  sdlAddAtomicU32 :: Ptr SDLAtomicU32 -> CInt -> IO Word32
 
 -- Atomic Pointer Functions
 

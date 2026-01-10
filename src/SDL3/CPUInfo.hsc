@@ -26,6 +26,7 @@ module SDL3.CPUInfo
   , sdlGetNumLogicalCPUCores
   , sdlGetCPUCacheLineSize
   , sdlGetSystemRAM
+  , sdlGetSystemPageSize
   , sdlGetSIMDAlignment
 
     -- * CPU Feature Detection
@@ -128,6 +129,9 @@ foreign import ccall "SDL_HasLASX"
 -- | Get the amount of RAM configured in the system in MiB.
 foreign import ccall "SDL_GetSystemRAM"
   sdlGetSystemRAM :: IO CInt
+
+foreign import ccall "SDL_GetSystemPageSize"
+  sdlGetSystemPageSize :: IO CInt
 
 -- | Get the alignment needed for SIMD allocations on this system.
 foreign import ccall "SDL_GetSIMDAlignment" sdlGetSIMDAlignment :: IO #{type size_t}

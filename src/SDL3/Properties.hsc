@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternSynonyms #-}
+
 -- |
 -- Module      : SDL.Properties
 -- Description : Dynamic property management
@@ -50,6 +52,9 @@ module SDL3.Properties
     sdlGetBooleanProperty,
     sdlClearProperty,
     sdlEnumerateProperties,
+
+    -- * Property Constants
+    pattern SDL_PROP_NAME_STRING,
   )
 where
 
@@ -58,6 +63,10 @@ import Data.Word
 import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Ptr
+
+#include <SDL3/SDL_properties.h>
+
+pattern SDL_PROP_NAME_STRING = #{const_str SDL_PROP_NAME_STRING}
 
 -- | SDL properties ID
 type SDLPropertiesID = Word32
