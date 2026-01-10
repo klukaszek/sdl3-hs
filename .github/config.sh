@@ -11,7 +11,7 @@ BINDING_SRC_DIR="src/${BINDING_MODULE_NAME}"
 
 # SDL3 commit hash used for binding validation
 # Update this when targeting a new SDL3 version
-SDL_HEADER_COMMIT="e1a623f129e75ad532315852d656fb26c80382a6"
+SDL_HEADER_COMMIT="a962f40bbba175e9716557a25d5d7965f134a3d3"
 
 # Search paths for SDL3 headers (colon-separated)
 # Includes local submodule path first, then system paths
