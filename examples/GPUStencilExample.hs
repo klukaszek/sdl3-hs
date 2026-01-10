@@ -491,7 +491,9 @@ renderFrameGPU Context {..} AppResources {..} _ useNonBlockingAcquire = do
                     depthStencilStoreOp = SDL_GPU_STOREOP_DONT_CARE, -- Don't need depth after frame
                     depthStencilStencilLoadOp = SDL_GPU_LOADOP_CLEAR,
                     depthStencilStencilStoreOp = SDL_GPU_STOREOP_DONT_CARE, -- Don't need stencil after frame
-                    depthStencilCycle = True -- IMPORTANT: Cycle this texture for reuse next frame
+                    depthStencilCycle = True, -- IMPORTANT: Cycle this texture for reuse next frame
+                    depthMipLevel = 0,
+                    depthLayer = 0
                   }
 
           -- 3. Begin Render Pass (with both color and depth/stencil targets)
