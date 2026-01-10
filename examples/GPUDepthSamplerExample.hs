@@ -577,7 +577,9 @@ renderFrameGPU Context {..} AppResources {..} timeRef = do
                     depthStencilStencilLoadOp = SDL_GPU_LOADOP_CLEAR,
                     depthStencilStencilStoreOp = SDL_GPU_STOREOP_STORE,
                     depthStencilCycle = True,
-                    depthStencilClearStencil = 0
+                    depthStencilClearStencil = 0,
+                    depthMipLevel = 0,
+                    depthLayer = 0
                   }
 
           maybeSceneRp <- sdlBeginGPURenderPass cmdbuf [sceneColorTarget] (Just sceneDepthTarget)

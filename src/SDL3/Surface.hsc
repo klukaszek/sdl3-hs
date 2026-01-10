@@ -44,6 +44,7 @@ module SDL3.Surface
   , pattern SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING
   , pattern SDL_PROP_SURFACE_HOTSPOT_X_NUMBER
   , pattern SDL_PROP_SURFACE_HOTSPOT_Y_NUMBER
+  , pattern SDL_PROP_SURFACE_ROTATION_FLOAT
 
   , pattern SDL_SCALEMODE_NEAREST
   , pattern SDL_SCALEMODE_LINEAR
@@ -51,6 +52,7 @@ module SDL3.Surface
   , pattern SDL_FLIP_NONE
   , pattern SDL_FLIP_HORIZONTAL
   , pattern SDL_FLIP_VERTICAL
+  , pattern SDL_FLIP_HORIZONTAL_AND_VERTICAL
 
     -- * Bitmask Patterns
   , pattern SDL_SURFACE_PREALLOCATED
@@ -83,9 +85,15 @@ module SDL3.Surface
   , sdlUnlockSurface        -- Takes Ptr SDLSurface
   , sdlMustLockSurface      -- Takes Ptr SDLSurface
 
-    -- ** BMP File Operations
+    -- ** BMP/PNG File Operations
+  , sdlLoadSurface
+  , sdlLoadSurfaceIo
   , sdlLoadBMP
   , sdlSaveBMP              -- Takes Ptr SDLSurface
+  , sdlLoadPNG
+  , sdlLoadPNGIo
+  , sdlSavePNG
+  , sdlSavePNGIo
 
     -- ** Surface Blitting
   , sdlBlitSurface          -- Takes Ptr SDLSurface
@@ -93,6 +101,7 @@ module SDL3.Surface
 
     -- ** Surface Transformations
   , sdlFlipSurface          -- Takes Ptr SDLSurface
+  , sdlRotateSurface        -- Takes Ptr SDLSurface
   , sdlScaleSurface         -- Takes Ptr SDLSurface
   , sdlDuplicateSurface     -- Takes Ptr SDLSurface
 
@@ -145,7 +154,7 @@ import Foreign.Ptr (Ptr, nullPtr)
 import Foreign.Storable (Storable(..))
 import Foreign.Marshal.Utils (with, maybeWith, toBool, fromBool)
 import Foreign.Marshal.Alloc (alloca)
-import Foreign.C.String (CString, withCString)
+import Foreign.C.String (CString, withCString, peekCString)
 import Foreign.Marshal.Array (peekArray)
 import Data.Word
 import Data.Bits (Bits, (.&.))
@@ -179,6 +188,7 @@ newtype SDLFlipMode = SDLFlipMode CInt
 pattern SDL_FLIP_NONE        = SDLFlipMode #{const SDL_FLIP_NONE}
 pattern SDL_FLIP_HORIZONTAL  = SDLFlipMode #{const SDL_FLIP_HORIZONTAL}
 pattern SDL_FLIP_VERTICAL    = SDLFlipMode #{const SDL_FLIP_VERTICAL}
+pattern SDL_FLIP_HORIZONTAL_AND_VERTICAL = SDLFlipMode #{const SDL_FLIP_HORIZONTAL_AND_VERTICAL}
 
 -- Bitmask Types
 
@@ -244,6 +254,7 @@ pattern SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT = #{const_str SDL_PROP_SURFACE_HDR_H
 pattern SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING = #{const_str SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING}
 pattern SDL_PROP_SURFACE_HOTSPOT_X_NUMBER = #{const_str SDL_PROP_SURFACE_HOTSPOT_X_NUMBER}
 pattern SDL_PROP_SURFACE_HOTSPOT_Y_NUMBER = #{const_str SDL_PROP_SURFACE_HOTSPOT_Y_NUMBER}
+pattern SDL_PROP_SURFACE_ROTATION_FLOAT = #{const_str SDL_PROP_SURFACE_ROTATION_FLOAT}
 
 -- Functions
 
@@ -326,6 +337,24 @@ sdlLockSurface surface = fromCBool <$> c_sdlLockSurface surface
 foreign import ccall unsafe "SDL_UnlockSurface"
   sdlUnlockSurface :: Ptr SDLSurface -> IO ()
 
+-- | Load a BMP or PNG image from a file.
+foreign import ccall unsafe "SDL_LoadSurface"
+  c_sdlLoadSurface :: CString -> IO (Ptr SDLSurface)
+
+sdlLoadSurface :: FilePath -> IO (Maybe (Ptr SDLSurface))
+sdlLoadSurface file = do
+  ptr <- withCString file c_sdlLoadSurface
+  return $ if ptr == nullPtr then Nothing else Just ptr
+
+-- | Load a BMP or PNG image from a seekable SDL data stream.
+foreign import ccall unsafe "SDL_LoadSurface_IO"
+  c_sdlLoadSurfaceIo :: Ptr SDLIOStream -> CBool -> IO (Ptr SDLSurface)
+
+sdlLoadSurfaceIo :: SDLIOStream -> Bool -> IO (Maybe (Ptr SDLSurface))
+sdlLoadSurfaceIo (SDLIOStream streamPtr) closeio = do
+  ptr <- c_sdlLoadSurfaceIo streamPtr (fromBool closeio)
+  return $ if ptr == nullPtr then Nothing else Just ptr
+
 -- | Load a BMP image from a file.
 foreign import ccall unsafe "SDL_LoadBMP"
   c_sdlLoadBMP :: CString -> IO (Ptr SDLSurface)
@@ -341,6 +370,39 @@ foreign import ccall unsafe "SDL_SaveBMP"
 
 sdlSaveBMP :: Ptr SDLSurface -> FilePath -> IO Bool
 sdlSaveBMP surface file = withCString file $ \cstr -> fromCBool <$> c_sdlSaveBMP surface cstr
+
+-- | Load a PNG image from a file.
+foreign import ccall unsafe "SDL_LoadPNG"
+  c_sdlLoadPNG :: CString -> IO (Ptr SDLSurface)
+
+sdlLoadPNG :: FilePath -> IO (Maybe (Ptr SDLSurface))
+sdlLoadPNG file = do
+  ptr <- withCString file c_sdlLoadPNG
+  return $ if ptr == nullPtr then Nothing else Just ptr
+
+-- | Load a PNG image from a seekable SDL data stream.
+foreign import ccall unsafe "SDL_LoadPNG_IO"
+  c_sdlLoadPNGIo :: Ptr SDLIOStream -> CBool -> IO (Ptr SDLSurface)
+
+sdlLoadPNGIo :: SDLIOStream -> Bool -> IO (Maybe (Ptr SDLSurface))
+sdlLoadPNGIo (SDLIOStream streamPtr) closeio = do
+  ptr <- c_sdlLoadPNGIo streamPtr (fromBool closeio)
+  return $ if ptr == nullPtr then Nothing else Just ptr
+
+-- | Save a surface to a data stream in PNG format.
+foreign import ccall unsafe "SDL_SavePNG_IO"
+  c_sdlSavePNGIo :: Ptr SDLSurface -> Ptr SDLIOStream -> CBool -> IO CBool
+
+sdlSavePNGIo :: Ptr SDLSurface -> SDLIOStream -> Bool -> IO Bool
+sdlSavePNGIo surface (SDLIOStream dstPtr) closeio =
+  fromCBool <$> c_sdlSavePNGIo surface dstPtr (fromBool closeio)
+
+-- | Save a surface to a file in PNG format.
+foreign import ccall unsafe "SDL_SavePNG"
+  c_sdlSavePNG :: Ptr SDLSurface -> CString -> IO CBool
+
+sdlSavePNG :: Ptr SDLSurface -> FilePath -> IO Bool
+sdlSavePNG surface file = withCString file $ \cstr -> fromCBool <$> c_sdlSavePNG surface cstr
 
 -- | Perform a fast blit from source to destination surface.
 foreign import ccall unsafe "SDL_BlitSurface"
@@ -368,6 +430,15 @@ foreign import ccall unsafe "SDL_FlipSurface"
 
 sdlFlipSurface :: Ptr SDLSurface -> SDLFlipMode -> IO Bool
 sdlFlipSurface surface flipMode = fromCBool <$> c_sdlFlipSurface surface flipMode
+
+-- | Return a copy of a surface rotated clockwise a number of degrees.
+foreign import ccall unsafe "SDL_RotateSurface"
+  c_sdlRotateSurface :: Ptr SDLSurface -> CFloat -> IO (Ptr SDLSurface)
+
+sdlRotateSurface :: Ptr SDLSurface -> Float -> IO (Maybe (Ptr SDLSurface))
+sdlRotateSurface surface angle = do
+  ptr <- c_sdlRotateSurface surface (realToFrac angle)
+  return $ if ptr == nullPtr then Nothing else Just ptr
 
 -- | Scale a surface to a new size. Creates a *new* surface.
 foreign import ccall unsafe "SDL_ScaleSurface"

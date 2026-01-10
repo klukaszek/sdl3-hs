@@ -47,6 +47,7 @@ module SDL3.Events
   , pattern SDL_EVENT_DISPLAY_DESKTOP_MODE_CHANGED
   , pattern SDL_EVENT_DISPLAY_CURRENT_MODE_CHANGED
   , pattern SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED
+  , pattern SDL_EVENT_DISPLAY_USABLE_BOUNDS_CHANGED
   , pattern SDL_EVENT_WINDOW_SHOWN
   , pattern SDL_EVENT_WINDOW_HIDDEN
   , pattern SDL_EVENT_WINDOW_EXPOSED
@@ -67,6 +68,8 @@ module SDL3.Events
   , pattern SDL_EVENT_KEY_UP
   , pattern SDL_EVENT_TEXT_EDITING
   , pattern SDL_EVENT_TEXT_INPUT
+  , pattern SDL_EVENT_SCREEN_KEYBOARD_SHOWN
+  , pattern SDL_EVENT_SCREEN_KEYBOARD_HIDDEN
   , pattern SDL_EVENT_KEYMAP_CHANGED
   , pattern SDL_EVENT_KEYBOARD_ADDED
   , pattern SDL_EVENT_KEYBOARD_REMOVED
@@ -90,6 +93,21 @@ module SDL3.Events
   , pattern SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN
   , pattern SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION
   , pattern SDL_EVENT_GAMEPAD_TOUCHPAD_UP
+  , pattern SDL_EVENT_FINGER_DOWN
+  , pattern SDL_EVENT_FINGER_UP
+  , pattern SDL_EVENT_FINGER_MOTION
+  , pattern SDL_EVENT_FINGER_CANCELED
+  , pattern SDL_EVENT_PINCH_BEGIN
+  , pattern SDL_EVENT_PINCH_UPDATE
+  , pattern SDL_EVENT_PINCH_END
+  , pattern SDL_EVENT_PEN_PROXIMITY_IN
+  , pattern SDL_EVENT_PEN_PROXIMITY_OUT
+  , pattern SDL_EVENT_PEN_DOWN
+  , pattern SDL_EVENT_PEN_UP
+  , pattern SDL_EVENT_PEN_BUTTON_DOWN
+  , pattern SDL_EVENT_PEN_BUTTON_UP
+  , pattern SDL_EVENT_PEN_MOTION
+  , pattern SDL_EVENT_PEN_AXIS
   , pattern SDL_EVENT_GAMEPAD_SENSOR_UPDATE
   , pattern SDL_EVENT_GAMEPAD_UPDATE_COMPLETE
   , pattern SDL_EVENT_GAMEPAD_STEAM_HANDLE_UPDATED
@@ -113,6 +131,7 @@ module SDL3.Events
   , SDLGamepadButtonEvent(..)
   , SDLQuitEvent(..)
   , SDLUserEvent(..)
+  , SDLPinchFingerEvent(..)
   , SDLEventFilter
 
     -- * Event Functions
@@ -187,6 +206,7 @@ pattern SDL_EVENT_DISPLAY_MOVED           = (#const SDL_EVENT_DISPLAY_MOVED) :: 
 pattern SDL_EVENT_DISPLAY_DESKTOP_MODE_CHANGED = (#const SDL_EVENT_DISPLAY_DESKTOP_MODE_CHANGED) :: SDLEventType
 pattern SDL_EVENT_DISPLAY_CURRENT_MODE_CHANGED = (#const SDL_EVENT_DISPLAY_CURRENT_MODE_CHANGED) :: SDLEventType
 pattern SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED = (#const SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED) :: SDLEventType
+pattern SDL_EVENT_DISPLAY_USABLE_BOUNDS_CHANGED = (#const SDL_EVENT_DISPLAY_USABLE_BOUNDS_CHANGED) :: SDLEventType
 pattern SDL_EVENT_WINDOW_SHOWN            = (#const SDL_EVENT_WINDOW_SHOWN) :: SDLEventType
 pattern SDL_EVENT_WINDOW_HIDDEN           = (#const SDL_EVENT_WINDOW_HIDDEN) :: SDLEventType
 pattern SDL_EVENT_WINDOW_EXPOSED          = (#const SDL_EVENT_WINDOW_EXPOSED) :: SDLEventType
@@ -207,6 +227,8 @@ pattern SDL_EVENT_KEY_DOWN                = (#const SDL_EVENT_KEY_DOWN) :: SDLEv
 pattern SDL_EVENT_KEY_UP                  = (#const SDL_EVENT_KEY_UP) :: SDLEventType
 pattern SDL_EVENT_TEXT_EDITING            = (#const SDL_EVENT_TEXT_EDITING) :: SDLEventType
 pattern SDL_EVENT_TEXT_INPUT              = (#const SDL_EVENT_TEXT_INPUT) :: SDLEventType
+pattern SDL_EVENT_SCREEN_KEYBOARD_SHOWN    = (#const SDL_EVENT_SCREEN_KEYBOARD_SHOWN) :: SDLEventType
+pattern SDL_EVENT_SCREEN_KEYBOARD_HIDDEN   = (#const SDL_EVENT_SCREEN_KEYBOARD_HIDDEN) :: SDLEventType
 pattern SDL_EVENT_KEYMAP_CHANGED          = (#const SDL_EVENT_KEYMAP_CHANGED) :: SDLEventType
 pattern SDL_EVENT_KEYBOARD_ADDED          = (#const SDL_EVENT_KEYBOARD_ADDED) :: SDLEventType
 pattern SDL_EVENT_KEYBOARD_REMOVED        = (#const SDL_EVENT_KEYBOARD_REMOVED) :: SDLEventType
@@ -216,6 +238,21 @@ pattern SDL_EVENT_MOUSE_BUTTON_UP         = (#const SDL_EVENT_MOUSE_BUTTON_UP) :
 pattern SDL_EVENT_MOUSE_WHEEL             = (#const SDL_EVENT_MOUSE_WHEEL) :: SDLEventType
 pattern SDL_EVENT_MOUSE_ADDED             = (#const SDL_EVENT_MOUSE_ADDED) :: SDLEventType
 pattern SDL_EVENT_MOUSE_REMOVED           = (#const SDL_EVENT_MOUSE_REMOVED) :: SDLEventType
+pattern SDL_EVENT_FINGER_DOWN             = (#const SDL_EVENT_FINGER_DOWN) :: SDLEventType
+pattern SDL_EVENT_FINGER_UP               = (#const SDL_EVENT_FINGER_UP) :: SDLEventType
+pattern SDL_EVENT_FINGER_MOTION           = (#const SDL_EVENT_FINGER_MOTION) :: SDLEventType
+pattern SDL_EVENT_FINGER_CANCELED         = (#const SDL_EVENT_FINGER_CANCELED) :: SDLEventType
+pattern SDL_EVENT_PINCH_BEGIN             = (#const SDL_EVENT_PINCH_BEGIN) :: SDLEventType
+pattern SDL_EVENT_PINCH_UPDATE            = (#const SDL_EVENT_PINCH_UPDATE) :: SDLEventType
+pattern SDL_EVENT_PINCH_END               = (#const SDL_EVENT_PINCH_END) :: SDLEventType
+pattern SDL_EVENT_PEN_PROXIMITY_IN        = (#const SDL_EVENT_PEN_PROXIMITY_IN) :: SDLEventType
+pattern SDL_EVENT_PEN_PROXIMITY_OUT       = (#const SDL_EVENT_PEN_PROXIMITY_OUT) :: SDLEventType
+pattern SDL_EVENT_PEN_DOWN                = (#const SDL_EVENT_PEN_DOWN) :: SDLEventType
+pattern SDL_EVENT_PEN_UP                  = (#const SDL_EVENT_PEN_UP) :: SDLEventType
+pattern SDL_EVENT_PEN_BUTTON_DOWN         = (#const SDL_EVENT_PEN_BUTTON_DOWN) :: SDLEventType
+pattern SDL_EVENT_PEN_BUTTON_UP           = (#const SDL_EVENT_PEN_BUTTON_UP) :: SDLEventType
+pattern SDL_EVENT_PEN_MOTION              = (#const SDL_EVENT_PEN_MOTION) :: SDLEventType
+pattern SDL_EVENT_PEN_AXIS                = (#const SDL_EVENT_PEN_AXIS) :: SDLEventType
 pattern SDL_EVENT_JOYSTICK_AXIS_MOTION    = (#const SDL_EVENT_JOYSTICK_AXIS_MOTION) :: SDLEventType
 pattern SDL_EVENT_JOYSTICK_BUTTON_DOWN    = (#const SDL_EVENT_JOYSTICK_BUTTON_DOWN) :: SDLEventType
 pattern SDL_EVENT_JOYSTICK_BUTTON_UP      = (#const SDL_EVENT_JOYSTICK_BUTTON_UP) :: SDLEventType
@@ -357,6 +394,13 @@ data SDLUserEvent = SDLUserEvent
   , sdlUserData2     :: Ptr ()
   } deriving (Eq, Show)
 
+data SDLPinchFingerEvent = SDLPinchFingerEvent
+  { sdlPinchType      :: SDLEventType
+  , sdlPinchTimestamp :: Word64
+  , sdlPinchScale     :: Float
+  , sdlPinchWindowID  :: SDLWindowID
+  } deriving (Eq, Show)
+
 -- | Union of all SDL event types
 data SDLEvent
   = SDLEventCommon SDLCommonEvent
@@ -371,6 +415,7 @@ data SDLEvent
   | SDLEventGamepadButton SDLGamepadButtonEvent
   | SDLEventQuit SDLQuitEvent
   | SDLEventUser SDLUserEvent
+  | SDLEventPinch SDLPinchFingerEvent
   deriving (Eq, Show)
 
 -- Storable instance for SDLEvent (simplified for basic fields)
@@ -395,6 +440,8 @@ instance Storable SDLEvent where
         -> SDLEventGamepadDevice <$> peekGamepadDeviceEvent ptr
       t | t == SDL_EVENT_GAMEPAD_BUTTON_DOWN || t == SDL_EVENT_GAMEPAD_BUTTON_UP
         -> SDLEventGamepadButton <$> peekGamepadButtonEvent ptr
+      t | t == SDL_EVENT_PINCH_BEGIN || t == SDL_EVENT_PINCH_UPDATE || t == SDL_EVENT_PINCH_END
+        -> SDLEventPinch <$> peekPinchEvent ptr
       t | t >= SDL_EVENT_USER -> SDLEventUser <$> peekUserEvent ptr
       _ -> SDLEventCommon <$> peekCommonEvent ptr
   poke = error "poke not implemented for SDLEvent"
@@ -506,6 +553,14 @@ peekUserEvent ptr = do
   data1 <- peekByteOff ptr 24
   data2 <- peekByteOff ptr 32
   return $ SDLUserEvent t ts wid code data1 data2
+
+peekPinchEvent :: Ptr SDLEvent -> IO SDLPinchFingerEvent
+peekPinchEvent ptr = do
+  t <- peek (castPtr ptr :: Ptr Word32)
+  ts <- peekByteOff ptr 8
+  scale <- peekByteOff ptr 16
+  wid <- peekByteOff ptr 20
+  return $ SDLPinchFingerEvent t ts scale wid
 
 -- | Event filter callback type
 type SDLEventFilter = Ptr () -> Ptr SDLEvent -> IO Bool

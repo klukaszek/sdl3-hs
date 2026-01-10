@@ -1,4 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 {-|
 Module      : SDL.Hidapi
@@ -43,6 +44,10 @@ module SDL3.Hidapi
   , sdlHidGetInputReport
   , sdlHidClose
 
+    -- * Properties
+  , pattern SDL_PROP_HIDAPI_LIBUSB_DEVICE_HANDLE_POINTER
+  , sdlHidGetProperties
+
     -- * Device Information
   , sdlHidGetManufacturerString
   , sdlHidGetProductString
@@ -59,7 +64,14 @@ import Foreign
 import Foreign.C.Types
 import Foreign.C.String
 
+import SDL3.Properties (SDLPropertiesID)
+
 #include <SDL3/SDL_hidapi.h>
+
+pattern SDL_PROP_HIDAPI_LIBUSB_DEVICE_HANDLE_POINTER = #{const_str SDL_PROP_HIDAPI_LIBUSB_DEVICE_HANDLE_POINTER}
+
+foreign import ccall "SDL_hid_get_properties"
+  sdlHidGetProperties :: SDLHidDevice -> IO SDLPropertiesID
 
 -- | An opaque handle representing an open HID device.
 newtype SDLHidDevice = SDLHidDevice { unSDLHidDevice :: Ptr SDLHidDevice }
