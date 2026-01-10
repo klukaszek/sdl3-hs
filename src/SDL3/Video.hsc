@@ -40,6 +40,10 @@ module SDL3.Video
     pattern SDL_WINDOW_MOUSE_GRABBED,
     pattern SDL_WINDOW_HIGH_PIXEL_DENSITY,
     pattern SDL_WINDOW_ALWAYS_ON_TOP,
+    pattern SDL_WINDOW_FILL_DOCUMENT,
+
+    -- * Property Strings
+    pattern SDL_PROP_DISPLAY_WINDOWS_HMONITOR_POINTER,
 
     SDLFlashOperation(..),
     pattern SDL_FLASH_CANCEL,
@@ -59,6 +63,7 @@ module SDL3.Video
     sdlGetWindowPosition,
     sdlSetWindowSize,
     sdlGetWindowSize,
+    sdlSetWindowFillDocument,
     sdlGetWindowSizeInPixels,
     sdlShowWindow,
     sdlHideWindow,
@@ -216,6 +221,9 @@ pattern SDL_WINDOW_MAXIMIZED          = SDLWindowFlags (#const SDL_WINDOW_MAXIMI
 pattern SDL_WINDOW_MOUSE_GRABBED      = SDLWindowFlags (#const SDL_WINDOW_MOUSE_GRABBED)
 pattern SDL_WINDOW_HIGH_PIXEL_DENSITY = SDLWindowFlags (#const SDL_WINDOW_HIGH_PIXEL_DENSITY)
 pattern SDL_WINDOW_ALWAYS_ON_TOP      = SDLWindowFlags (#const SDL_WINDOW_ALWAYS_ON_TOP)
+pattern SDL_WINDOW_FILL_DOCUMENT      = SDLWindowFlags (#const SDL_WINDOW_FILL_DOCUMENT)
+
+pattern SDL_PROP_DISPLAY_WINDOWS_HMONITOR_POINTER = #{const_str SDL_PROP_DISPLAY_WINDOWS_HMONITOR_POINTER}
 
 -- | Flash operation enumeration.
 newtype SDLFlashOperation = SDLFlashOperation CInt
@@ -229,7 +237,6 @@ pattern SDL_FLASH_UNTIL_FOCUSED  = SDLFlashOperation (#const SDL_FLASH_UNTIL_FOC
 newtype SDLGLContext = SDLGLContext (Ptr ())
   deriving (Show, Eq)
 
--- Helper to convert CInt to Bool
 cToBool :: CInt -> Bool
 cToBool 0 = False
 cToBool _ = True
@@ -261,6 +268,14 @@ foreign import ccall unsafe "SDL_SetWindowAlwaysOnTop"
 sdlSetWindowAlwaysOnTop :: SDLWindow -> Bool -> IO Bool
 sdlSetWindowAlwaysOnTop (SDLWindow ptr) onTop =
   cToBool <$> c_sdlSetWindowAlwaysOnTop ptr (fromBool onTop)
+
+-- | Set the window to fill the current document space (Emscripten only).
+foreign import ccall unsafe "SDL_SetWindowFillDocument"
+  c_sdlSetWindowFillDocument :: Ptr SDLWindow -> CInt -> IO CInt
+
+sdlSetWindowFillDocument :: SDLWindow -> Bool -> IO Bool
+sdlSetWindowFillDocument (SDLWindow ptr) fill =
+  cToBool <$> c_sdlSetWindowFillDocument ptr (fromBool fill)
 
 -- | Raise the window above others.
 foreign import ccall unsafe "SDL_RaiseWindow"
@@ -305,7 +320,6 @@ foreign import ccall unsafe "SDL_SyncWindow"
 sdlSyncWindow :: SDLWindow -> IO ()
 sdlSyncWindow (SDLWindow ptr) = c_sdlSyncWindow ptr
 
--- NOTE: Mark any functions that require cbits wrappers below as you encounter them.
 
 --------------------------------------------------------------------------------
 -- SDL3.2+ window surface management (see SDL_video.txt)
@@ -704,7 +718,6 @@ sdlGetCurrentVideoDriver = do
 foreign import ccall "SDL_GetDisplays"
   sdlGetDisplays_c :: Ptr CInt -> IO (Ptr SDLDisplayID)
 
--- For the peekArray0 issue, modify sdlGetDisplays to handle the type conversion:
 sdlGetDisplays :: IO [SDLDisplayID]
 sdlGetDisplays = alloca $ \countPtr -> do
   ptr <- sdlGetDisplays_c countPtr
@@ -712,7 +725,7 @@ sdlGetDisplays = alloca $ \countPtr -> do
   if ptr == nullPtr
     then return []
     else do
-      rawIDs <- peekArray0 0 (castPtr ptr :: Ptr CUInt)  -- Cast to Ptr CUInt first
+      rawIDs <- peekArray0 0 (castPtr ptr :: Ptr CUInt)
       return $ rawIDs
 
 -- | Return the primary display.

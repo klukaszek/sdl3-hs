@@ -50,6 +50,7 @@ module SDL3.Hints
   , sdlHintAudioDeviceSampleFrames
   , sdlHintAudioDeviceStreamName
   , sdlHintAudioDeviceStreamRole
+  , sdlHintAudioDeviceRawStream
   , sdlHintAudioDiskInputFile
   , sdlHintAudioDiskOutputFile
   , sdlHintAudioDiskTimescale
@@ -66,6 +67,7 @@ module SDL3.Hints
   , sdlHintJoystickDirectinput
   , sdlHintFileDialogDriver
   , sdlHintDisplayUsableBounds
+  , sdlHintInvalidParamChecks
   , sdlHintEmscriptenAsyncify
   , sdlHintEmscriptenCanvasSelector
   , sdlHintEmscriptenKeyboardElement
@@ -86,6 +88,7 @@ module SDL3.Hints
   , sdlHintGdkTextinputScope
   , sdlHintGdkTextinputTitle
   , sdlHintHidapiLibusb
+  , sdlHintHidapiLibusbGamecube
   , sdlHintHidapiLibusbWhitelist
   , sdlHintHidapiUdev
   , sdlHintGpuDriver
@@ -166,6 +169,7 @@ module SDL3.Hints
   , sdlHintWindowsEnableMessageloop
   , sdlHintWindowsGameinput
   , sdlHintWindowsRawKeyboard
+  , sdlHintWindowsRawKeyboardExcludeHotkeys
   , sdlHintWindowsForceSemaphoreKernel
   , sdlHintWindowsIntresourceIcon
   , sdlHintWindowsIntresourceIconSmall
@@ -323,6 +327,9 @@ sdlHintAudioDeviceStreamName = #{const_str SDL_HINT_AUDIO_DEVICE_STREAM_NAME}
 sdlHintAudioDeviceStreamRole :: String
 sdlHintAudioDeviceStreamRole = #{const_str SDL_HINT_AUDIO_DEVICE_STREAM_ROLE}
 
+sdlHintAudioDeviceRawStream :: String
+sdlHintAudioDeviceRawStream = #{const_str SDL_HINT_AUDIO_DEVICE_RAW_STREAM}
+
 sdlHintAudioDiskInputFile :: String
 sdlHintAudioDiskInputFile = #{const_str SDL_HINT_AUDIO_DISK_INPUT_FILE}
 
@@ -370,6 +377,9 @@ sdlHintFileDialogDriver = #{const_str SDL_HINT_FILE_DIALOG_DRIVER}
 
 sdlHintDisplayUsableBounds :: String
 sdlHintDisplayUsableBounds = #{const_str SDL_HINT_DISPLAY_USABLE_BOUNDS}
+
+sdlHintInvalidParamChecks :: String
+sdlHintInvalidParamChecks = #{const_str SDL_HINT_INVALID_PARAM_CHECKS}
 
 sdlHintEmscriptenAsyncify :: String
 sdlHintEmscriptenAsyncify = #{const_str SDL_HINT_EMSCRIPTEN_ASYNCIFY}
@@ -430,6 +440,9 @@ sdlHintGdkTextinputTitle = #{const_str SDL_HINT_GDK_TEXTINPUT_TITLE}
 
 sdlHintHidapiLibusb :: String
 sdlHintHidapiLibusb = #{const_str SDL_HINT_HIDAPI_LIBUSB}
+
+sdlHintHidapiLibusbGamecube :: String
+sdlHintHidapiLibusbGamecube = #{const_str SDL_HINT_HIDAPI_LIBUSB_GAMECUBE}
 
 sdlHintHidapiLibusbWhitelist :: String
 sdlHintHidapiLibusbWhitelist = #{const_str SDL_HINT_HIDAPI_LIBUSB_WHITELIST}
@@ -670,6 +683,9 @@ sdlHintWindowsGameinput = #{const_str SDL_HINT_WINDOWS_GAMEINPUT}
 
 sdlHintWindowsRawKeyboard :: String
 sdlHintWindowsRawKeyboard = #{const_str SDL_HINT_WINDOWS_RAW_KEYBOARD}
+
+sdlHintWindowsRawKeyboardExcludeHotkeys :: String
+sdlHintWindowsRawKeyboardExcludeHotkeys = #{const_str SDL_HINT_WINDOWS_RAW_KEYBOARD_EXCLUDE_HOTKEYS}
 
 sdlHintWindowsForceSemaphoreKernel :: String
 sdlHintWindowsForceSemaphoreKernel = #{const_str SDL_HINT_WINDOWS_FORCE_SEMAPHORE_KERNEL}

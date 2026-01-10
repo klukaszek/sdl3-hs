@@ -35,6 +35,13 @@ module SDL3.Pen
   , pattern SDL_PEN_INPUT_BUTTON_4
   , pattern SDL_PEN_INPUT_BUTTON_5
   , pattern SDL_PEN_INPUT_ERASER_TIP
+  , pattern SDL_PEN_INPUT_IN_PROXIMITY
+  , SDLPenDeviceType(..)
+  , pattern SDL_PEN_DEVICE_TYPE_INVALID
+  , pattern SDL_PEN_DEVICE_TYPE_UNKNOWN
+  , pattern SDL_PEN_DEVICE_TYPE_DIRECT
+  , pattern SDL_PEN_DEVICE_TYPE_INDIRECT
+  , sdlGetPenDeviceType
   , pattern SDL_PEN_AXIS_PRESSURE
   , pattern SDL_PEN_AXIS_XTILT
   , pattern SDL_PEN_AXIS_YTILT
@@ -69,6 +76,19 @@ pattern SDL_PEN_INPUT_BUTTON_3 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_3
 pattern SDL_PEN_INPUT_BUTTON_4 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_4}
 pattern SDL_PEN_INPUT_BUTTON_5 = SDLPenInputFlags #{const SDL_PEN_INPUT_BUTTON_5}
 pattern SDL_PEN_INPUT_ERASER_TIP = SDLPenInputFlags #{const SDL_PEN_INPUT_ERASER_TIP}
+pattern SDL_PEN_INPUT_IN_PROXIMITY = SDLPenInputFlags #{const SDL_PEN_INPUT_IN_PROXIMITY}
+
+-- | Pen device type.
+newtype SDLPenDeviceType = SDLPenDeviceType CInt
+  deriving newtype (Show, Eq, Ord, Storable, Enum)
+
+pattern SDL_PEN_DEVICE_TYPE_INVALID = SDLPenDeviceType (-1)
+pattern SDL_PEN_DEVICE_TYPE_UNKNOWN = SDLPenDeviceType #{const SDL_PEN_DEVICE_TYPE_UNKNOWN}
+pattern SDL_PEN_DEVICE_TYPE_DIRECT = SDLPenDeviceType #{const SDL_PEN_DEVICE_TYPE_DIRECT}
+pattern SDL_PEN_DEVICE_TYPE_INDIRECT = SDLPenDeviceType #{const SDL_PEN_DEVICE_TYPE_INDIRECT}
+
+foreign import ccall unsafe "SDL_GetPenDeviceType"
+  sdlGetPenDeviceType :: SDLPenID -> IO SDLPenDeviceType
 
 -- | Pen axis indices for SDL_PenAxisEvent.
 -- Wraps CInt as the C type is a standard enum.
