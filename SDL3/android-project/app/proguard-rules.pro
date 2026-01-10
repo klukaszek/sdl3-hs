@@ -23,14 +23,13 @@
     void clipboardSetText(java.lang.String);
     int createCustomCursor(int[], int, int, int, int);
     void destroyCustomCursor(int);
-    android.content.Context getContext();
+    android.app.Activity getContext();
     boolean getManifestEnvironmentVariables();
     android.view.Surface getNativeSurface();
     void initTouch();
     boolean isAndroidTV();
     boolean isChromebook();
     boolean isDeXMode();
-    boolean isScreenKeyboardShown();
     boolean isTablet();
     void manualBackButton();
     int messageboxShowMessageBox(int, java.lang.String, java.lang.String, int[], int[], java.lang.String[], int[]);

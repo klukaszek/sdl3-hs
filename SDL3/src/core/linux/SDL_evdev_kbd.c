@@ -224,7 +224,7 @@ static void kbd_unregister_emerg_cleanup(void)
     }
     kbd_cleanup_sigactions_installed = 0;
 
-    for (tabidx = 0; tabidx < sizeof(fatal_signals) / sizeof(fatal_signals[0]); ++tabidx) {
+    for (tabidx = 0; tabidx < SDL_arraysize(fatal_signals); ++tabidx) {
         struct sigaction *old_action_p;
         struct sigaction cur_action;
         int signum = fatal_signals[tabidx];
@@ -277,7 +277,7 @@ static void kbd_register_emerg_cleanup(SDL_EVDEV_keyboard_state *kbd)
     }
     kbd_cleanup_sigactions_installed = 1;
 
-    for (tabidx = 0; tabidx < sizeof(fatal_signals) / sizeof(fatal_signals[0]); ++tabidx) {
+    for (tabidx = 0; tabidx < SDL_arraysize(fatal_signals); ++tabidx) {
         struct sigaction *old_action_p;
         struct sigaction new_action;
         int signum = fatal_signals[tabidx];
@@ -534,9 +534,7 @@ void SDL_EVDEV_kbd_quit(SDL_EVDEV_keyboard_state *state)
     if (state->key_maps && state->key_maps != default_key_maps) {
         int i;
         for (i = 0; i < MAX_NR_KEYMAPS; ++i) {
-            if (state->key_maps[i]) {
-                SDL_free(state->key_maps[i]);
-            }
+            SDL_free(state->key_maps[i]);
         }
         SDL_free(state->key_maps);
     }

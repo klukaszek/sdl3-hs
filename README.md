@@ -6,7 +6,7 @@ Please report any bugs or suggestions you have for the bindings!
 
 ## Setup Instructions
 
-::: {.note} **NOTE:** These bindings are for SDL version 3.3 as of right now.
+::: {.note} **NOTE:** These bindings are for SDL version 3.4.0 as of right now.
 :::
 
 ### Cloning the Repository
@@ -341,14 +341,14 @@ These examples are based off of the original
 
 ## 📊 Binding Status
 
-*Last updated: 2025-12-20 09:40 UTC*
+*Last updated: 2026-01-10 11:05 UTC*
 
 ### Summary
 - **Total Modules**: 55
 - **Modules with Bindings**: 55
-- **Complete Bindings**: 55
-- **Missing Functions**: 0
-- **Completion Rate**: 100%
+- **Complete Bindings**: 54
+- **Missing Functions**: 2
+- **Completion Rate**: 98%
 
 ### Status by Module
 
@@ -394,7 +394,7 @@ These examples are based off of the original
 | `SDL_process` | ✅ Complete |
 | `SDL_properties` | ✅ Complete |
 | `SDL_rect` | ✅ Complete |
-| `SDL_render` | ✅ Complete |
+| `SDL_render` | ⚠️ 2 missing |
 | `SDL_scancode` | ✅ Complete |
 | `SDL_sensor` | ✅ Complete |
 | `SDL_stdinc` | ✅ Complete |

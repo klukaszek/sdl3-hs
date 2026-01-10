@@ -50,10 +50,7 @@ static void android_egl_context_restore(SDL_Window *window)
         }
         data->backup_done = false;
 
-        if (data->has_swap_interval) {
-            SDL_GL_SetSwapInterval(data->swap_interval);
-        }
-
+        SDL_GL_SetSwapInterval(data->swap_interval);
     }
 }
 
@@ -156,11 +153,6 @@ static void Android_OnResume(void)
     }
 #endif
 
-    // Make sure SW Keyboard is restored when an app becomes foreground
-    if (Android_Window) {
-        Android_RestoreScreenKeyboardOnResume(SDL_GetVideoDevice(), Android_Window);
-    }
-
     SDL_OnApplicationDidEnterForeground();
 }
 
@@ -248,6 +240,12 @@ void Android_PumpEvents(Sint64 timeoutNS)
 
 bool Android_WaitActiveAndLockActivity(void)
 {
+    /* Make sure we have pumped all events so that Android_Paused state is correct */
+    SDL_AndroidLifecycleEvent event;
+    while (!Android_Destroyed && Android_WaitLifecycleEvent(&event, 0)) {
+        Android_HandleLifecycleEvent(event);
+    }
+
     while (Android_Paused && !Android_Destroyed) {
         Android_PumpEvents(-1);
     }

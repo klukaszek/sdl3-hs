@@ -35,11 +35,12 @@ module SDL3.Render
   , SDLRendererLogicalPresentation(..)
     -- ** Structs
   , SDLVertex(..)
-  , SDLGPURenderStateDesc(..)
+  , SDLGPURenderStateCreateInfo(..)
 
     -- * Pattern Synonyms
     -- ** Constants
   , pattern SDL_SOFTWARE_RENDERER
+  , pattern SDL_GPU_RENDERER
   , pattern SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE
   , pattern SDL_RENDERER_VSYNC_DISABLED
   , pattern SDL_RENDERER_VSYNC_ADAPTIVE
@@ -62,6 +63,7 @@ module SDL3.Render
   , pattern SDL_PROP_RENDERER_CREATE_SURFACE_POINTER
   , pattern SDL_PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER
   , pattern SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER
+  , pattern SDL_PROP_RENDERER_CREATE_GPU_DEVICE_POINTER
   , pattern SDL_PROP_RENDERER_CREATE_GPU_SHADERS_SPIRV_BOOLEAN
   , pattern SDL_PROP_RENDERER_CREATE_GPU_SHADERS_DXIL_BOOLEAN
   , pattern SDL_PROP_RENDERER_CREATE_GPU_SHADERS_MSL_BOOLEAN
@@ -78,6 +80,7 @@ module SDL3.Render
   , pattern SDL_PROP_RENDERER_VSYNC_NUMBER
   , pattern SDL_PROP_RENDERER_MAX_TEXTURE_SIZE_NUMBER
   , pattern SDL_PROP_RENDERER_TEXTURE_FORMATS_POINTER
+  , pattern SDL_PROP_RENDERER_TEXTURE_WRAPPING_BOOLEAN
   , pattern SDL_PROP_RENDERER_OUTPUT_COLORSPACE_NUMBER
   , pattern SDL_PROP_RENDERER_HDR_ENABLED_BOOLEAN
   , pattern SDL_PROP_RENDERER_SDR_WHITE_POINT_FLOAT
@@ -102,6 +105,7 @@ module SDL3.Render
   , pattern SDL_PROP_TEXTURE_CREATE_ACCESS_NUMBER
   , pattern SDL_PROP_TEXTURE_CREATE_WIDTH_NUMBER
   , pattern SDL_PROP_TEXTURE_CREATE_HEIGHT_NUMBER
+  , pattern SDL_PROP_TEXTURE_CREATE_PALETTE_POINTER
   , pattern SDL_PROP_TEXTURE_CREATE_SDR_WHITE_POINT_FLOAT
   , pattern SDL_PROP_TEXTURE_CREATE_HDR_HEADROOM_FLOAT
   , pattern SDL_PROP_TEXTURE_CREATE_D3D11_TEXTURE_POINTER
@@ -120,6 +124,11 @@ module SDL3.Render
   , pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_U_NUMBER
   , pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_V_NUMBER
   , pattern SDL_PROP_TEXTURE_CREATE_VULKAN_TEXTURE_NUMBER
+  , pattern SDL_PROP_TEXTURE_CREATE_VULKAN_LAYOUT_NUMBER
+  , pattern SDL_PROP_TEXTURE_CREATE_GPU_TEXTURE_POINTER
+  , pattern SDL_PROP_TEXTURE_CREATE_GPU_TEXTURE_UV_POINTER
+  , pattern SDL_PROP_TEXTURE_CREATE_GPU_TEXTURE_U_POINTER
+  , pattern SDL_PROP_TEXTURE_CREATE_GPU_TEXTURE_V_POINTER
     -- ** Property Strings (Texture Query)
   , pattern SDL_PROP_TEXTURE_COLORSPACE_NUMBER
   , pattern SDL_PROP_TEXTURE_FORMAT_NUMBER
@@ -147,6 +156,10 @@ module SDL3.Render
   , pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_V_NUMBER
   , pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_TARGET_NUMBER
   , pattern SDL_PROP_TEXTURE_VULKAN_TEXTURE_NUMBER
+  , pattern SDL_PROP_TEXTURE_GPU_TEXTURE_POINTER
+  , pattern SDL_PROP_TEXTURE_GPU_TEXTURE_UV_POINTER
+  , pattern SDL_PROP_TEXTURE_GPU_TEXTURE_U_POINTER
+  , pattern SDL_PROP_TEXTURE_GPU_TEXTURE_V_POINTER
 
     -- * Functions
     -- ** Driver Info
@@ -157,6 +170,7 @@ module SDL3.Render
   , sdlCreateRenderer
   , sdlCreateRendererWithProperties
   , sdlCreateGPURenderer
+  , sdlGetGPURendererDevice
   , sdlCreateSoftwareRenderer
   , sdlDestroyRenderer
     -- ** Renderer Query
@@ -266,7 +280,7 @@ module SDL3.Render
     -- ** Custom GPU State (GPU Renderer)
   , sdlCreateGPURenderState
   , sdlSetGPURenderStateFragmentUniforms
-  , sdlSetRenderGPUState
+  , sdlSetGPURenderState
   , sdlDestroyGPURenderState
   ) where
 
@@ -343,6 +357,7 @@ instance Storable SDLVertex where
 
 -- Constants
 pattern SDL_SOFTWARE_RENDERER = "software" :: String
+pattern SDL_GPU_RENDERER = "gpu" :: String
 pattern SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE = #{const SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE}
 pattern SDL_RENDERER_VSYNC_DISABLED = #{const SDL_RENDERER_VSYNC_DISABLED}
 pattern SDL_RENDERER_VSYNC_ADAPTIVE = #{const SDL_RENDERER_VSYNC_ADAPTIVE}
@@ -415,20 +430,28 @@ sdlCreateRendererWithProperties props = do
     then return Nothing
     else return $ Just (SDLRenderer ptr)
 
-foreign import ccall safe "SDL_CreateGPURenderer" -- Safe due to GPU device creation
-    c_sdlCreateGPURenderer :: Ptr SDLWindow -> SDLGPUShaderFormat -> Ptr (Ptr SDLGPUDevice) -> IO (Ptr SDLRenderer)
+foreign import ccall safe "SDL_CreateGPURenderer" -- Safe due to GPU device / window interaction
+    c_sdlCreateGPURenderer :: Ptr SDLGPUDevice -> Ptr SDLWindow -> IO (Ptr SDLRenderer)
 
-sdlCreateGPURenderer :: SDLWindow -> SDLGPUShaderFormat -> IO (Maybe (SDLRenderer, SDLGPUDevice))
-sdlCreateGPURenderer (SDLWindow win) formatFlags =
-    alloca $ \devicePtrPtr -> do
-        rendererPtr <- c_sdlCreateGPURenderer win formatFlags devicePtrPtr
+sdlCreateGPURenderer :: Maybe SDLGPUDevice -> Maybe SDLWindow -> IO (Maybe SDLRenderer)
+sdlCreateGPURenderer mDevice mWindow =
+    let devicePtr = maybe nullPtr (\(SDLGPUDevice p) -> p) mDevice
+        windowPtr = maybe nullPtr (\(SDLWindow p) -> p) mWindow
+     in do
+        rendererPtr <- c_sdlCreateGPURenderer devicePtr windowPtr
         if rendererPtr == nullPtr
             then return Nothing
-            else do
-                devicePtr <- peek devicePtrPtr
-                if devicePtr == nullPtr -- Should not happen if renderer creation succeeded
-                    then return Nothing -- Or perhaps destroy the renderer and return Nothing? Depends on SDL guarantees.
-                    else return $ Just (SDLRenderer rendererPtr, SDLGPUDevice devicePtr)
+            else return $ Just (SDLRenderer rendererPtr)
+
+foreign import ccall unsafe "SDL_GetGPURendererDevice"
+  c_sdlGetGPURendererDevice :: Ptr SDLRenderer -> IO (Ptr SDLGPUDevice)
+
+sdlGetGPURendererDevice :: SDLRenderer -> IO (Maybe SDLGPUDevice)
+sdlGetGPURendererDevice (SDLRenderer rendererPtr) = do
+  devPtr <- c_sdlGetGPURendererDevice rendererPtr
+  if devPtr == nullPtr
+    then return Nothing
+    else return $ Just (SDLGPUDevice devPtr)
 
 foreign import ccall unsafe "SDL_CreateSoftwareRenderer"
   c_sdlCreateSoftwareRenderer :: Ptr SDLSurface -> IO (Ptr SDLRenderer)
@@ -1135,7 +1158,7 @@ foreign import ccall unsafe "SDL_RenderTextureRotated"
   c_sdlRenderTextureRotated :: Ptr SDLRenderer -> Ptr SDLTexture -> Ptr SDLFRect -> Ptr SDLFRect -> CDouble -> Ptr SDLFPoint -> CInt -> IO CBool
 
 sdlRenderTextureRotated :: SDLRenderer -> SDLTexture -> Maybe SDLFRect -> Maybe SDLFRect -> Double -> Maybe SDLFPoint -> SDLFlipMode -> IO Bool
-sdlRenderTextureRotated (SDLRenderer renderer) (SDLTexture tex) mSrcRect mDstRect angle mCenter flipMode = -- Pass the enum value directly
+sdlRenderTextureRotated (SDLRenderer renderer) (SDLTexture tex) mSrcRect mDstRect angle mCenter flipMode =
   maybeWith with mSrcRect $ \srcPtr ->
   maybeWith with mDstRect $ \dstPtr ->
   maybeWith with mCenter $ \centerPtr ->
@@ -1294,55 +1317,52 @@ foreign import ccall unsafe "SDL_SetDefaultTextureScaleMode"
     c_sdlSetDefaultTextureScaleMode :: Ptr SDLRenderer -> CInt -> IO CBool
 
 sdlSetDefaultTextureScaleMode :: SDLRenderer -> SDLScaleMode -> IO Bool
-sdlSetDefaultTextureScaleMode (SDLRenderer renderer) scaleMode = -- Pass the enum value directly
+sdlSetDefaultTextureScaleMode (SDLRenderer renderer) scaleMode =
     fromCBool <$> c_sdlSetDefaultTextureScaleMode renderer (fromIntegral $ fromEnum scaleMode)
 
 foreign import ccall unsafe "SDL_GetDefaultTextureScaleMode"
-    c_sdlGetDefaultTextureScaleMode :: Ptr SDLRenderer -> Ptr CInt -> IO CBool -- << Must be Ptr CInt
+    c_sdlGetDefaultTextureScaleMode :: Ptr SDLRenderer -> Ptr CInt -> IO CBool
 
--- Haskell wrapper (Ensure alloca also uses Ptr CInt)
 sdlGetDefaultTextureScaleMode :: SDLRenderer -> IO (Maybe SDLScaleMode)
 sdlGetDefaultTextureScaleMode (SDLRenderer renderer) =
-    alloca $ \(modePtr :: Ptr CInt) -> do -- Allocate space for CInt
-        success <- c_sdlGetDefaultTextureScaleMode renderer modePtr -- Pass Ptr CInt
+    alloca $ \modePtr -> do
+        success <- c_sdlGetDefaultTextureScaleMode renderer modePtr
         if not (toBool success)
             then return Nothing
             else do
-                modeCInt <- peek modePtr -- Peek CInt
-                return $ Just (toEnum $ fromIntegral modeCInt) -- Convert
+                modeCInt <- peek modePtr
+                return $ Just (toEnum $ fromIntegral modeCInt)
 
 -- ** Custom GPU State (GPU Renderer) **
-data SDLGPURenderStateDesc = SDLGPURenderStateDesc
-    { gpuRenderStateDescVersion         :: Word32
-    , gpuRenderStateDescFragmentShader  :: SDLGPUShader
-    , gpuRenderStateDescSamplerBindings :: [SDLGPUTextureSamplerBinding]
-    , gpuRenderStateDescStorageTextures :: [SDLGPUTexture]
-    , gpuRenderStateDescStorageBuffers  :: [SDLGPUBuffer]
+data SDLGPURenderStateCreateInfo = SDLGPURenderStateCreateInfo
+    { gpuRenderStateCreateInfoFragmentShader  :: SDLGPUShader
+    , gpuRenderStateCreateInfoSamplerBindings :: [SDLGPUTextureSamplerBinding]
+    , gpuRenderStateCreateInfoStorageTextures :: [SDLGPUTexture]
+    , gpuRenderStateCreateInfoStorageBuffers  :: [SDLGPUBuffer]
+    , gpuRenderStateCreateInfoProps           :: SDLPropertiesID
     } deriving (Show, Eq)
 
--- Helper for marshalling SDL_GPURenderStateDesc
-withGPURenderStateDesc :: SDLGPURenderStateDesc -> (Ptr () -> IO a) -> IO a
-withGPURenderStateDesc SDLGPURenderStateDesc{..} f =
-    withArrayLen gpuRenderStateDescSamplerBindings $ \numSamplers samplersPtr ->
-    withArrayLen (map (\(SDLGPUTexture p) -> p) gpuRenderStateDescStorageTextures) $ \numTex texPtrs ->
-    withArrayLen (map (\(SDLGPUBuffer p) -> p) gpuRenderStateDescStorageBuffers) $ \numBuf bufPtrs ->
-    allocaBytes #{size SDL_GPURenderStateDesc} $ \descPtr -> do
-        let (SDLGPUShader fsPtr) = gpuRenderStateDescFragmentShader
-        -- Correct the poke for version:
-        #{poke SDL_GPURenderStateDesc, version} descPtr (fromIntegral gpuRenderStateDescVersion :: CUInt) -- Convert Word32 to CUInt
-        #{poke SDL_GPURenderStateDesc, fragment_shader} descPtr fsPtr
-        #{poke SDL_GPURenderStateDesc, num_sampler_bindings} descPtr (fromIntegral numSamplers :: CInt)
-        #{poke SDL_GPURenderStateDesc, sampler_bindings} descPtr samplersPtr
-        #{poke SDL_GPURenderStateDesc, num_storage_textures} descPtr (fromIntegral numTex :: CInt)
-        #{poke SDL_GPURenderStateDesc, storage_textures} descPtr texPtrs
-        #{poke SDL_GPURenderStateDesc, num_storage_buffers} descPtr (fromIntegral numBuf :: CInt)
-        #{poke SDL_GPURenderStateDesc, storage_buffers} descPtr bufPtrs
+withGPURenderStateDesc :: SDLGPURenderStateCreateInfo -> (Ptr () -> IO a) -> IO a
+withGPURenderStateDesc SDLGPURenderStateCreateInfo{..} f =
+    withArrayLen gpuRenderStateCreateInfoSamplerBindings $ \numSamplers samplersPtr ->
+    withArrayLen (map (\(SDLGPUTexture p) -> p) gpuRenderStateCreateInfoStorageTextures) $ \numTex texPtrs ->
+    withArrayLen (map (\(SDLGPUBuffer p) -> p) gpuRenderStateCreateInfoStorageBuffers) $ \numBuf bufPtrs ->
+    allocaBytes #{size SDL_GPURenderStateCreateInfo} $ \descPtr -> do
+        let (SDLGPUShader fsPtr) = gpuRenderStateCreateInfoFragmentShader
+        #{poke SDL_GPURenderStateCreateInfo, fragment_shader} descPtr fsPtr
+        #{poke SDL_GPURenderStateCreateInfo, num_sampler_bindings} descPtr (fromIntegral numSamplers :: CInt)
+        #{poke SDL_GPURenderStateCreateInfo, sampler_bindings} descPtr samplersPtr
+        #{poke SDL_GPURenderStateCreateInfo, num_storage_textures} descPtr (fromIntegral numTex :: CInt)
+        #{poke SDL_GPURenderStateCreateInfo, storage_textures} descPtr texPtrs
+        #{poke SDL_GPURenderStateCreateInfo, num_storage_buffers} descPtr (fromIntegral numBuf :: CInt)
+        #{poke SDL_GPURenderStateCreateInfo, storage_buffers} descPtr bufPtrs
+        #{poke SDL_GPURenderStateCreateInfo, props} descPtr (fromIntegral gpuRenderStateCreateInfoProps :: CUInt)
         f (castPtr descPtr)
 
 foreign import ccall unsafe "SDL_CreateGPURenderState"
     c_sdlCreateGPURenderState :: Ptr SDLRenderer -> Ptr () -> IO (Ptr SDLGPURenderState)
 
-sdlCreateGPURenderState :: SDLRenderer -> SDLGPURenderStateDesc -> IO (Maybe SDLGPURenderState)
+sdlCreateGPURenderState :: SDLRenderer -> SDLGPURenderStateCreateInfo -> IO (Maybe SDLGPURenderState)
 sdlCreateGPURenderState (SDLRenderer renderer) desc =
     withGPURenderStateDesc desc $ \descPtr -> do
         statePtr <- c_sdlCreateGPURenderState renderer descPtr
@@ -1353,23 +1373,21 @@ sdlCreateGPURenderState (SDLRenderer renderer) desc =
 foreign import ccall unsafe "SDL_SetGPURenderStateFragmentUniforms"
     c_sdlSetGPURenderStateFragmentUniforms :: Ptr SDLGPURenderState -> CUInt -> Ptr () -> CUInt -> IO CBool
 
--- Push raw byte data as GPU state fragment uniform data.
 sdlSetGPURenderStateFragmentUniformsRaw :: SDLGPURenderState -> Word32 -> Ptr () -> Word32 -> IO Bool
 sdlSetGPURenderStateFragmentUniformsRaw (SDLGPURenderState state) slotIndex dataPtr len =
     toBool <$> c_sdlSetGPURenderStateFragmentUniforms state (fromIntegral slotIndex) dataPtr (fromIntegral len)
 
--- Convenience function to push a Storable value.
 sdlSetGPURenderStateFragmentUniforms :: Storable a => SDLGPURenderState -> Word32 -> a -> IO Bool
 sdlSetGPURenderStateFragmentUniforms state slotIndex dat =
     with dat $ \dataPtr ->
         sdlSetGPURenderStateFragmentUniformsRaw state slotIndex (castPtr dataPtr) (fromIntegral (sizeOf dat))
 
-foreign import ccall unsafe "SDL_SetRenderGPUState"
-    c_sdlSetRenderGPUState :: Ptr SDLRenderer -> Ptr SDLGPURenderState -> IO CBool
+foreign import ccall unsafe "SDL_SetGPURenderState"
+    c_sdlSetGPURenderState :: Ptr SDLRenderer -> Ptr SDLGPURenderState -> IO CBool
 
-sdlSetRenderGPUState :: SDLRenderer -> Maybe SDLGPURenderState -> IO Bool
-sdlSetRenderGPUState (SDLRenderer renderer) mState =
-    toBool <$> c_sdlSetRenderGPUState renderer (maybe nullPtr (\(SDLGPURenderState s) -> s) mState)
+sdlSetGPURenderState :: SDLRenderer -> Maybe SDLGPURenderState -> IO Bool
+sdlSetGPURenderState (SDLRenderer renderer) mState =
+    toBool <$> c_sdlSetGPURenderState renderer (maybe nullPtr (\(SDLGPURenderState s) -> s) mState)
 
 foreign import ccall unsafe "SDL_DestroyGPURenderState"
     c_sdlDestroyGPURenderState :: Ptr SDLGPURenderState -> IO ()
@@ -1384,6 +1402,7 @@ pattern SDL_PROP_RENDERER_CREATE_WINDOW_POINTER                             = "S
 pattern SDL_PROP_RENDERER_CREATE_SURFACE_POINTER                            = "SDL.renderer.create.surface"
 pattern SDL_PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER                   = "SDL.renderer.create.output_colorspace"
 pattern SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER                       = "SDL.renderer.create.present_vsync"
+pattern SDL_PROP_RENDERER_CREATE_GPU_DEVICE_POINTER                         = "SDL.renderer.create.gpu.device"
 pattern SDL_PROP_RENDERER_CREATE_GPU_SHADERS_SPIRV_BOOLEAN                  = "SDL.renderer.create.gpu.shaders_spirv"
 pattern SDL_PROP_RENDERER_CREATE_GPU_SHADERS_DXIL_BOOLEAN                   = "SDL.renderer.create.gpu.shaders_dxil"
 pattern SDL_PROP_RENDERER_CREATE_GPU_SHADERS_MSL_BOOLEAN                    = "SDL.renderer.create.gpu.shaders_msl"
@@ -1399,6 +1418,7 @@ pattern SDL_PROP_RENDERER_SURFACE_POINTER                                   = "S
 pattern SDL_PROP_RENDERER_VSYNC_NUMBER                                      = "SDL.renderer.vsync"
 pattern SDL_PROP_RENDERER_MAX_TEXTURE_SIZE_NUMBER                           = "SDL.renderer.max_texture_size"
 pattern SDL_PROP_RENDERER_TEXTURE_FORMATS_POINTER                            = "SDL.renderer.texture_formats"
+pattern SDL_PROP_RENDERER_TEXTURE_WRAPPING_BOOLEAN                           = "SDL.renderer.texture_wrapping"
 pattern SDL_PROP_RENDERER_OUTPUT_COLORSPACE_NUMBER                          = "SDL.renderer.output_colorspace"
 pattern SDL_PROP_RENDERER_HDR_ENABLED_BOOLEAN                               = "SDL.renderer.HDR_enabled"
 pattern SDL_PROP_RENDERER_SDR_WHITE_POINT_FLOAT                             = "SDL.renderer.SDR_white_point"
@@ -1423,6 +1443,7 @@ pattern SDL_PROP_TEXTURE_CREATE_FORMAT_NUMBER                                = "
 pattern SDL_PROP_TEXTURE_CREATE_ACCESS_NUMBER                                = "SDL.texture.create.access"
 pattern SDL_PROP_TEXTURE_CREATE_WIDTH_NUMBER                                 = "SDL.texture.create.width"
 pattern SDL_PROP_TEXTURE_CREATE_HEIGHT_NUMBER                                = "SDL.texture.create.height"
+pattern SDL_PROP_TEXTURE_CREATE_PALETTE_POINTER                              = "SDL.texture.create.palette"
 pattern SDL_PROP_TEXTURE_CREATE_SDR_WHITE_POINT_FLOAT                        = "SDL.texture.create.SDR_white_point"
 pattern SDL_PROP_TEXTURE_CREATE_HDR_HEADROOM_FLOAT                           = "SDL.texture.create.HDR_headroom"
 pattern SDL_PROP_TEXTURE_CREATE_D3D11_TEXTURE_POINTER                       = "SDL.texture.create.d3d11.texture"
@@ -1441,6 +1462,11 @@ pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_UV_NUMBER                 = "S
 pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_U_NUMBER                  = "SDL.texture.create.opengles2.texture_u"
 pattern SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_V_NUMBER                  = "SDL.texture.create.opengles2.texture_v"
 pattern SDL_PROP_TEXTURE_CREATE_VULKAN_TEXTURE_NUMBER                       = "SDL.texture.create.vulkan.texture"
+pattern SDL_PROP_TEXTURE_CREATE_VULKAN_LAYOUT_NUMBER                         = "SDL.texture.create.vulkan.layout"
+pattern SDL_PROP_TEXTURE_CREATE_GPU_TEXTURE_POINTER                          = "SDL.texture.create.gpu.texture"
+pattern SDL_PROP_TEXTURE_CREATE_GPU_TEXTURE_UV_POINTER                       = "SDL.texture.create.gpu.texture_uv"
+pattern SDL_PROP_TEXTURE_CREATE_GPU_TEXTURE_U_POINTER                        = "SDL.texture.create.gpu.texture_u"
+pattern SDL_PROP_TEXTURE_CREATE_GPU_TEXTURE_V_POINTER                        = "SDL.texture.create.gpu.texture_v"
 
 pattern SDL_PROP_TEXTURE_COLORSPACE_NUMBER                                  = "SDL.texture.colorspace"
 pattern SDL_PROP_TEXTURE_FORMAT_NUMBER                                      = "SDL.texture.format"
@@ -1468,6 +1494,10 @@ pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_U_NUMBER                         = "S
 pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_V_NUMBER                         = "SDL.texture.opengles2.texture_v"
 pattern SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_TARGET_NUMBER                    = "SDL.texture.opengles2.target"
 pattern SDL_PROP_TEXTURE_VULKAN_TEXTURE_NUMBER                              = "SDL.texture.vulkan.texture"
+pattern SDL_PROP_TEXTURE_GPU_TEXTURE_POINTER                                 = "SDL.texture.gpu.texture"
+pattern SDL_PROP_TEXTURE_GPU_TEXTURE_UV_POINTER                              = "SDL.texture.gpu.texture_uv"
+pattern SDL_PROP_TEXTURE_GPU_TEXTURE_U_POINTER                               = "SDL.texture.gpu.texture_u"
+pattern SDL_PROP_TEXTURE_GPU_TEXTURE_V_POINTER                               = "SDL.texture.gpu.texture_v"
 
 fromCBool :: CBool -> Bool
 fromCBool = toBool

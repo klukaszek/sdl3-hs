@@ -93,6 +93,8 @@ module SDL3.Mouse
   , sdlCreateCursor
   , sdlCreateColorCursor
   , sdlCreateSystemCursor
+  , SDLCursorFrameInfo(..)
+  , sdlCreateAnimatedCursor
   , sdlSetCursor
   , sdlGetCursor
   , sdlGetDefaultCursor
@@ -112,6 +114,24 @@ import SDL3.Video (SDLWindow(..))
 -- Opaque C struct types for FFI clarity
 data SDL_Cursor
 data SDL_Surface
+
+data SDL_CursorFrameInfo
+
+data SDLCursorFrameInfo = SDLCursorFrameInfo
+  { cursorFrameSurface  :: Ptr SDLSurface
+  , cursorFrameDuration :: Word32
+  } deriving (Show, Eq)
+
+instance Storable SDLCursorFrameInfo where
+  sizeOf _ = #{size SDL_CursorFrameInfo}
+  alignment _ = #{alignment SDL_CursorFrameInfo}
+  peek ptr = do
+    surface <- #{peek SDL_CursorFrameInfo, surface} (castPtr ptr)
+    duration <- #{peek SDL_CursorFrameInfo, duration} (castPtr ptr)
+    pure $ SDLCursorFrameInfo (castPtr surface) duration
+  poke ptr (SDLCursorFrameInfo surface duration) = do
+    #{poke SDL_CursorFrameInfo, surface} (castPtr ptr) (castPtr surface :: Ptr SDL_Surface)
+    #{poke SDL_CursorFrameInfo, duration} (castPtr ptr) duration
 
 -- | Unique ID for a mouse for the time it is connected to the system.
 -- The value 0 is an invalid ID.
@@ -351,9 +371,8 @@ foreign import ccall unsafe "SDL_CreateColorCursor"
 
 sdlCreateColorCursor :: SDLSurface -> Int -> Int -> IO (Maybe SDLCursor)
 sdlCreateColorCursor surfaceRec hot_x hot_y = do
-  -- Use 'with' as SDLSurface is a Storable data record
   with surfaceRec $ \surfacePtr -> do
-    ptr <- c_sdlCreateColorCursor (castPtr surfacePtr) -- Cast Ptr SDLSurface to Ptr SDL_Surface
+    ptr <- c_sdlCreateColorCursor (castPtr surfacePtr)
                                   (fromIntegral hot_x)
                                   (fromIntegral hot_y)
     pure $ if ptr == nullPtr then Nothing else Just (SDLCursor ptr)
@@ -364,9 +383,17 @@ foreign import ccall unsafe "SDL_CreateSystemCursor"
 
 sdlCreateSystemCursor :: SDLSystemCursor -> IO (Maybe SDLCursor)
 sdlCreateSystemCursor cursorType = do
-  -- Use fromIntegral . fromEnum to get CInt from Enum-derived newtype
   ptr <- c_sdlCreateSystemCursor (fromIntegral $ fromEnum cursorType)
   pure $ if ptr == nullPtr then Nothing else Just (SDLCursor ptr)
+
+foreign import ccall unsafe "SDL_CreateAnimatedCursor"
+  c_sdlCreateAnimatedCursor :: Ptr SDL_CursorFrameInfo -> CInt -> CInt -> CInt -> IO (Ptr SDL_Cursor)
+
+sdlCreateAnimatedCursor :: [SDLCursorFrameInfo] -> Int -> Int -> IO (Maybe SDLCursor)
+sdlCreateAnimatedCursor frames hotX hotY =
+  withArrayLen frames $ \len framesPtr -> do
+    ptr <- c_sdlCreateAnimatedCursor (castPtr framesPtr) (fromIntegral len) (fromIntegral hotX) (fromIntegral hotY)
+    pure $ if ptr == nullPtr then Nothing else Just (SDLCursor ptr)
 
 -- | Set the active cursor. Pass Nothing to set the default cursor.
 foreign import ccall unsafe "SDL_SetCursor"

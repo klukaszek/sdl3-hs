@@ -21,17 +21,12 @@
 
 #include "SDL_internal.h"
 
-#ifndef SDL_PLATFORM_MACOS
+#ifdef SDL_TRAY_DUMMY
 
 #include "../SDL_tray_utils.h"
 
 void SDL_UpdateTrays(void)
 {
-}
-
-bool SDL_IsTraySupported(void)
-{
-    return false;
 }
 
 SDL_Tray *SDL_CreateTray(SDL_Surface *icon, const char *tooltip)
@@ -145,4 +140,4 @@ void SDL_DestroyTray(SDL_Tray *tray)
 {
 }
 
-#endif // !SDL_PLATFORM_MACOS
+#endif // SDL_TRAY_DUMMY

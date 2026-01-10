@@ -148,7 +148,7 @@ static bool SDL_ValidMetadataProperty(const char *name)
 
 bool SDL_SetAppMetadataProperty(const char *name, const char *value)
 {
-    if (!SDL_ValidMetadataProperty(name)) {
+    CHECK_PARAM(!SDL_ValidMetadataProperty(name)) {
         return SDL_InvalidParamError("name");
     }
 
@@ -157,7 +157,7 @@ bool SDL_SetAppMetadataProperty(const char *name, const char *value)
 
 const char *SDL_GetAppMetadataProperty(const char *name)
 {
-    if (!SDL_ValidMetadataProperty(name)) {
+    CHECK_PARAM(!SDL_ValidMetadataProperty(name)) {
         SDL_InvalidParamError("name");
         return NULL;
     }
@@ -189,6 +189,8 @@ static bool SDL_MainIsReady = false;
 static bool SDL_MainIsReady = true;
 #endif
 static SDL_ThreadID SDL_MainThreadID = 0;
+static SDL_ThreadID SDL_EventsThreadID = 0;
+static SDL_ThreadID SDL_VideoThreadID = 0;
 static bool SDL_bInMainQuit = false;
 static Uint8 SDL_SubsystemRefCount[32];
 
@@ -237,6 +239,7 @@ static bool SDL_ShouldQuitSubsystem(Uint32 subsystem)
     return (((subsystem_index >= 0) && (SDL_SubsystemRefCount[subsystem_index] == 1)) || SDL_bInMainQuit);
 }
 
+#if !defined(SDL_VIDEO_DISABLED) || !defined(SDL_AUDIO_DISABLED) || !defined(SDL_JOYSTICK_DISABLED)
 /* Private helper to either increment's existing ref counter,
  * or fully init a new subsystem. */
 static bool SDL_InitOrIncrementSubsystem(Uint32 subsystem)
@@ -252,6 +255,7 @@ static bool SDL_InitOrIncrementSubsystem(Uint32 subsystem)
     }
     return SDL_InitSubSystem(subsystem);
 }
+#endif // !SDL_VIDEO_DISABLED || !SDL_AUDIO_DISABLED || !SDL_JOYSTICK_DISABLED
 
 void SDL_SetMainReady(void)
 {
@@ -264,20 +268,27 @@ void SDL_SetMainReady(void)
 
 bool SDL_IsMainThread(void)
 {
-    if (SDL_MainThreadID == 0) {
-        // Not initialized yet?
-        return true;
+    if (SDL_VideoThreadID) {
+        return (SDL_GetCurrentThreadID() == SDL_VideoThreadID);
     }
-    if (SDL_MainThreadID == SDL_GetCurrentThreadID()) {
-        return true;
+    if (SDL_EventsThreadID) {
+        return (SDL_GetCurrentThreadID() == SDL_EventsThreadID);
     }
-    return false;
+    if (SDL_MainThreadID) {
+        return (SDL_GetCurrentThreadID() == SDL_MainThreadID);
+    }
+    return true;
 }
 
 // Initialize all the subsystems that require initialization before threads start
 void SDL_InitMainThread(void)
 {
     static bool done_info = false;
+
+    // If we haven't done it by now, mark this as the main thread
+    if (SDL_MainThreadID == 0) {
+        SDL_MainThreadID = SDL_GetCurrentThreadID();
+    }
 
     SDL_InitTLSData();
     SDL_InitEnvironment();
@@ -333,6 +344,11 @@ bool SDL_InitSubSystem(SDL_InitFlags flags)
     if (flags & SDL_INIT_EVENTS) {
         if (SDL_ShouldInitSubsystem(SDL_INIT_EVENTS)) {
             SDL_IncrementSubsystemRefCount(SDL_INIT_EVENTS);
+
+            // Note which thread initialized events
+            // This is the thread which should be pumping events
+            SDL_EventsThreadID = SDL_GetCurrentThreadID();
+
             if (!SDL_InitEvents()) {
                 SDL_DecrementSubsystemRefCount(SDL_INIT_EVENTS);
                 goto quit_and_error;
@@ -352,12 +368,16 @@ bool SDL_InitSubSystem(SDL_InitFlags flags)
                 goto quit_and_error;
             }
 
+            SDL_IncrementSubsystemRefCount(SDL_INIT_VIDEO);
+
             // We initialize video on the main thread
             // On Apple platforms this is a requirement.
             // On other platforms, this is the definition.
-            SDL_MainThreadID = SDL_GetCurrentThreadID();
+            SDL_VideoThreadID = SDL_GetCurrentThreadID();
+#ifdef SDL_PLATFORM_APPLE
+            SDL_assert(SDL_VideoThreadID == SDL_MainThreadID);
+#endif
 
-            SDL_IncrementSubsystemRefCount(SDL_INIT_VIDEO);
             if (!SDL_VideoInit(NULL)) {
                 SDL_DecrementSubsystemRefCount(SDL_INIT_VIDEO);
                 SDL_PushError();
@@ -607,6 +627,7 @@ void SDL_QuitSubSystem(SDL_InitFlags flags)
         if (SDL_ShouldQuitSubsystem(SDL_INIT_VIDEO)) {
             SDL_QuitRender();
             SDL_VideoQuit();
+            SDL_VideoThreadID = 0;
             // video implies events
             SDL_QuitSubSystem(SDL_INIT_EVENTS);
         }
@@ -617,6 +638,7 @@ void SDL_QuitSubSystem(SDL_InitFlags flags)
     if (flags & SDL_INIT_EVENTS) {
         if (SDL_ShouldQuitSubsystem(SDL_INIT_EVENTS)) {
             SDL_QuitEvents();
+            SDL_EventsThreadID = 0;
         }
         SDL_DecrementSubsystemRefCount(SDL_INIT_EVENTS);
     }
@@ -758,6 +780,8 @@ const char *SDL_GetPlatform(void)
     return "Xbox One";
 #elif defined(SDL_PLATFORM_XBOXSERIES)
     return "Xbox Series X|S";
+#elif defined(SDL_PLATFORM_VISIONOS)
+    return "visionOS";
 #elif defined(SDL_PLATFORM_IOS)
     return "iOS";
 #elif defined(SDL_PLATFORM_TVOS)
@@ -770,6 +794,8 @@ const char *SDL_GetPlatform(void)
     return "PlayStation Vita";
 #elif defined(SDL_PLATFORM_3DS)
     return "Nintendo 3DS";
+#elif defined(SDL_PLATFORM_HURD)
+    return "GNU/Hurd";
 #elif defined(__managarm__)
     return "Managarm";
 #else
@@ -841,9 +867,7 @@ SDL_Sandbox SDL_GetSandbox(void)
 
 #ifdef SDL_PLATFORM_WIN32
 
-#if (!defined(HAVE_LIBC) || defined(__WATCOMC__)) && !defined(SDL_STATIC_LIB)
-// FIXME: Still need to include DllMain() on Watcom C ?
-
+#if !defined(HAVE_LIBC) && !defined(SDL_STATIC_LIB)
 BOOL APIENTRY MINGW32_FORCEALIGN _DllMainCRTStartup(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
     switch (ul_reason_for_call) {

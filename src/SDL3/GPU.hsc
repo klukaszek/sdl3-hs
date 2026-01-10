@@ -383,13 +383,20 @@ module SDL3.GPU
   , pattern SDL_PROP_GPU_DEVICE_CREATE_PREFERLOWPOWER_BOOLEAN
   , pattern SDL_PROP_GPU_DEVICE_CREATE_VERBOSE_BOOLEAN
   , pattern SDL_PROP_GPU_DEVICE_CREATE_NAME_STRING
+  , pattern SDL_PROP_GPU_DEVICE_CREATE_FEATURE_CLIP_DISTANCE_BOOLEAN
+  , pattern SDL_PROP_GPU_DEVICE_CREATE_FEATURE_DEPTH_CLAMPING_BOOLEAN
+  , pattern SDL_PROP_GPU_DEVICE_CREATE_FEATURE_INDIRECT_DRAW_FIRST_INSTANCE_BOOLEAN
+  , pattern SDL_PROP_GPU_DEVICE_CREATE_FEATURE_ANISOTROPY_BOOLEAN
   , pattern SDL_PROP_GPU_DEVICE_CREATE_SHADERS_PRIVATE_BOOLEAN
   , pattern SDL_PROP_GPU_DEVICE_CREATE_SHADERS_SPIRV_BOOLEAN
   , pattern SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXBC_BOOLEAN
   , pattern SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXIL_BOOLEAN
   , pattern SDL_PROP_GPU_DEVICE_CREATE_SHADERS_MSL_BOOLEAN
   , pattern SDL_PROP_GPU_DEVICE_CREATE_SHADERS_METALLIB_BOOLEAN
+  , pattern SDL_PROP_GPU_DEVICE_CREATE_D3D12_ALLOW_FEWER_RESOURCE_SLOTS_BOOLEAN
   , pattern SDL_PROP_GPU_DEVICE_CREATE_D3D12_SEMANTIC_NAME_STRING
+  , pattern SDL_PROP_GPU_DEVICE_CREATE_VULKAN_REQUIRE_HARDWARE_ACCELERATION_BOOLEAN
+  , pattern SDL_PROP_GPU_DEVICE_CREATE_VULKAN_OPTIONS_POINTER
 #if SDL_VERSION_ATLEAST(3, 4, 0)
   , pattern SDL_PROP_GPU_DEVICE_NAME_STRING
   , pattern SDL_PROP_GPU_DEVICE_DRIVER_NAME_STRING
@@ -424,6 +431,8 @@ module SDL3.GPU
   , sdlGetGPUShaderFormats
 #if SDL_VERSION_ATLEAST(3, 4, 0)
   , sdlGetGPUDeviceProperties
+  , sdlGetPixelFormatFromGPUTextureFormat
+  , sdlGetGPUTextureFormatFromPixelFormat
 #endif
     -- ** State Creation
   , sdlCreateGPUComputePipeline
@@ -539,13 +548,12 @@ import Foreign.Storable (Storable(..))
 import Data.Word (Word8, Word32)
 import Data.Int (Int32)
 import Data.Bits (Bits)
-import SDL3.Pixels (SDLFColor(..))
+import SDL3.Pixels (SDLFColor(..), SDLPixelFormat(..))
 import SDL3.Properties (SDLPropertiesID())
 import SDL3.Rect (SDLRect(..))
 import SDL3.Surface (SDLFlipMode(..))
 import SDL3.Video (SDLWindow(..))
 
--- Helper to convert CBool to Bool more explicitly than fromBool
 fromCBool :: CBool -> Bool
 fromCBool = toBool
 
@@ -1905,6 +1913,8 @@ data SDLGPUDepthStencilTargetInfo = SDLGPUDepthStencilTargetInfo
   , depthStencilStencilStoreOp:: SDLGPUStoreOp
   , depthStencilCycle         :: Bool
   , depthStencilClearStencil  :: Word8
+  , depthMipLevel             :: Word8
+  , depthLayer                :: Word8
   } deriving (Show, Eq)
 
 instance Storable SDLGPUDepthStencilTargetInfo where
@@ -1920,7 +1930,12 @@ instance Storable SDLGPUDepthStencilTargetInfo where
     depthStencilStencilStoreOp<- SDLGPUStoreOp <$> (#{peek SDL_GPUDepthStencilTargetInfo, stencil_store_op} ptr :: IO CInt)
     depthStencilCycle         <- toBool <$> (#{peek SDL_GPUDepthStencilTargetInfo, cycle} ptr :: IO CBool)
     clear_stencil_c <- #{peek SDL_GPUDepthStencilTargetInfo, clear_stencil} ptr :: IO CUChar -- Peek as CUChar
+    mip_level_c     <- #{peek SDL_GPUDepthStencilTargetInfo, mip_level} ptr :: IO CUChar
+    layer_c         <- #{peek SDL_GPUDepthStencilTargetInfo, layer} ptr :: IO CUChar
     let depthStencilClearStencil = fromIntegral clear_stencil_c :: Word8 -- Convert to Word8
+        depthMipLevel = fromIntegral mip_level_c :: Word8
+        depthLayer = fromIntegral layer_c :: Word8
+
     return SDLGPUDepthStencilTargetInfo { depthStencilTexture       = depthStencilTexture
                                         , depthStencilClearDepth    = depthStencilClearDepth
                                         , depthStencilLoadOp        = depthStencilLoadOp
@@ -1929,6 +1944,8 @@ instance Storable SDLGPUDepthStencilTargetInfo where
                                         , depthStencilStencilStoreOp= depthStencilStencilStoreOp
                                         , depthStencilCycle         = depthStencilCycle
                                         , depthStencilClearStencil  = depthStencilClearStencil -- Use converted Word8
+                                        , depthMipLevel             = depthMipLevel
+                                        , depthLayer                = depthLayer
                                         }
   poke ptr SDLGPUDepthStencilTargetInfo{..} = do
     let (SDLGPUTexture texture_ptr) = depthStencilTexture
@@ -1940,8 +1957,8 @@ instance Storable SDLGPUDepthStencilTargetInfo where
     #{poke SDL_GPUDepthStencilTargetInfo, stencil_store_op} ptr ( (\(SDLGPUStoreOp i) -> i) depthStencilStencilStoreOp :: CInt)
     #{poke SDL_GPUDepthStencilTargetInfo, cycle} ptr (fromBool depthStencilCycle :: CBool)
     #{poke SDL_GPUDepthStencilTargetInfo, clear_stencil} ptr (fromIntegral depthStencilClearStencil :: CUChar) -- Convert Word8 to CUChar
-    #{poke SDL_GPUDepthStencilTargetInfo, padding1} ptr (0 :: CUChar)
-    #{poke SDL_GPUDepthStencilTargetInfo, padding2} ptr (0 :: CUChar)
+    #{poke SDL_GPUDepthStencilTargetInfo, mip_level} ptr (fromIntegral depthMipLevel :: CUChar)
+    #{poke SDL_GPUDepthStencilTargetInfo, layer} ptr (fromIntegral depthLayer :: CUChar)
 
 
 -- SDL_GPUBlitInfo
@@ -2130,13 +2147,20 @@ pattern SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN          = "SDL.gpu.device.
 pattern SDL_PROP_GPU_DEVICE_CREATE_PREFERLOWPOWER_BOOLEAN     = "SDL.gpu.device.create.preferlowpower" :: String
 pattern SDL_PROP_GPU_DEVICE_CREATE_VERBOSE_BOOLEAN            = "SDL.gpu.device.create.verbose" :: String
 pattern SDL_PROP_GPU_DEVICE_CREATE_NAME_STRING                = "SDL.gpu.device.create.name" :: String
+pattern SDL_PROP_GPU_DEVICE_CREATE_FEATURE_CLIP_DISTANCE_BOOLEAN                = "SDL.gpu.device.create.feature.clip_distance" :: String
+pattern SDL_PROP_GPU_DEVICE_CREATE_FEATURE_DEPTH_CLAMPING_BOOLEAN               = "SDL.gpu.device.create.feature.depth_clamping" :: String
+pattern SDL_PROP_GPU_DEVICE_CREATE_FEATURE_INDIRECT_DRAW_FIRST_INSTANCE_BOOLEAN = "SDL.gpu.device.create.feature.indirect_draw_first_instance" :: String
+pattern SDL_PROP_GPU_DEVICE_CREATE_FEATURE_ANISOTROPY_BOOLEAN                   = "SDL.gpu.device.create.feature.anisotropy" :: String
 pattern SDL_PROP_GPU_DEVICE_CREATE_SHADERS_PRIVATE_BOOLEAN    = "SDL.gpu.device.create.shaders.private" :: String
 pattern SDL_PROP_GPU_DEVICE_CREATE_SHADERS_SPIRV_BOOLEAN      = "SDL.gpu.device.create.shaders.spirv" :: String
 pattern SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXBC_BOOLEAN       = "SDL.gpu.device.create.shaders.dxbc" :: String
 pattern SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXIL_BOOLEAN       = "SDL.gpu.device.create.shaders.dxil" :: String
 pattern SDL_PROP_GPU_DEVICE_CREATE_SHADERS_MSL_BOOLEAN        = "SDL.gpu.device.create.shaders.msl" :: String
 pattern SDL_PROP_GPU_DEVICE_CREATE_SHADERS_METALLIB_BOOLEAN   = "SDL.gpu.device.create.shaders.metallib" :: String
+pattern SDL_PROP_GPU_DEVICE_CREATE_D3D12_ALLOW_FEWER_RESOURCE_SLOTS_BOOLEAN = "SDL.gpu.device.create.d3d12.allowtier1resourcebinding" :: String
 pattern SDL_PROP_GPU_DEVICE_CREATE_D3D12_SEMANTIC_NAME_STRING = "SDL.gpu.device.create.d3d12.semantic" :: String
+pattern SDL_PROP_GPU_DEVICE_CREATE_VULKAN_REQUIRE_HARDWARE_ACCELERATION_BOOLEAN = "SDL.gpu.device.create.vulkan.requirehardwareacceleration" :: String
+pattern SDL_PROP_GPU_DEVICE_CREATE_VULKAN_OPTIONS_POINTER      = "SDL.gpu.device.create.vulkan.options" :: String
 
 -- | Destroys a GPU context.
 foreign import ccall unsafe "SDL_DestroyGPUDevice"
@@ -3045,6 +3069,21 @@ sdlCalculateGPUTextureFormatSize format w h depthOrLayerCount =
     (fromIntegral h)
     (fromIntegral depthOrLayerCount)
 
+#if SDL_VERSION_ATLEAST(3, 4, 0)
+-- | Get the SDL pixel format corresponding to a GPU texture format.
+foreign import ccall unsafe "SDL_GetPixelFormatFromGPUTextureFormat"
+  c_sdlGetPixelFormatFromGPUTextureFormat :: SDLGPUTextureFormat -> IO CUInt
+
+sdlGetPixelFormatFromGPUTextureFormat :: SDLGPUTextureFormat -> IO SDLPixelFormat
+sdlGetPixelFormatFromGPUTextureFormat fmt = SDLPixelFormat <$> c_sdlGetPixelFormatFromGPUTextureFormat fmt
+
+-- | Get the GPU texture format corresponding to an SDL pixel format.
+foreign import ccall unsafe "SDL_GetGPUTextureFormatFromPixelFormat"
+  c_sdlGetGPUTextureFormatFromPixelFormat :: CUInt -> IO SDLGPUTextureFormat
+
+sdlGetGPUTextureFormatFromPixelFormat :: SDLPixelFormat -> IO SDLGPUTextureFormat
+sdlGetGPUTextureFormatFromPixelFormat (SDLPixelFormat fmt) = c_sdlGetGPUTextureFormatFromPixelFormat fmt
+#endif
 
 #ifdef SDL_PLATFORM_GDK
 -- | Call this to suspend GPU operation on Xbox. (GDK Only)

@@ -22,12 +22,15 @@
 #include "SDL_gtk.h"
 
 #include <dlfcn.h>
+#include <errno.h>
+#include <unistd.h>
 
 #define SDL_GTK_SYM2_OPTIONAL(ctx, lib, sub, fn, sym)                     \
     ctx.sub.fn = (void *)SDL_LoadFunction(lib, #sym)
 
 #define SDL_GTK_SYM2(ctx, lib, sub, fn, sym)                              \
-    if (!(ctx.sub.fn = (void *)SDL_LoadFunction(lib, #sym))) {            \
+    SDL_GTK_SYM2_OPTIONAL(ctx, lib, sub, fn, sym);                        \
+    if (!ctx.sub.fn) {                                                    \
         return SDL_SetError("Could not load GTK functions");              \
     }
 
@@ -56,13 +59,18 @@ static void *libgtk = NULL;
 static SDL_GtkContext gtk;
 static GMainContext *sdl_main_context;
 
-gulong signal_connect(gpointer instance, const gchar *detailed_signal, void *c_handler, gpointer data)
+static gulong signal_connect(gpointer instance, const gchar *detailed_signal, void *c_handler, gpointer data)
 {
     return gtk.g.signal_connect_data(instance, detailed_signal, SDL_G_CALLBACK(c_handler), data, NULL, (SDL_GConnectFlags)0);
 }
 
 static void QuitGtk(void)
 {
+    if (sdl_main_context) {
+        gtk.g.main_context_unref(sdl_main_context);
+        sdl_main_context = NULL;
+    }
+
     SDL_UnloadObject(libgdk);
     SDL_UnloadObject(libgtk);
 
@@ -75,9 +83,72 @@ static bool IsGtkInit()
     return libgdk != NULL && libgtk != NULL;
 }
 
+#ifndef HAVE_GETRESUID
+// Non-POSIX, but Linux and some BSDs have it.
+// To reduce the number of code paths, if getresuid() isn't available at
+// compile-time, we behave as though it existed but failed at runtime.
+static inline int getresuid(uid_t *ruid, uid_t *euid, uid_t *suid) {
+    errno = ENOSYS;
+    return -1;
+}
+#endif
+
+#ifndef HAVE_GETRESGID
+// Same as getresuid() but for the primary group
+static inline int getresgid(uid_t *ruid, uid_t *euid, uid_t *suid) {
+    errno = ENOSYS;
+    return -1;
+}
+#endif
+
+bool SDL_CanUseGtk(void)
+{
+    // "Real", "effective" and "saved" IDs: see e.g. Linux credentials(7)
+    uid_t ruid = -1, euid = -1, suid = -1;
+    gid_t rgid = -1, egid = -1, sgid = -1;
+
+    if (!SDL_GetHintBoolean("SDL_ENABLE_GTK", true)) {
+        SDL_LogDebug(SDL_LOG_CATEGORY_SYSTEM, "Not using GTK due to hint");
+        return false;
+    }
+
+    // This is intended to match the check in gtkmain.c, rather than being
+    // an exhaustive check for having elevated privileges: as a result
+    // we don't use Linux getauxval() or prctl PR_GET_DUMPABLE,
+    // BSD issetugid(), or similar OS-specific detection
+
+    if (getresuid(&ruid, &euid, &suid) != 0) {
+        ruid = suid = getuid();
+        euid = geteuid();
+    }
+
+    if (getresgid(&rgid, &egid, &sgid) != 0) {
+        rgid = sgid = getgid();
+        egid = getegid();
+    }
+
+    // Real ID != effective ID means we are setuid or setgid:
+    // GTK will refuse to initialize, and instead will call exit().
+    if (ruid != euid || rgid != egid) {
+        SDL_LogDebug(SDL_LOG_CATEGORY_SYSTEM, "Not using GTK due to setuid/setgid");
+        return false;
+    }
+
+    // Real ID != saved ID means we are setuid or setgid, we previously
+    // dropped privileges, but we can regain them; this protects against
+    // accidents but does not protect against arbitrary code execution.
+    // Again, GTK will refuse to initialize if this is the case.
+    if (ruid != suid || rgid != sgid) {
+        SDL_LogDebug(SDL_LOG_CATEGORY_SYSTEM, "Not using GTK due to saved uid/gid");
+        return false;
+    }
+
+    return true;
+}
+
 static bool InitGtk(void)
 {
-    if (!SDL_GetHintBoolean("SDL_ENABLE_GTK", true)) {
+    if (!SDL_CanUseGtk()) {
         return false;
     }
 
@@ -114,8 +185,8 @@ static bool InitGtk(void)
     SDL_GTK_SYM(gtk, libgtk, gtk, menu_item_set_submenu);
     SDL_GTK_SYM(gtk, libgtk, gtk, menu_item_get_label);
     SDL_GTK_SYM(gtk, libgtk, gtk, menu_item_set_label);
-	SDL_GTK_SYM(gtk, libgtk, gtk, menu_shell_append);
-	SDL_GTK_SYM(gtk, libgtk, gtk, menu_shell_insert);
+    SDL_GTK_SYM(gtk, libgtk, gtk, menu_shell_append);
+    SDL_GTK_SYM(gtk, libgtk, gtk, menu_shell_insert);
     SDL_GTK_SYM(gtk, libgtk, gtk, check_menu_item_new_with_label);
     SDL_GTK_SYM(gtk, libgtk, gtk, check_menu_item_get_active);
     SDL_GTK_SYM(gtk, libgtk, gtk, check_menu_item_set_active);
@@ -127,6 +198,7 @@ static bool InitGtk(void)
 
     SDL_GTK_SYM(gtk, libgdk, g, signal_connect_data);
     SDL_GTK_SYM(gtk, libgdk, g, mkdtemp);
+    SDL_GTK_SYM(gtk, libgdk, g, get_user_cache_dir);
     SDL_GTK_SYM(gtk, libgdk, g, object_ref);
     SDL_GTK_SYM(gtk, libgdk, g, object_ref_sink);
     SDL_GTK_SYM(gtk, libgdk, g, object_unref);
@@ -135,12 +207,13 @@ static bool InitGtk(void)
     SDL_GTK_SYM(gtk, libgdk, g, main_context_push_thread_default);
     SDL_GTK_SYM(gtk, libgdk, g, main_context_pop_thread_default);
     SDL_GTK_SYM(gtk, libgdk, g, main_context_new);
+    SDL_GTK_SYM(gtk, libgdk, g, main_context_unref);
     SDL_GTK_SYM(gtk, libgdk, g, main_context_acquire);
     SDL_GTK_SYM(gtk, libgdk, g, main_context_iteration);
 
     gtk.g.signal_connect = signal_connect;
 
-    if (gtk.gtk.init_check(0, NULL) == GTK_FALSE) {
+    if (gtk.gtk.init_check(NULL, NULL) == GTK_FALSE) {
         QuitGtk();
         return SDL_SetError("Could not init GTK");
     }
@@ -190,7 +263,6 @@ void SDL_Gtk_Quit(void)
 
     QuitGtk();
     SDL_zero(gtk);
-    sdl_main_context = NULL;
 
     SDL_SetInitialized(&gtk_init, false);
 }
@@ -223,5 +295,6 @@ void SDL_UpdateGtk(void)
 {
     if (IsGtkInit()) {
         gtk.g.main_context_iteration(sdl_main_context, GTK_FALSE);
+        gtk.g.main_context_iteration(NULL, GTK_FALSE);
     }
 }

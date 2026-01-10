@@ -797,28 +797,18 @@ static bool GIP_AttachmentIsController(GIP_Attachment *attachment)
 
 static void GIP_MetadataFree(GIP_Metadata *metadata)
 {
-    if (metadata->device.audio_formats) {
-        SDL_free(metadata->device.audio_formats);
-    }
+    SDL_free(metadata->device.audio_formats);
     if (metadata->device.preferred_types) {
         int i;
         for (i = 0; i < metadata->device.num_preferred_types; i++) {
-            if (metadata->device.preferred_types[i]) {
-                SDL_free(metadata->device.preferred_types[i]);
-            }
+            SDL_free(metadata->device.preferred_types[i]);
         }
         SDL_free(metadata->device.preferred_types);
     }
-    if (metadata->device.supported_interfaces) {
-        SDL_free(metadata->device.supported_interfaces);
-    }
-    if (metadata->device.hid_descriptor) {
-        SDL_free(metadata->device.hid_descriptor);
-    }
+    SDL_free(metadata->device.supported_interfaces);
+    SDL_free(metadata->device.hid_descriptor);
 
-    if (metadata->message_metadata) {
-        SDL_free(metadata->message_metadata);
-    }
+    SDL_free(metadata->message_metadata);
     SDL_memset(metadata, 0, sizeof(*metadata));
 }
 
@@ -1249,7 +1239,7 @@ static bool GIP_SendInitSequence(GIP_Attachment *attachment)
     }
     if (attachment->attachment_type == GIP_TYPE_CHATPAD && !attachment->keyboard) {
         attachment->keyboard = (SDL_KeyboardID)(uintptr_t) attachment;
-        SDL_AddKeyboard(attachment->keyboard, "Xbox One Chatpad", true);
+        SDL_AddKeyboard(attachment->keyboard, "Xbox One Chatpad");
     }
     return true;
 }
@@ -2335,7 +2325,7 @@ static bool GIP_HandleSystemMessage(
         if (header->message_type == GIP_CMD_HID_REPORT && num_bytes == 8) {
             if (!attachment->keyboard) {
                 attachment->keyboard = (SDL_KeyboardID)(uintptr_t) attachment;
-                SDL_AddKeyboard(attachment->keyboard, "Xbox One Chatpad", true);
+                SDL_AddKeyboard(attachment->keyboard, "Xbox One Chatpad");
             }
             attachment->attachment_type = GIP_TYPE_CHATPAD;
             attachment->metadata.device.in_system_messages[0] |= (1u << GIP_CMD_HID_REPORT);
@@ -2696,6 +2686,8 @@ static GIP_Attachment * HIDAPI_DriverGIP_FindAttachment(SDL_HIDAPI_Device *devic
     GIP_Device *ctx = (GIP_Device *)device->context;
     int i;
 
+    SDL_AssertJoysticksLocked();
+
     for (i = 0; i < MAX_ATTACHMENTS; i++) {
         if (ctx->attachments[i] && ctx->attachments[i]->joystick == joystick->instance_id) {
             return ctx->attachments[i];
@@ -2931,7 +2923,7 @@ static void HIDAPI_DriverGIP_FreeDevice(SDL_HIDAPI_Device *device)
             attachment->fragment_data = NULL;
         }
         if (attachment->keyboard) {
-            SDL_RemoveKeyboard(attachment->keyboard, true);
+            SDL_RemoveKeyboard(attachment->keyboard);
         }
         GIP_MetadataFree(&attachment->metadata);
         SDL_free(attachment);

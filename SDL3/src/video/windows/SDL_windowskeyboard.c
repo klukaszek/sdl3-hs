@@ -240,7 +240,6 @@ void WIN_QuitKeyboard(SDL_VideoDevice *_this)
     }
 #endif // !SDL_DISABLE_WINDOWS_IME
 
-    SDL_SetKeymap(NULL, false);
     for (int i = 0; i < keymap_cache_size; ++i) {
         SDL_DestroyKeymap(keymap_cache[i].keymap);
     }
@@ -607,7 +606,7 @@ static DWORD IME_GetId(SDL_VideoData *videodata, UINT uIndex)
     char szTemp[256];
     HKL hkl = 0;
     DWORD dwLang = 0;
-    SDL_assert(uIndex < sizeof(dwRet) / sizeof(dwRet[0]));
+    SDL_assert(uIndex < SDL_arraysize(dwRet));
 
     hkl = videodata->ime_hkl;
     if (hklprev == hkl) {
@@ -816,9 +815,7 @@ static void IME_GetCompositionString(SDL_VideoData *videodata, HIMC himc, DWORD 
 
     length = ImmGetCompositionStringW(himc, string, NULL, 0);
     if (length > 0 && videodata->ime_composition_length < length) {
-        if (videodata->ime_composition) {
-            SDL_free(videodata->ime_composition);
-        }
+        SDL_free(videodata->ime_composition);
 
         videodata->ime_composition = (WCHAR *)SDL_malloc(length + sizeof(WCHAR));
         videodata->ime_composition_length = length;
@@ -1088,6 +1085,14 @@ bool WIN_HandleIMEMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM *lParam, SD
             trap = true;
         } else {
             SDL_DebugIMELog("WM_KEYDOWN normal");
+        }
+        break;
+    case WM_SYSKEYDOWN:
+        if (wParam == VK_PROCESSKEY) {
+            SDL_DebugIMELog("WM_SYSKEYDOWN VK_PROCESSKEY");
+            trap = true;
+        } else {
+            SDL_DebugIMELog("WM_SYSKEYDOWN normal");
         }
         break;
     case WM_INPUTLANGCHANGE:
