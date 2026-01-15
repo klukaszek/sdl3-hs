@@ -1,4 +1,4 @@
-packages: .
+packages: *.cabal
 
 package sdl3
   flags: +examples
