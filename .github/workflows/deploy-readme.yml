@@ -9,6 +9,7 @@ on:
       - ".github/update-readme.sh"
       - ".github/verify-sdl-version.sh"
       - ".github/template.html"
+      - ".github/pandoc-rewrite-links.lua"
       - ".github/workflows/deploy-readme.yml"
       - "README.md"
       - "sdl3.cabal"
@@ -24,6 +25,7 @@ on:
       - ".github/update-readme.sh"
       - ".github/verify-sdl-version.sh"
       - ".github/template.html"
+      - ".github/pandoc-rewrite-links.lua"
       - ".github/workflows/deploy-readme.yml"
       - "README.md"
       - "sdl3.cabal"
@@ -123,6 +125,7 @@ jobs:
           pandoc --standalone \
                  -f gfm \
                  -t html5 \
+                 --lua-filter=.github/pandoc-rewrite-links.lua \
                  --template=.github/template.html \
                  --metadata title="SDL3 Haskell Bindings" \
                  -o _site/index.html \
