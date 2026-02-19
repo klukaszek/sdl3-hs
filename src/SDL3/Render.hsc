@@ -202,6 +202,8 @@ module SDL3.Render
   , sdlGetTextureBlendMode
   , sdlSetTextureScaleMode
   , sdlGetTextureScaleMode
+  , sdlSetTexturePalette
+  , sdlGetTexturePalette
   , sdlUpdateTexture
   , sdlUpdateYUVTexture
   , sdlUpdateNVTexture
@@ -301,7 +303,7 @@ import Data.Int (Int64)
 -- SDL Imports
 import SDL3.BlendMode (SDLBlendMode(..))
 import SDL3.Events (SDLEvent) -- Assuming Ptr SDLEvent underneath
-import SDL3.Pixels (SDLPixelFormat(..), SDLFColor(..), pixelFormatToCUInt)
+import SDL3.Pixels (SDLPixelFormat(..), SDLFColor(..), SDLPalette(..), pixelFormatToCUInt)
 import SDL3.Properties (SDLPropertiesID)
 import SDL3.Rect (SDLRect(..), SDLFPoint(..), SDLFRect(..))
 import SDL3.Surface (SDLSurface(..), SDLFlipMode(..), SDLScaleMode(..))
@@ -732,6 +734,23 @@ sdlGetTextureScaleMode (SDLTexture tex) =
       else do
         modeCInt <- peek modePtr -- Peek the CInt value
         return $ Just (toEnum $ fromIntegral modeCInt)
+
+foreign import ccall unsafe "SDL_SetTexturePalette"
+  c_sdlSetTexturePalette :: Ptr SDLTexture -> Ptr SDLPalette -> IO CBool
+
+sdlSetTexturePalette :: SDLTexture -> Maybe SDLPalette -> IO Bool
+sdlSetTexturePalette (SDLTexture tex) mPalette =
+  toBool <$> c_sdlSetTexturePalette tex (maybe nullPtr (\(SDLPalette p) -> p) mPalette)
+
+foreign import ccall unsafe "SDL_GetTexturePalette"
+  c_sdlGetTexturePalette :: Ptr SDLTexture -> IO (Ptr SDLPalette)
+
+sdlGetTexturePalette :: SDLTexture -> IO (Maybe SDLPalette)
+sdlGetTexturePalette (SDLTexture tex) = do
+  ptr <- c_sdlGetTexturePalette tex
+  if ptr == nullPtr
+    then return Nothing
+    else return (Just (SDLPalette ptr))
 
 foreign import ccall unsafe "SDL_UpdateTexture"
   c_sdlUpdateTexture :: Ptr SDLTexture -> Ptr SDLRect -> Ptr () -> CInt -> IO CBool

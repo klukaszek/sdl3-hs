@@ -1,30 +1,54 @@
-name: Build and Deploy Readme with Binding Status
+name: Deploy README to GitHub Pages
 
 on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "test/binding-checker.hs"
+      - ".github/generate-binding-status.sh"
+      - ".github/update-readme.sh"
+      - ".github/verify-sdl-version.sh"
+      - ".github/template.html"
+      - ".github/workflows/deploy-readme.yml"
+      - "README.md"
+      - "sdl3.cabal"
+      - "cabal.project"
+      - "SDL3"
+      - "SDL3/include/SDL3/**"
   push:
-    branches:
-      - main
-      - cleanup-github-workflow
+    branches: [main]
+    paths:
+      - "src/**"
+      - "test/binding-checker.hs"
+      - ".github/generate-binding-status.sh"
+      - ".github/update-readme.sh"
+      - ".github/verify-sdl-version.sh"
+      - ".github/template.html"
+      - ".github/workflows/deploy-readme.yml"
+      - "README.md"
+      - "sdl3.cabal"
+      - "cabal.project"
+      - "SDL3"
+      - "SDL3/include/SDL3/**"
+  workflow_dispatch:
 
 permissions:
-  contents: write # Needed to push to gh-pages branch
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  check-readme-status:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: true
-
-      - name: Cache GHCup
-        uses: actions/cache@v4
-        with:
-          path: ~/.ghcup
-          key: ${{ runner.os }}-ghcup-9.8.4
-          restore-keys: |
-            ${{ runner.os }}-ghcup-
+          submodules: recursive
 
       - name: Set up Haskell
         uses: haskell-actions/setup@v2
@@ -32,178 +56,94 @@ jobs:
           ghc-version: "9.8.4"
           cabal-version: "latest"
 
-      - name: Set up SDL3 headers from submodule
-        run: |
-          echo "Setting up SDL3 headers from submodule..."
-
-          # Source config to get the expected commit
-          source .github/config.sh
-
-          # Verify submodule is at expected commit
-          cd SDL3
-          current_commit=$(git rev-parse HEAD)
-          echo "SDL3 submodule at commit: $current_commit"
-          if [ "$current_commit" != "$SDL_HEADER_COMMIT" ]; then
-            echo "⚠️  Warning: Submodule commit ($current_commit) differs from config ($SDL_HEADER_COMMIT)"
-          fi
-          cd ..
-
-          # Create symlink to system include path for compatibility
-          sudo mkdir -p /usr/local/include
-          sudo ln -sf "$(pwd)/SDL3/include/SDL3" /usr/local/include/SDL3
-
-          # Verify headers are available
-          echo "Verifying SDL3 headers..."
-          header_count=$(find SDL3/include/SDL3 -name "SDL_*.h" | wc -l)
-          echo "✅ Found $header_count SDL3 headers in SDL3/include/SDL3"
-
-          # List first few headers for verification
-          ls SDL3/include/SDL3/SDL_*.h | head -5
-
-      - name: Cache Cabal packages
+      - name: Cache Cabal store
         uses: actions/cache@v4
         with:
           path: |
             ~/.cabal/packages
             ~/.cabal/store
             dist-newstyle
-          key: ${{ runner.os }}-cabal-v3-${{ hashFiles('**/*.cabal', 'cabal.project') }}
+          key: ${{ runner.os }}-cabal-ghc-9.8.4-${{ hashFiles('sdl3.cabal', 'cabal.project', 'test/binding-checker.hs') }}
           restore-keys: |
-            ${{ runner.os }}-cabal-v3-
+            ${{ runner.os }}-cabal-ghc-9.8.4-
+            ${{ runner.os }}-cabal-
 
       - name: Update Cabal package index
         run: cabal update
 
-      - name: Clean build artifacts
-        run: |
-          echo "Cleaning build artifacts to ensure fresh build..."
-          rm -rf dist-newstyle
-          cabal clean
+      - name: Verify SDL header version and submodule commit
+        run: bash ./.github/verify-sdl-version.sh
 
-      - name: Install dependencies
-        run: cabal build --dependencies-only exe:binding-checker -f-pkgconfig
+      - name: Verify README status block is current
+        run: ./.github/update-readme.sh --check
 
-      - name: Verify binding checker with SDL3 headers
-        run: |
-          echo "Testing binding checker with SDL3 headers..."
+  build:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: check-readme-status
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-          # Build binding checker (only the executable, not the full library)
-          cabal build exe:binding-checker -f-pkgconfig
+      - name: Set up Haskell
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: "9.8.4"
+          cabal-version: "latest"
 
-          # Verify headers are accessible
-          if [ -d "/usr/local/include/SDL3" ]; then
-            header_count=$(find /usr/local/include/SDL3 -name "SDL_*.h" | wc -l)
-            echo "✅ Found $header_count SDL3 headers"
-          else
-            echo "❌ SDL3 headers not found"
-            exit 1
-          fi
+      - name: Cache Cabal store
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal/packages
+            ~/.cabal/store
+            dist-newstyle
+          key: ${{ runner.os }}-cabal-ghc-9.8.4-${{ hashFiles('sdl3.cabal', 'cabal.project', 'test/binding-checker.hs') }}
+          restore-keys: |
+            ${{ runner.os }}-cabal-ghc-9.8.4-
+            ${{ runner.os }}-cabal-
 
-          # Debug: Show SDL3 version and commit info
-          echo "SDL3 commit used: cf6c42e6e6cca075b196a8ee69e96a0d8ba0652b"
-          if [ -f "/usr/local/include/SDL3/SDL_version.h" ]; then
-            echo "SDL3 version header content:"
-            grep -E "SDL_MAJOR_VERSION|SDL_MINOR_VERSION|SDL_MICRO_VERSION" /usr/local/include/SDL3/SDL_version.h || true
-          fi
+      - name: Update Cabal package index
+        run: cabal update
 
-          # Debug: Show some key headers we expect to have bindings for
-          echo "Checking key headers:"
-          for header in SDL_asyncio SDL_blendmode SDL_cpuinfo SDL_gpu SDL_guid SDL_iostream SDL_loadso SDL_messagebox; do
-            if [ -f "/usr/local/include/SDL3/${header}.h" ]; then
-              echo "✅ Found ${header}.h"
-              # Quick function count
-              func_count=$(grep -c "SDL_DECLSPEC.*SDLCALL" "/usr/local/include/SDL3/${header}.h" || echo "0")
-              echo "  - Contains $func_count SDL functions"
-            else
-              echo "❌ Missing ${header}.h"
-            fi
-          done
+      - name: Verify SDL header version and submodule commit
+        run: bash ./.github/verify-sdl-version.sh
 
-          # Test binding checker with a known header
-          if [ -f "/usr/local/include/SDL3/SDL_init.h" ]; then
-            echo "Testing binding checker with SDL_init.h..."
-            if ! echo "/usr/local/include/SDL3/SDL_init.h" | cabal exec -f-pkgconfig binding-checker; then
-              echo "❌ Binding checker test failed"
-              exit 1
-            fi
-            echo "✅ Binding checker test passed"
-          else
-            echo "❌ SDL_init.h not found"
-            exit 1
-          fi
-
-          # Test binding checker with SDL_asyncio.h (should show as complete)
-          if [ -f "/usr/local/include/SDL3/SDL_asyncio.h" ]; then
-            echo "Testing binding checker with SDL_asyncio.h..."
-            echo "/usr/local/include/SDL3/SDL_asyncio.h" | cabal exec -f-pkgconfig binding-checker
-          fi
-
-          echo "✅ Binding checker verification complete"
-
-      - name: Configure git user
-        run: |
-          git config --global user.name "${{ github.event.head_commit.author.name }}"
-          git config --global user.email "${{ github.event.head_commit.author.email }}"
-
-      - name: Generate binding status
-        run: |
-          echo "Generating SDL3 binding status..."
-          chmod +x .github/config.sh
-          chmod +x .github/generate-binding-status.sh
-          chmod +x .github/update-readme.sh
-
-          # Source config (for logging)
-          source .github/config.sh
-          echo "Using binding source directory: $BINDING_SRC_DIR"
-          echo "SDL3 commit: $SDL_HEADER_COMMIT"
-
-          # Verify binding source exists
-          if [ ! -d "$BINDING_SRC_DIR" ]; then
-            echo "Error: Binding source directory not found: $BINDING_SRC_DIR"
-            ls -la src/
-            exit 1
-          fi
-
-          echo "Found $(ls $BINDING_SRC_DIR/*.hs $BINDING_SRC_DIR/*.hsc 2>/dev/null | wc -l) binding files"
-
-          # Generate binding status
-          if ! ./.github/update-readme.sh; then
-            echo "Failed to update binding status"
-            exit 1
-          fi
-
-          echo "Binding status updated successfully"
+      - name: Update README binding status
+        run: ./.github/update-readme.sh
 
       - name: Set up Pandoc
-        uses: r-lib/actions/setup-pandoc@v2 # A reliable action to install Pandoc
+        uses: r-lib/actions/setup-pandoc@v2
 
-      - name: Convert README to HTML
+      - name: Render README to static site
         run: |
+          mkdir -p _site
           pandoc --standalone \
-                 -f gfm+fenced_divs \
+                 -f gfm \
                  -t html5 \
                  --template=.github/template.html \
                  --metadata title="SDL3 Haskell Bindings" \
-                 -o index.html \
+                 -o _site/index.html \
                  README.md
-          echo "HTML generation complete. index.html created."
 
-      - name: Check README status
-        run: |
-          echo "README.md status:"
-          if ! git diff --quiet README.md; then
-            echo "⚠️  README.md has changes but will not be committed automatically"
-            echo "💡 Use pre-commit hook locally to update README before committing"
-          else
-            echo "✅ README.md is up to date"
-          fi
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: . # Directory containing index.html
-          publish_branch: gh-pages # Branch to deploy to
-          user_name: ${{ github.event.head_commit.author.name }}
-          user_email: ${{ github.event.head_commit.author.email }}
-          commit_message: "Deploy docs with binding status: ${{ github.event.head_commit.message }}"
+          path: _site
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
