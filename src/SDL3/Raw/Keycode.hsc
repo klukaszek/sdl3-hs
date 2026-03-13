@@ -28,7 +28,7 @@ module SDL3.Raw.Keycode
   , sdlScancodeMask
   , sdlScancodeToKeycode
 
-   -- * Keycode constants
+    -- * Keycode constants
   , pattern SDLKUnknown
   , pattern SDLKReturn
   , pattern SDLKEscape
@@ -40,7 +40,7 @@ module SDL3.Raw.Keycode
   , pattern SDLKHash
   , pattern SDLKDollar
   , pattern SDLKPercent
-  , pattern SDLAmpersand
+  , pattern SDLKAmpersand
   , pattern SDLKApostrophe
   , pattern SDLKLeftparen
   , pattern SDLKRightparen
@@ -61,7 +61,7 @@ module SDL3.Raw.Keycode
   , pattern SDLK8
   , pattern SDLK9
   , pattern SDLKColon
-  , pattern SDKSemicolon
+  , pattern SDLKSemicolon
   , pattern SDLKLess
   , pattern SDLKEequals
   , pattern SDLKGreater
@@ -72,7 +72,7 @@ module SDL3.Raw.Keycode
   , pattern SDLKRightbracket
   , pattern SDLKCaret
   , pattern SDLKUnderscore
-  , pattern SDLGrave
+  , pattern SDLKGrave
   , pattern SDLKA
   , pattern SDLKB
   , pattern SDLKC
@@ -125,7 +125,7 @@ module SDL3.Raw.Keycode
   , pattern SDLKHome
   , pattern SDLKPageup
   , pattern SDLKEnd
-  , pattern SDLPagedown
+  , pattern SDLKPagedown
   , pattern SDLKRight
   , pattern SDLKLeft
   , pattern SDLKDown
@@ -167,13 +167,13 @@ module SDL3.Raw.Keycode
   , pattern SDLKMenu
   , pattern SDLKSelect
   , pattern SDLKStop
-  , pattern SDLAgain
+  , pattern SDLKAgain
   , pattern SDLKUndo
   , pattern SDLKCut
   , pattern SDLKCopy
-  , pattern SDLPaste
+  , pattern SDLKPaste
   , pattern SDLKFind
-  , pattern SDLMute
+  , pattern SDLKMute
   , pattern SDLKVolumeup
   , pattern SDLKVolumedown
   , pattern SDLKKPComma
@@ -285,8 +285,16 @@ module SDL3.Raw.Keycode
   , pattern SDLKRmeta
   , pattern SDLKLhyper
   , pattern SDLKRhyper
+    -- Deprecated
+  , pattern SDLAmpersand
+  , pattern SDKSemicolon
+  , pattern SDLGrave
+  , pattern SDLPagedown
+  , pattern SDLAgain
+  , pattern SDLPaste
+  , pattern SDLMute
 
--- Keymod constants
+    -- Keymod constants
   , pattern SDLKMODNone
   , pattern SDLKMODLshift
   , pattern SDLKMODRshift
@@ -355,7 +363,7 @@ pattern SDLKDoubleApostrophe   = (#const SDLK_DBLAPOSTROPHE) :: SDLKeycode
 pattern SDLKHash               = (#const SDLK_HASH) :: SDLKeycode
 pattern SDLKDollar             = (#const SDLK_DOLLAR) :: SDLKeycode
 pattern SDLKPercent            = (#const SDLK_PERCENT) :: SDLKeycode
-pattern SDLAmpersand           = (#const SDLK_AMPERSAND) :: SDLKeycode
+pattern SDLKAmpersand          = (#const SDLK_AMPERSAND) :: SDLKeycode
 pattern SDLKApostrophe         = (#const SDLK_APOSTROPHE) :: SDLKeycode
 pattern SDLKLeftparen          = (#const SDLK_LEFTPAREN) :: SDLKeycode
 pattern SDLKRightparen         = (#const SDLK_RIGHTPAREN) :: SDLKeycode
@@ -376,7 +384,7 @@ pattern SDLK7                  = (#const SDLK_7) :: SDLKeycode
 pattern SDLK8                  = (#const SDLK_8) :: SDLKeycode
 pattern SDLK9                  = (#const SDLK_9) :: SDLKeycode
 pattern SDLKColon              = (#const SDLK_COLON) :: SDLKeycode
-pattern SDKSemicolon           = (#const SDLK_SEMICOLON) :: SDLKeycode
+pattern SDLKSemicolon          = (#const SDLK_SEMICOLON) :: SDLKeycode
 pattern SDLKLess               = (#const SDLK_LESS) :: SDLKeycode
 pattern SDLKEequals            = (#const SDLK_EQUALS) :: SDLKeycode
 pattern SDLKGreater            = (#const SDLK_GREATER) :: SDLKeycode
@@ -387,7 +395,7 @@ pattern SDLKBackslash          = (#const SDLK_BACKSLASH) :: SDLKeycode
 pattern SDLKRightbracket       = (#const SDLK_RIGHTBRACKET) :: SDLKeycode
 pattern SDLKCaret              = (#const SDLK_CARET) :: SDLKeycode
 pattern SDLKUnderscore         = (#const SDLK_UNDERSCORE) :: SDLKeycode
-pattern SDLGrave               = (#const SDLK_GRAVE) :: SDLKeycode
+pattern SDLKGrave              = (#const SDLK_GRAVE) :: SDLKeycode
 pattern SDLKA                  = (#const SDLK_A) :: SDLKeycode
 pattern SDLKB                  = (#const SDLK_B) :: SDLKeycode
 pattern SDLKC                  = (#const SDLK_C) :: SDLKeycode
@@ -440,7 +448,7 @@ pattern SDLKInsert             = (#const SDLK_INSERT) :: SDLKeycode
 pattern SDLKHome               = (#const SDLK_HOME) :: SDLKeycode
 pattern SDLKPageup             = (#const SDLK_PAGEUP) :: SDLKeycode
 pattern SDLKEnd                = (#const SDLK_END) :: SDLKeycode
-pattern SDLPagedown            = (#const SDLK_PAGEDOWN) :: SDLKeycode
+pattern SDLKPagedown           = (#const SDLK_PAGEDOWN) :: SDLKeycode
 pattern SDLKRight              = (#const SDLK_RIGHT) :: SDLKeycode
 pattern SDLKLeft               = (#const SDLK_LEFT) :: SDLKeycode
 pattern SDLKDown               = (#const SDLK_DOWN) :: SDLKeycode
@@ -482,13 +490,13 @@ pattern SDLKHelp               = (#const SDLK_HELP) :: SDLKeycode
 pattern SDLKMenu               = (#const SDLK_MENU) :: SDLKeycode
 pattern SDLKSelect             = (#const SDLK_SELECT) :: SDLKeycode
 pattern SDLKStop               = (#const SDLK_STOP) :: SDLKeycode
-pattern SDLAgain               = (#const SDLK_AGAIN) :: SDLKeycode
+pattern SDLKAgain              = (#const SDLK_AGAIN) :: SDLKeycode
 pattern SDLKUndo               = (#const SDLK_UNDO) :: SDLKeycode
 pattern SDLKCut                = (#const SDLK_CUT) :: SDLKeycode
 pattern SDLKCopy               = (#const SDLK_COPY) :: SDLKeycode
-pattern SDLPaste               = (#const SDLK_PASTE) :: SDLKeycode
+pattern SDLKPaste              = (#const SDLK_PASTE) :: SDLKeycode
 pattern SDLKFind               = (#const SDLK_FIND) :: SDLKeycode
-pattern SDLMute                = (#const SDLK_MUTE) :: SDLKeycode
+pattern SDLKMute               = (#const SDLK_MUTE) :: SDLKeycode
 pattern SDLKVolumeup           = (#const SDLK_VOLUMEUP) :: SDLKeycode
 pattern SDLKVolumedown         = (#const SDLK_VOLUMEDOWN) :: SDLKeycode
 pattern SDLKKPComma            = (#const SDLK_KP_COMMA) :: SDLKeycode
@@ -600,6 +608,21 @@ pattern SDLKLmeta              = (#const SDLK_LMETA) :: SDLKeycode
 pattern SDLKRmeta              = (#const SDLK_RMETA) :: SDLKeycode
 pattern SDLKLhyper             = (#const SDLK_LHYPER) :: SDLKeycode
 pattern SDLKRhyper             = (#const SDLK_RHYPER) :: SDLKeycode
+-- Deprecated
+{-# DEPRECATED SDLAmpersand "Use SDLKAmpersand" #-}
+pattern SDLAmpersand           = SDLKAmpersand
+{-# DEPRECATED SDKSemicolon "Use SDLKSemicolon" #-}
+pattern SDKSemicolon           = SDLKSemicolon
+{-# DEPRECATED SDLGrave "Use SDLKGrave" #-}
+pattern SDLGrave               = SDLKGrave
+{-# DEPRECATED SDLPagedown "Use SDLKPagedown" #-}
+pattern SDLPagedown            = SDLKPagedown
+{-# DEPRECATED SDLAgain "Use SDLKAgain" #-}
+pattern SDLAgain               = SDLKAgain
+{-# DEPRECATED SDLPaste "Use SDLKPaste" #-}
+pattern SDLPaste               = SDLKPaste
+{-# DEPRECATED SDLMute "Use SDLKMute" #-}
+pattern SDLMute                = SDLKMute
 
 -- Keymod constants
 pattern SDLKMODNone   = (#const SDL_KMOD_NONE) :: SDLKeymod
