@@ -1235,7 +1235,6 @@ executable binding-checker
     directory >=1.3 && <1.4,
     filepath >=1.4 && <1.6,
     process >=1.6 && <1.7,
-    regex-posix >=0.96 && <0.97,
 
   hs-source-dirs: test
   default-language: Haskell2010
