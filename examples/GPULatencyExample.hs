@@ -146,7 +146,7 @@ createResources Context {..} = do
           sdlLog "!!! Failed to load latency.bmp."
           sdlReleaseGPUTexture contextDevice lagTexture
           return Nothing
-        Just surfPtr -> do
+        Just surf -> do
           sdlLog "Loaded latency.bmp."
 
           -- Upload texture data
@@ -164,10 +164,11 @@ createResources Context {..} = do
                   (\mptr -> when (isJust mptr) $ sdlUnmapGPUTransferBuffer contextDevice tb)
                   $ \case
                     Nothing -> return False
-                    Just ptr -> do
-                      surfData <- peek surfPtr
-                      copyBytes (castPtr ptr) (surfacePixels surfData) (fromIntegral byteCount)
-                      return True
+                    Just ptr ->
+                      maybe
+                        (return False)
+                        (\pixelsPtr -> copyBytes (castPtr ptr) pixelsPtr (fromIntegral byteCount) >> return True)
+                        =<< sdlGetSurfacePixels surf
 
                 if mapOk
                   then do
@@ -196,8 +197,7 @@ createResources Context {..} = do
                                 else return False
                   else return False
 
-          -- Clean up surface
-          sdlDestroySurface surfPtr
+          sdlDestroySurface surf
 
           if uploadSuccess
             then do

@@ -12,7 +12,7 @@
 -- Common setup, teardown, and shader loading logic for SDL GPU examples,
 -- assuming SDL3 Haskell bindings where:
 -- - sdlGetBasePath returns IO (Maybe String) and manages C memory internally.
--- - sdlIOFromFile returns IO (Maybe (Ptr SDLIOStream)).
+-- - sdlIOFromFile returns IO (Maybe SDLIOStream).
 -- - sdlLoadFile returns IO (Maybe (Ptr (), CSize)), requiring caller to free Ptr.
 -- - SDL.free exists and works.
 module GPUCommon where
@@ -564,7 +564,7 @@ loadImage ::
   -- | Relative path within the data directory (e.g., "Content/Images/ravioli.bmp")
   FilePath ->
   -- | Returns pointer to the final surface (ABGR8888) or Nothing on failure.
-  IO (Maybe (Ptr SDLSurface))
+  IO (Maybe SDLSurface)
 loadImage relativeImagePath = do
   sdlLog $ "Attempting to load image: " ++ relativeImagePath
   fullPath <-
@@ -578,53 +578,43 @@ loadImage relativeImagePath = do
     then return Nothing
     else do
       -- Load the initial BMP surface
-      maybeOriginalSurfPtr <- sdlLoadBMP fullPath
-      case maybeOriginalSurfPtr of
+      maybeOriginalSurface <- sdlLoadBMP fullPath
+      case maybeOriginalSurface of
         Nothing -> do
           sdlLog $ "SDL_LoadBMP failed for: " ++ fullPath
           sdlGetError >>= sdlLog . ("SDL Error: " ++)
           return Nothing
-        Just originalSurfPtr -> do
-          sdlLog $ "Loaded original surface: " ++ show originalSurfPtr ++ " from " ++ fullPath
+        Just originalSurface -> do
+          sdlLog $ "Loaded original surface: " ++ show originalSurface ++ " from " ++ fullPath
 
-          -- Peek the original surface's format
-          originalData <- peek originalSurfPtr
-          let originalFormat = surfaceFormat originalData
-          let targetFormat = SDL_PIXELFORMAT_ABGR8888 -- Target format
+          originalFormat <- sdlGetSurfaceFormat originalSurface
+          let targetFormat = SDL_PIXELFORMAT_ABGR8888
 
-          -- Check if conversion is needed
           if originalFormat == targetFormat
             then do
               sdlLog $ "Surface already in target format (" ++ show targetFormat ++ "). Returning original pointer."
-              -- No conversion needed, return the pointer we loaded. Caller now owns it.
-              return $ Just originalSurfPtr
+              return $ Just originalSurface
             else do
               sdlLog $ "Original format (" ++ show originalFormat ++ ") differs from target (" ++ show targetFormat ++ "). Converting..."
 
-              -- Attempt conversion
               eitherConverted <-
-                try (sdlConvertSurface originalSurfPtr targetFormat) ::
-                  IO (Either SomeException (Maybe (Ptr SDLSurface)))
+                try (sdlConvertSurface originalSurface targetFormat) ::
+                  IO (Either SomeException (Maybe SDLSurface))
 
-              -- IMPORTANT: Destroy the original surface *after* the conversion attempt,
-              -- regardless of whether it succeeded or failed. We no longer need it.
-              -- Once this is wrapped properly we could just let GC handle it.
-              sdlLog $ "Destroying original intermediate surface: " ++ show originalSurfPtr
-              sdlDestroySurface originalSurfPtr
+              sdlLog $ "Destroying original intermediate surface: " ++ show originalSurface
+              sdlDestroySurface originalSurface
 
-              -- Handle the result of the conversion attempt
               case eitherConverted of
                 Left ex -> do
                   sdlLog $ "!!! Exception during SDL_ConvertSurface: " ++ show ex
-                  return Nothing -- Conversion failed due to exception
+                  return Nothing
                 Right Nothing -> do
                   sdlLog "!!! SDL_ConvertSurface returned NULL (failed)."
                   sdlGetError >>= sdlLog . ("SDL Error: " ++)
-                  return Nothing -- Conversion failed, returned null
-                Right (Just convertedSurfPtr) -> do
-                  sdlLog $ "Successfully converted to new surface: " ++ show convertedSurfPtr
-                  -- Conversion succeeded, return the new pointer. Caller now owns it.
-                  return $ Just convertedSurfPtr
+                  return Nothing
+                Right (Just convertedSurface) -> do
+                  sdlLog $ "Successfully converted to new surface: " ++ show convertedSurface
+                  return $ Just convertedSurface
 
 -- | Generic Helpers
 
@@ -721,8 +711,8 @@ mapAndCopyBufferData dev tb vertexData indexData vOffset iOffset = do
         return True
 
 -- Helper for mapping and copying texture data to GPU
-mapAndCopyTextureData :: SDLGPUDevice -> SDLGPUTransferBuffer -> Ptr SDLSurface -> Int -> Int -> Int -> IO Bool
-mapAndCopyTextureData dev tb surfacePtr w h bytesPerPixel = do
+mapAndCopyTextureData :: SDLGPUDevice -> SDLGPUTransferBuffer -> SDLSurface -> Int -> Int -> Int -> IO Bool
+mapAndCopyTextureData dev tb surface w h bytesPerPixel = do
   sdlLog $ "Mapping Texture Transfer Buffer: " ++ show tb
   bracket
     (sdlMapGPUTransferBuffer dev tb False)
@@ -730,14 +720,12 @@ mapAndCopyTextureData dev tb surfacePtr w h bytesPerPixel = do
     $ \case
       Nothing -> sdlLog "!!! Failed to map texture transfer buffer." >> return False
       Just mappedPtr -> do
-        surfaceData <- peek surfacePtr :: IO SDLSurface
-        let pixelsPtr = surfacePixels surfaceData
-
-        if pixelsPtr == nullPtr
-          then do
+        maybePixelsPtr <- sdlGetSurfacePixels surface
+        case maybePixelsPtr of
+          Nothing -> do
             sdlLog "!!! Surface pixels pointer is NULL!"
             return False
-          else do
+          Just pixelsPtr -> do
             let dataSize = w * h * bytesPerPixel
             sdlLog $ "Texture Transfer Buffer mapped. Copying " ++ show dataSize ++ " bytes of pixel data."
             copyBytes (castPtr mappedPtr) pixelsPtr dataSize

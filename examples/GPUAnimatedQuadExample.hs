@@ -165,15 +165,14 @@ createResources Context {contextDevice = dev, contextWindow = win} = do
       return Nothing
 
 -- createGPUObjects (Creates single sampler, uses updated pipeline)
-createGPUObjects :: SDLGPUDevice -> SDLWindow -> SDLGPUShader -> SDLGPUShader -> Ptr SDLSurface -> IO (Maybe AppResources)
-createGPUObjects dev win vertShader fragShader surfacePtr = do
+createGPUObjects :: SDLGPUDevice -> SDLWindow -> SDLGPUShader -> SDLGPUShader -> SDLSurface -> IO (Maybe AppResources)
+createGPUObjects dev win vertShader fragShader surface = do
   sdlLog "Creating GPU objects (pipeline, sampler, buffers, texture)..."
 
-  -- Peek Surface Info
-  surfaceData <- peek surfacePtr :: IO SDLSurface
-  let texWidth = surfaceW surfaceData
-  let texHeight = surfaceH surfaceData
-  when (surfacePixels surfaceData == nullPtr) $ sdlLog "!!! WARNING: Surface pixel data pointer is NULL!"
+  texWidth <- sdlGetSurfaceWidth surface
+  texHeight <- sdlGetSurfaceHeight surface
+  maybePixels <- sdlGetSurfacePixels surface
+  when (isNothing maybePixels) $ sdlLog "!!! WARNING: Surface pixel data pointer is NULL!"
 
   -- Calculate data sizes
   (_, _, vertexDataSize) <- calculateBufferDataSize vertexData "Vertex"
@@ -227,7 +226,7 @@ createGPUObjects dev win vertShader fragShader surfacePtr = do
                           uploadOk <-
                             uploadAllData
                               dev
-                              surfacePtr
+                              surface
                               texWidth
                               texHeight
                               bytesPerPixel
@@ -296,9 +295,8 @@ createPipeline dev win vertShader fragShader = do
   return maybePipeline
 
 -- | Helper function to upload vertex, index, and texture data
--- Accepts Ptr SDLSurface
-uploadAllData :: SDLGPUDevice -> Ptr SDLSurface -> Int -> Int -> Int -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> Word32 -> Word32 -> Word32 -> IO Bool
-uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf texture vertexSize indexSize textureSize = do
+uploadAllData :: SDLGPUDevice -> SDLSurface -> Int -> Int -> Int -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> Word32 -> Word32 -> Word32 -> IO Bool
+uploadAllData dev surface texWidth texHeight bytesPerPixel vertexBuf indexBuf texture vertexSize indexSize textureSize = do
   sdlLog "Starting data upload process..."
 
   let bufferDataTotalSize = vertexSize + indexSize
@@ -326,7 +324,7 @@ uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf
 
                   texMapOk <-
                     if bufMapOk
-                      then mapAndCopyTextureData dev texTransfer surfacePtr texWidth texHeight bytesPerPixel -- Uses converted surface
+                      then mapAndCopyTextureData dev texTransfer surface texWidth texHeight bytesPerPixel
                       else return False
                   unless texMapOk $ sdlLog "!!! Texture data map/copy failed."
 

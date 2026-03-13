@@ -3,7 +3,7 @@ module Main where
 import Control.Monad
 import Foreign.C.String (CString, peekCString)
 import Foreign.C.Types (CInt (..))
-import Foreign.Marshal.Array (peekArray0, withArrayLen)
+import Foreign.Marshal.Array (peekArray0)
 import Foreign.Ptr (FunPtr, Ptr, nullPtr)
 import SDL3
 import System.Exit (exitFailure, exitSuccess)
@@ -59,25 +59,21 @@ main = do
 
       -- Show different types of dialogs
       sdlLog "\nShowing Open File Dialog..."
-      withFilters filters $ \filtersPtr nfilters ->
-        sdlShowOpenFileDialog
-          callbackPtr
-          nullPtr
-          (Just window)
-          filtersPtr
-          (fromIntegral nfilters)
-          Nothing
-          True
+      sdlShowOpenFileDialog
+        callbackPtr
+        nullPtr
+        (Just window)
+        filters
+        Nothing
+        True
 
       sdlLog "\nShowing Save File Dialog..."
-      withFilters filters $ \filtersPtr nfilters ->
-        sdlShowSaveFileDialog
-          callbackPtr
-          nullPtr
-          (Just window)
-          filtersPtr
-          (fromIntegral nfilters)
-          Nothing
+      sdlShowSaveFileDialog
+        callbackPtr
+        nullPtr
+        (Just window)
+        filters
+        Nothing
 
       sdlLog "\nShowing Folder Dialog..."
       sdlShowOpenFolderDialog
@@ -118,15 +114,6 @@ main = do
       sdlDestroyWindow window
       sdlQuit
       exitSuccess
-
--- Helper function to manage filter array lifecycle
-withFilters ::
-  [SDLDialogFileFilter] ->
-  (Ptr SDLDialogFileFilter -> CInt -> IO a) ->
-  IO a
-withFilters filters action =
-  withArrayLen filters $ \len filtersPtr ->
-    action filtersPtr (fromIntegral len)
 
 -- | Type for the dialog callback function
 type DialogCallback = Ptr () -> Ptr CString -> CInt -> IO ()

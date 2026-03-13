@@ -94,6 +94,7 @@ library
   exposed-modules:
     GPUCommon
     SDL3
+    SDL3.Raw
     SDL3.Assert
     SDL3.AsyncIO
     SDL3.Atomic
@@ -130,10 +131,63 @@ library
     SDL3.Pen
     SDL3.Pixels
     SDL3.Platform
+    SDL3.Raw.Assert
+    SDL3.Raw.Audio
+    SDL3.Raw.AsyncIO
+    SDL3.Raw.Atomic
+    SDL3.Raw.BlendMode
+    SDL3.Raw.Clipboard
+    SDL3.Raw.Camera
+    SDL3.Raw.CPUInfo
+    SDL3.Raw.GUID
+    SDL3.Raw.Gamepad
+    SDL3.Raw.Filesystem
+    SDL3.Raw.Dialog
+    SDL3.Raw.Error
+    SDL3.Raw.Events
+    SDL3.Raw.GPU
+    SDL3.Raw.Haptic
+    SDL3.Raw.Hidapi
+    SDL3.Raw.Hints
+    SDL3.Raw.Init
+    SDL3.Raw.IOStream
+    SDL3.Raw.Joystick
+    SDL3.Raw.Keyboard
+    SDL3.Raw.Keycode
+    SDL3.Raw.Locale
+    SDL3.Raw.LoadSO
+    SDL3.Raw.Log
+    SDL3.Raw.MessageBox
+    SDL3.Raw.Metal
+    SDL3.Raw.Misc
+    SDL3.Raw.Mouse
+    SDL3.Raw.Mutex
+    SDL3.Raw.Pen
+    SDL3.Raw.Pixels
+    SDL3.Raw.Platform
+    SDL3.Raw.Power
+    SDL3.Raw.Process
+    SDL3.Raw.Properties
+    SDL3.Raw.Rect
+    SDL3.Raw.Render
+    SDL3.Raw.Scancode
+    SDL3.Raw.Sensor
+    SDL3.Raw.Storage
+    SDL3.Raw.Stdinc
+    SDL3.Raw.Surface
+    SDL3.Raw.System
+    SDL3.Raw.Tray
+    SDL3.Raw.Thread
+    SDL3.Raw.Touch
     SDL3.Power
     SDL3.Process
     SDL3.Properties
     SDL3.Rect
+    SDL3.Raw.Time
+    SDL3.Raw.Timer
+    SDL3.Raw.Version
+    SDL3.Raw.Video
+    SDL3.Raw.Vulkan
     SDL3.Render
     SDL3.Scancode
     SDL3.Sensor
@@ -149,6 +203,59 @@ library
     SDL3.Version
     SDL3.Video
     SDL3.Vulkan
+    SDL3.Wrapped.Assert
+    SDL3.Wrapped.Audio
+    SDL3.Wrapped.AsyncIO
+    SDL3.Wrapped.Atomic
+    SDL3.Wrapped.BlendMode
+    SDL3.Wrapped.Clipboard
+    SDL3.Wrapped.Camera
+    SDL3.Wrapped.CPUInfo
+    SDL3.Wrapped.GUID
+    SDL3.Wrapped.Gamepad
+    SDL3.Wrapped.Filesystem
+    SDL3.Wrapped.Dialog
+    SDL3.Wrapped.Error
+    SDL3.Wrapped.Events
+    SDL3.Wrapped.GPU
+    SDL3.Wrapped.Haptic
+    SDL3.Wrapped.Hidapi
+    SDL3.Wrapped.Hints
+    SDL3.Wrapped.Init
+    SDL3.Wrapped.IOStream
+    SDL3.Wrapped.Joystick
+    SDL3.Wrapped.Keyboard
+    SDL3.Wrapped.Keycode
+    SDL3.Wrapped.LoadSO
+    SDL3.Wrapped.Locale
+    SDL3.Wrapped.Log
+    SDL3.Wrapped.MessageBox
+    SDL3.Wrapped.Metal
+    SDL3.Wrapped.Misc
+    SDL3.Wrapped.Mouse
+    SDL3.Wrapped.Mutex
+    SDL3.Wrapped.Pen
+    SDL3.Wrapped.Pixels
+    SDL3.Wrapped.Platform
+    SDL3.Wrapped.Power
+    SDL3.Wrapped.Process
+    SDL3.Wrapped.Properties
+    SDL3.Wrapped.Rect
+    SDL3.Wrapped.Render
+    SDL3.Wrapped.Scancode
+    SDL3.Wrapped.Sensor
+    SDL3.Wrapped.Storage
+    SDL3.Wrapped.Stdinc
+    SDL3.Wrapped.Surface
+    SDL3.Wrapped.System
+    SDL3.Wrapped.Tray
+    SDL3.Wrapped.Thread
+    SDL3.Wrapped.Touch
+    SDL3.Wrapped.Time
+    SDL3.Wrapped.Timer
+    SDL3.Wrapped.Version
+    SDL3.Wrapped.Video
+    SDL3.Wrapped.Vulkan
 
   -- Modules included in this library but not exported.
   other-modules:
@@ -166,6 +273,7 @@ library
     bytestring >=0.10 && <0.13,
     directory >=1.3 && <1.4,
     filepath >=1.4 && <1.6,
+    transformers >=0.6 && <0.7,
 
   -- Directories containing source files.
   hs-source-dirs: src
@@ -193,7 +301,6 @@ library
 
   if flag(static-linking) && os(osx)
     -- Static linking not supported on macOS
-    -- Use bundling strategy instead (see DISTRIBUTION.md)
     cpp-options: -DSTATIC_LINKING_NOT_SUPPORTED_ON_MACOS
   -- Base language which the package is written in.
   default-language: Haskell2010

@@ -131,11 +131,9 @@ createResources Context {..} = do
           maybeSurf2 <- loadImage ("Content" </> "Images" </> "ravioli_inverted.bmp")
 
           case (maybeSurf1, maybeSurf2) of
-            (Just surfPtr1, Just surfPtr2) -> do
-              surf1 <- peek surfPtr1
-              surf2 <- peek surfPtr2
-              let w = surfaceW surf1
-                  h = surfaceH surf1
+            (Just surf1, Just surf2) -> do
+              w <- sdlGetSurfaceWidth surf1
+              h <- sdlGetSurfaceHeight surf1
 
               -- Create 2D array texture
               let texCI =
@@ -174,9 +172,9 @@ createResources Context {..} = do
 
               case (maybeVB, maybeIB, maybeTex, maybeSampler) of
                 (Just vb, Just ib, Just tex, Just sampler) -> do
-                  uploadSuccess <- uploadData contextDevice vb ib tex surfPtr1 surfPtr2 w h
-                  sdlDestroySurface surfPtr1
-                  sdlDestroySurface surfPtr2
+                  uploadSuccess <- uploadData contextDevice vb ib tex surf1 surf2 w h
+                  sdlDestroySurface surf1
+                  sdlDestroySurface surf2
 
                   if uploadSuccess
                     then do
@@ -195,8 +193,8 @@ createResources Context {..} = do
                       return Nothing
                 _ -> do
                   sdlLog "!!! Failed to create GPU resources."
-                  sdlDestroySurface surfPtr1
-                  sdlDestroySurface surfPtr2
+                  sdlDestroySurface surf1
+                  sdlDestroySurface surf2
                   sdlReleaseGPUGraphicsPipeline contextDevice pipeline
                   return Nothing
             _ -> do
@@ -208,8 +206,8 @@ createResources Context {..} = do
       return Nothing
 
 -- | Upload vertex, index, and texture data
-uploadData :: SDLGPUDevice -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> Ptr SDLSurface -> Ptr SDLSurface -> Int -> Int -> IO Bool
-uploadData device vb ib tex surfPtr1 surfPtr2 w h = do
+uploadData :: SDLGPUDevice -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> SDLSurface -> SDLSurface -> Int -> Int -> IO Bool
+uploadData device vb ib tex surf1 surf2 w h = do
   let vertexDataSize = 4 * 20 :: Word32 -- 4 vertices * 20 bytes
       indexDataSize = 6 * 2 :: Word32 -- 6 indices * 2 bytes
       bufferUploadSize = vertexDataSize + indexDataSize
@@ -270,11 +268,14 @@ uploadData device vb ib tex surfPtr1 surfPtr2 w h = do
             $ \case
               Nothing -> return False
               Just ptr -> do
-                surf1 <- peek surfPtr1
-                surf2 <- peek surfPtr2
-                copyBytes (castPtr ptr) (surfacePixels surf1) (fromIntegral imageSizeBytes)
-                copyBytes (castPtr $ plusPtr ptr (fromIntegral imageSizeBytes)) (surfacePixels surf2) (fromIntegral imageSizeBytes)
-                return True
+                maybePixels1 <- sdlGetSurfacePixels surf1
+                maybePixels2 <- sdlGetSurfacePixels surf2
+                case (maybePixels1, maybePixels2) of
+                  (Just pixels1, Just pixels2) -> do
+                    copyBytes (castPtr ptr) pixels1 (fromIntegral imageSizeBytes)
+                    copyBytes (castPtr $ plusPtr ptr (fromIntegral imageSizeBytes)) pixels2 (fromIntegral imageSizeBytes)
+                    return True
+                  _ -> return False
           else return False
 
       if textureMapOK
