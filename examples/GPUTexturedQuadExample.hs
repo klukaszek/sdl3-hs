@@ -176,123 +176,107 @@ createResources Context {contextDevice = dev, contextWindow = win} = do
       return Nothing
 
 -- | Helper function containing the core GPU object creation logic
--- Accepts Ptr SDLSurface
-createGpuObjects :: SDLGPUDevice -> SDLWindow -> SDLGPUShader -> SDLGPUShader -> Ptr SDLSurface -> IO (Maybe AppResources)
-createGpuObjects dev win vertShader fragShader surfacePtr = do
+createGpuObjects :: SDLGPUDevice -> SDLWindow -> SDLGPUShader -> SDLGPUShader -> SDLSurface -> IO (Maybe AppResources)
+createGpuObjects dev win vertShader fragShader surface = do
   sdlLog "Creating GPU objects (pipeline, samplers, buffers, texture)..."
 
-  -- \*** PEEK and PRINT Surface Info ***
-  sdlLog $ "--- Surface Info for Ptr: " ++ show surfacePtr ++ " ---"
-  if surfacePtr == nullPtr
-    then do
-      sdlLog "!!! Surface Pointer is NULL!"
-      return Nothing -- Cannot proceed
-    else do
-      surfaceData <- peek surfacePtr :: IO SDLSurface
-      let texWidth = surfaceW surfaceData
-      let texHeight = surfaceH surfaceData
-      let pitch = surfacePitch surfaceData
-      let pixelsPtr = surfacePixels surfaceData
-      let surfaceFlagsEnum = surfaceFlags surfaceData -- Use the field name from your SDLSurface definition
-      let surfaceFormatEnum = surfaceFormat surfaceData
+  -- \*** Inspect and print surface info ***
+  sdlLog $ "--- Surface Info for Ptr: " ++ show surface ++ " ---"
+  texWidth <- sdlGetSurfaceWidth surface
+  texHeight <- sdlGetSurfaceHeight surface
+  pitch <- sdlGetSurfacePitch surface
+  maybePixelsPtr <- sdlGetSurfacePixels surface
+  surfaceFlagsEnum <- sdlGetSurfaceFlags surface
+  surfaceFormatEnum <- sdlGetSurfaceFormat surface
 
-      formatName <- case surfaceFormatEnum of
-        -- Handle known invalid/unknown formats if necessary
-        SDL_PIXELFORMAT_UNKNOWN -> return "Unknown/Invalid Format"
-        fmt -> sdlGetPixelFormatName fmt -- Assuming this function exists and takes your SDLPixelFormat type
-      sdlLog $ printf "  Dimensions: %d x %d" texWidth texHeight
-      sdlLog $ printf "  Pitch: %d bytes" pitch
-      sdlLog $ "  Pixel Format Enum: " ++ show surfaceFormatEnum
-      sdlLog $ "  Pixel Format Name: " ++ formatName
-      sdlLog $ printf "  Flags: %s" (show surfaceFlagsEnum)
-      sdlLog $ "  Pixel Data Ptr:" ++ show pixelsPtr
-      sdlLog "--- End Surface Info ---"
+  formatName <- case surfaceFormatEnum of
+    SDL_PIXELFORMAT_UNKNOWN -> return "Unknown/Invalid Format"
+    fmt -> sdlGetPixelFormatName fmt
+  sdlLog $ printf "  Dimensions: %d x %d" texWidth texHeight
+  sdlLog $ printf "  Pitch: %d bytes" pitch
+  sdlLog $ "  Pixel Format Enum: " ++ show surfaceFormatEnum
+  sdlLog $ "  Pixel Format Name: " ++ formatName
+  sdlLog $ printf "  Flags: %s" (show surfaceFlagsEnum)
+  sdlLog $ "  Pixel Data Ptr:" ++ show maybePixelsPtr
+  sdlLog "--- End Surface Info ---"
 
-      when (pixelsPtr == nullPtr) $
-        sdlLog "!!! WARNING: Surface pixel data pointer is NULL!"
+  when (isNothing maybePixelsPtr) $
+    sdlLog "!!! WARNING: Surface pixel data pointer is NULL!"
 
-      -- Calculate data sizes
-      (_, _, vertexDataSize) <- calculateBufferDataSize vertexData "Vertex"
-      (_, _, indexDataSize) <- calculateBufferDataSize indexData "Index"
+  (_, _, vertexDataSize) <- calculateBufferDataSize vertexData "Vertex"
+  (_, _, indexDataSize) <- calculateBufferDataSize indexData "Index"
 
-      -- Assuming RGBA format (4 bytes per pixel) for now
-      let bytesPerPixel = 4 -- Assumption
-      let textureDataSize = fromIntegral (texWidth * texHeight * bytesPerPixel) :: Word32
-      sdlLog $ printf "Texture Info - Width: %u, Height: %u, Assumed BPP: %u, Total Bytes: %u" texWidth texHeight bytesPerPixel textureDataSize
+  let bytesPerPixel = 4
+  let textureDataSize = fromIntegral (texWidth * texHeight * bytesPerPixel) :: Word32
+  sdlLog $ printf "Texture Info - Width: %u, Height: %u, Assumed BPP: %u, Total Bytes: %u" texWidth texHeight bytesPerPixel textureDataSize
 
-      -- Sampler Create Infos
-      let samplerCIs =
-            [ SDLGPUSamplerCreateInfo SDL_GPU_FILTER_NEAREST SDL_GPU_FILTER_NEAREST SDL_GPU_SAMPLERMIPMAPMODE_NEAREST SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE 0.0 1.0 SDL_GPU_COMPAREOP_NEVER 0.0 0.0 False False 0,
-              SDLGPUSamplerCreateInfo SDL_GPU_FILTER_NEAREST SDL_GPU_FILTER_NEAREST SDL_GPU_SAMPLERMIPMAPMODE_NEAREST SDL_GPU_SAMPLERADDRESSMODE_REPEAT SDL_GPU_SAMPLERADDRESSMODE_REPEAT SDL_GPU_SAMPLERADDRESSMODE_REPEAT 0.0 1.0 SDL_GPU_COMPAREOP_NEVER 0.0 0.0 False False 0,
-              SDLGPUSamplerCreateInfo SDL_GPU_FILTER_LINEAR SDL_GPU_FILTER_LINEAR SDL_GPU_SAMPLERMIPMAPMODE_LINEAR SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE 0.0 1.0 SDL_GPU_COMPAREOP_NEVER 0.0 (-1.0) False False 0,
-              SDLGPUSamplerCreateInfo SDL_GPU_FILTER_LINEAR SDL_GPU_FILTER_LINEAR SDL_GPU_SAMPLERMIPMAPMODE_LINEAR SDL_GPU_SAMPLERADDRESSMODE_REPEAT SDL_GPU_SAMPLERADDRESSMODE_REPEAT SDL_GPU_SAMPLERADDRESSMODE_REPEAT 0.0 1.0 SDL_GPU_COMPAREOP_NEVER 0.0 (-1.0) False False 0,
-              SDLGPUSamplerCreateInfo SDL_GPU_FILTER_LINEAR SDL_GPU_FILTER_LINEAR SDL_GPU_SAMPLERMIPMAPMODE_LINEAR SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE 0.0 4.0 SDL_GPU_COMPAREOP_NEVER 0.0 (-1.0) True False 0,
-              SDLGPUSamplerCreateInfo SDL_GPU_FILTER_LINEAR SDL_GPU_FILTER_LINEAR SDL_GPU_SAMPLERMIPMAPMODE_LINEAR SDL_GPU_SAMPLERADDRESSMODE_REPEAT SDL_GPU_SAMPLERADDRESSMODE_REPEAT SDL_GPU_SAMPLERADDRESSMODE_REPEAT 0.0 4.0 SDL_GPU_COMPAREOP_NEVER 0.0 (-1.0) True False 0
-            ]
+  let samplerCIs =
+        [ SDLGPUSamplerCreateInfo SDL_GPU_FILTER_NEAREST SDL_GPU_FILTER_NEAREST SDL_GPU_SAMPLERMIPMAPMODE_NEAREST SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE 0.0 1.0 SDL_GPU_COMPAREOP_NEVER 0.0 0.0 False False 0,
+          SDLGPUSamplerCreateInfo SDL_GPU_FILTER_NEAREST SDL_GPU_FILTER_NEAREST SDL_GPU_SAMPLERMIPMAPMODE_NEAREST SDL_GPU_SAMPLERADDRESSMODE_REPEAT SDL_GPU_SAMPLERADDRESSMODE_REPEAT SDL_GPU_SAMPLERADDRESSMODE_REPEAT 0.0 1.0 SDL_GPU_COMPAREOP_NEVER 0.0 0.0 False False 0,
+          SDLGPUSamplerCreateInfo SDL_GPU_FILTER_LINEAR SDL_GPU_FILTER_LINEAR SDL_GPU_SAMPLERMIPMAPMODE_LINEAR SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE 0.0 1.0 SDL_GPU_COMPAREOP_NEVER 0.0 (-1.0) False False 0,
+          SDLGPUSamplerCreateInfo SDL_GPU_FILTER_LINEAR SDL_GPU_FILTER_LINEAR SDL_GPU_SAMPLERMIPMAPMODE_LINEAR SDL_GPU_SAMPLERADDRESSMODE_REPEAT SDL_GPU_SAMPLERADDRESSMODE_REPEAT SDL_GPU_SAMPLERADDRESSMODE_REPEAT 0.0 1.0 SDL_GPU_COMPAREOP_NEVER 0.0 (-1.0) False False 0,
+          SDLGPUSamplerCreateInfo SDL_GPU_FILTER_LINEAR SDL_GPU_FILTER_LINEAR SDL_GPU_SAMPLERMIPMAPMODE_LINEAR SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE 0.0 4.0 SDL_GPU_COMPAREOP_NEVER 0.0 (-1.0) True False 0,
+          SDLGPUSamplerCreateInfo SDL_GPU_FILTER_LINEAR SDL_GPU_FILTER_LINEAR SDL_GPU_SAMPLERMIPMAPMODE_LINEAR SDL_GPU_SAMPLERADDRESSMODE_REPEAT SDL_GPU_SAMPLERADDRESSMODE_REPEAT SDL_GPU_SAMPLERADDRESSMODE_REPEAT 0.0 4.0 SDL_GPU_COMPAREOP_NEVER 0.0 (-1.0) True False 0
+        ]
 
-      -- Bracket resource creation (logic remains the same)
+  bracketOnError
+    (createPipeline dev win vertShader fragShader)
+    (cleanupMaybe "Pipeline" (sdlReleaseGPUGraphicsPipeline dev))
+    $ \maybePipeline ->
       bracketOnError
-        (createPipeline dev win vertShader fragShader)
-        (cleanupMaybe "Pipeline" (sdlReleaseGPUGraphicsPipeline dev))
-        $ \maybePipeline ->
+        (createSamplers dev samplerCIs)
+        (cleanupList "Sampler" (sdlReleaseGPUSampler dev))
+        $ \maybeSamplers ->
           bracketOnError
-            (createSamplers dev samplerCIs)
-            (cleanupList "Sampler" (sdlReleaseGPUSampler dev))
-            $ \maybeSamplers ->
+            (createGPUBuffer dev SDL_GPU_BUFFERUSAGE_VERTEX vertexDataSize "VertexBuffer")
+            (cleanupMaybe "VertexBuffer" (sdlReleaseGPUBuffer dev))
+            $ \maybeVertexBuffer ->
               bracketOnError
-                (createGPUBuffer dev SDL_GPU_BUFFERUSAGE_VERTEX vertexDataSize "VertexBuffer")
-                (cleanupMaybe "VertexBuffer" (sdlReleaseGPUBuffer dev))
-                $ \maybeVertexBuffer ->
+                (createGPUBuffer dev SDL_GPU_BUFFERUSAGE_INDEX indexDataSize "IndexBuffer")
+                (cleanupMaybe "IndexBuffer" (sdlReleaseGPUBuffer dev))
+                $ \maybeIndexBuffer ->
                   bracketOnError
-                    (createGPUBuffer dev SDL_GPU_BUFFERUSAGE_INDEX indexDataSize "IndexBuffer")
-                    (cleanupMaybe "IndexBuffer" (sdlReleaseGPUBuffer dev))
-                    $ \maybeIndexBuffer ->
-                      bracketOnError
-                        (createGPUTexture dev texWidth texHeight)
-                        (cleanupMaybe "Texture" (sdlReleaseGPUTexture dev))
-                        $ \maybeTexture ->
-                          case (maybePipeline, maybeSamplers, maybeVertexBuffer, maybeIndexBuffer, maybeTexture) of
-                            (Just pipeline, Just samplers, Just vertexBuffer, Just indexBuffer, Just texture) -> do
-                              sdlLog "Core GPU objects created. Proceeding with data upload..."
-
-                              -- Pass surfacePtr to uploadAllData
-                              uploadOk <-
-                                uploadAllData
-                                  dev
-                                  surfacePtr
-                                  texWidth
-                                  texHeight
-                                  bytesPerPixel
-                                  vertexBuffer
-                                  indexBuffer
-                                  texture
-                                  vertexDataSize
-                                  indexDataSize
-                                  textureDataSize
-                              if uploadOk
-                                then do
-                                  sdlLog "--- Resource Creation Successful ---"
-                                  sdlSetGPUBufferName dev vertexBuffer "Ravioli Vertex Buffer 🥣"
-                                  sdlSetGPUBufferName dev indexBuffer "Ravioli Index Buffer"
-                                  sdlSetGPUTextureName dev texture "Ravioli Texture 🖼️"
-
-                                  return $
-                                    Just
-                                      AppResources
-                                        { resPipeline = pipeline,
-                                          resVertexBuffer = vertexBuffer,
-                                          resIndexBuffer = indexBuffer,
-                                          resTexture = texture,
-                                          resSamplers = samplers
-                                        }
-                                else do
-                                  sdlLog "!!! Data upload failed. Resource creation aborted."
-                                  return Nothing -- Cleanup handled by brackets
-                            _ -> do
-                              sdlLog "!!! Failed to create one or more core GPU objects. Resource creation aborted."
-                              return Nothing -- Cleanup handled by brackets
+                    (createGPUTexture dev texWidth texHeight)
+                    (cleanupMaybe "Texture" (sdlReleaseGPUTexture dev))
+                    $ \maybeTexture ->
+                      case (maybePipeline, maybeSamplers, maybeVertexBuffer, maybeIndexBuffer, maybeTexture) of
+                        (Just pipeline, Just samplers, Just vertexBuffer, Just indexBuffer, Just texture) -> do
+                          sdlLog "Core GPU objects created. Proceeding with data upload..."
+                          uploadOk <-
+                            uploadAllData
+                              dev
+                              surface
+                              texWidth
+                              texHeight
+                              bytesPerPixel
+                              vertexBuffer
+                              indexBuffer
+                              texture
+                              vertexDataSize
+                              indexDataSize
+                              textureDataSize
+                          if uploadOk
+                            then do
+                              sdlLog "--- Resource Creation Successful ---"
+                              sdlSetGPUBufferName dev vertexBuffer "Ravioli Vertex Buffer 🥣"
+                              sdlSetGPUBufferName dev indexBuffer "Ravioli Index Buffer"
+                              sdlSetGPUTextureName dev texture "Ravioli Texture 🖼️"
+                              return $
+                                Just
+                                  AppResources
+                                    { resPipeline = pipeline,
+                                      resVertexBuffer = vertexBuffer,
+                                      resIndexBuffer = indexBuffer,
+                                      resTexture = texture,
+                                      resSamplers = samplers
+                                    }
+                            else do
+                              sdlLog "!!! Data upload failed. Resource creation aborted."
+                              return Nothing
+                        _ -> do
+                          sdlLog "!!! Failed to create one or more core GPU objects. Resource creation aborted."
+                          return Nothing
   where
-    -- Cleanup helpers remain the same
     cleanupMaybe name release = mapM_ (\res -> sdlLog ("Error occurred, releasing partially created " ++ name ++ ": " ++ show res) >> release res)
     cleanupList name release = mapM_ (\ress -> sdlLog ("Error occurred, releasing partially created " ++ name ++ " list (" ++ show (length ress) ++ " items)") >> mapM_ release ress)
 
@@ -343,9 +327,8 @@ createPipeline dev win vertShader fragShader = do
   return maybePipeline
 
 -- | Helper function to upload vertex, index, and texture data
--- Accepts Ptr SDLSurface
-uploadAllData :: SDLGPUDevice -> Ptr SDLSurface -> Int -> Int -> Int -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> Word32 -> Word32 -> Word32 -> IO Bool
-uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf texture vertexSize indexSize textureSize = do
+uploadAllData :: SDLGPUDevice -> SDLSurface -> Int -> Int -> Int -> SDLGPUBuffer -> SDLGPUBuffer -> SDLGPUTexture -> Word32 -> Word32 -> Word32 -> IO Bool
+uploadAllData dev surface texWidth texHeight bytesPerPixel vertexBuf indexBuf texture vertexSize indexSize textureSize = do
   sdlLog "Starting data upload process..."
 
   let bufferDataTotalSize = vertexSize + indexSize
@@ -373,7 +356,7 @@ uploadAllData dev surfacePtr texWidth texHeight bytesPerPixel vertexBuf indexBuf
 
                   texMapOk <-
                     if bufMapOk
-                      then mapAndCopyTextureData dev texTransfer surfacePtr texWidth texHeight bytesPerPixel -- Uses converted surface
+                      then mapAndCopyTextureData dev texTransfer surface texWidth texHeight bytesPerPixel
                       else return False
                   unless texMapOk $ sdlLog "!!! Texture data map/copy failed." >> hFlush stdout
 

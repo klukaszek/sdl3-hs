@@ -126,11 +126,8 @@ createResources context@Context {..} = do
         (pure ((,) surfL surfR))
         (\(sL, sR) -> sdlDestroySurface sL >> sdlDestroySurface sR)
         $ \(sL, sR) -> do
-          surfLData <- peek sL
-          surfRData <- peek sR
-          -- Demo assumes images are same size, C uses assert
-          let imgW = surfaceW surfLData
-          let imgH = surfaceH surfLData
+          imgW <- sdlGetSurfaceWidth sL
+          imgH <- sdlGetSurfaceHeight sL
 
           maybePipeline <- createDrawPipeline contextDevice contextWindow vertS fragS
           sdlReleaseGPUShader contextDevice vertS
@@ -197,9 +194,14 @@ createResources context@Context {..} = do
                             $ \case
                               Nothing -> return False
                               Just ptr -> do
-                                copyBytes ptr (surfacePixels surfLData) (fromIntegral texLDataSize)
-                                copyBytes (ptr `plusPtr` fromIntegral texLDataSize) (surfacePixels surfRData) (fromIntegral texRDataSize)
-                                return True
+                                maybeLeft <- sdlGetSurfacePixels sL
+                                maybeRight <- sdlGetSurfacePixels sR
+                                case (maybeLeft, maybeRight) of
+                                  (Just leftPixels, Just rightPixels) -> do
+                                    copyBytes ptr leftPixels (fromIntegral texLDataSize)
+                                    copyBytes (ptr `plusPtr` fromIntegral texLDataSize) rightPixels (fromIntegral texRDataSize)
+                                    return True
+                                  _ -> return False
 
                           if mapOkBuf && mapOkTex
                             then do

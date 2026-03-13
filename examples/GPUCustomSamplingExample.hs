@@ -117,12 +117,11 @@ createResources Context {..} = do
           sdlReleaseGPUShader contextDevice vertShader
           sdlReleaseGPUShader contextDevice fragShader
           return Nothing
-        Just surfacePtr ->
+        Just surface ->
           -- Ensure surfacePtr is managed if subsequent steps fail
-          bracketOnError (pure surfacePtr) (\_ -> sdlDestroySurface surfacePtr) $ \surf -> do
-            surfaceData <- peek surf
-            let imgW = surfaceW surfaceData
-            let imgH = surfaceH surfaceData
+          bracketOnError (pure surface) (\_ -> sdlDestroySurface surface) $ \surf -> do
+            imgW <- sdlGetSurfaceWidth surf
+            imgH <- sdlGetSurfaceHeight surf
 
             -- 3. Create Graphics Pipeline
             maybePipeline <- createDrawPipeline contextDevice contextWindow vertShader fragShader

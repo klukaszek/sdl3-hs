@@ -128,11 +128,10 @@ createResources Context {..} = do
 
   case maybeSurf of
     Nothing -> sdlLog "!!! Failed to load source image." >> return Nothing
-    Just surfacePtr ->
-      bracketOnError (pure surfacePtr) (\_ -> sdlDestroySurface surfacePtr) $ \surf -> do
-        surfaceData <- peek surf
-        let imgW = surfaceW surfaceData :: Int
-        let imgH = surfaceH surfaceData :: Int
+    Just surface ->
+      bracketOnError (pure surface) (\_ -> sdlDestroySurface surface) $ \surf -> do
+        imgW <- sdlGetSurfaceWidth surf
+        imgH <- sdlGetSurfaceHeight surf
 
         -- 2. Create Source Texture (for compute shader to read)
         let srcTextureCI =

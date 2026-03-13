@@ -72,13 +72,10 @@ createResources Context {..} = do
   maybeSurf2 <- loadImage ("Content" </> "Images" </> "ravioli_inverted.bmp")
 
   case (maybeSurf1, maybeSurf2) of
-    (Just surfPtr1, Just surfPtr2) -> do
-      surfData1 <- peek surfPtr1
-      surfData2 <- peek surfPtr2
-
-      let srcWidth = fromIntegral $ surfaceW surfData1
-          srcHeight = fromIntegral $ surfaceH surfData1
-          imageSizeInBytes = srcWidth * srcHeight * 4
+    (Just surf1, Just surf2) -> do
+      srcWidth <- fromIntegral <$> sdlGetSurfaceWidth surf1
+      srcHeight <- fromIntegral <$> sdlGetSurfaceHeight surf1
+      let imageSizeInBytes = srcWidth * srcHeight * 4
 
       sdlLog $ "Loaded ravioli textures (" ++ show srcWidth ++ "x" ++ show srcHeight ++ ")."
 
@@ -127,11 +124,14 @@ createResources Context {..} = do
                   $ \case
                     Nothing -> return False
                     Just ptr -> do
-                      -- Copy first image
-                      copyBytes (castPtr ptr) (surfacePixels surfData1) (fromIntegral imageSizeInBytes)
-                      -- Copy second image after the first
-                      copyBytes (castPtr $ plusPtr ptr (fromIntegral imageSizeInBytes)) (surfacePixels surfData2) (fromIntegral imageSizeInBytes)
-                      return True
+                      maybePixels1 <- sdlGetSurfacePixels surf1
+                      maybePixels2 <- sdlGetSurfacePixels surf2
+                      case (maybePixels1, maybePixels2) of
+                        (Just pixels1, Just pixels2) -> do
+                          copyBytes (castPtr ptr) pixels1 (fromIntegral imageSizeInBytes)
+                          copyBytes (castPtr $ plusPtr ptr (fromIntegral imageSizeInBytes)) pixels2 (fromIntegral imageSizeInBytes)
+                          return True
+                        _ -> return False
 
                 if mapOk
                   then bracket
@@ -187,8 +187,8 @@ createResources Context {..} = do
                             sdlSubmitGPUCommandBuffer cmd
                   else return False
 
-          sdlDestroySurface surfPtr1
-          sdlDestroySurface surfPtr2
+          sdlDestroySurface surf1
+          sdlDestroySurface surf2
 
           if uploadSuccess
             then do
@@ -208,8 +208,8 @@ createResources Context {..} = do
               return Nothing
         _ -> do
           sdlLog "!!! Failed to create textures."
-          sdlDestroySurface surfPtr1
-          sdlDestroySurface surfPtr2
+          sdlDestroySurface surf1
+          sdlDestroySurface surf2
           return Nothing
     _ -> do
       sdlLog "!!! Failed to load images."
