@@ -91,6 +91,8 @@ module SDL3.Raw.Audio
   , sdlClearAudioStream
   , sdlLockAudioStream
   , sdlUnlockAudioStream
+  , sdlSetAudioStreamGetCallback
+  , sdlSetAudioStreamPutCallback
   , sdlDestroyAudioStream
     -- * Simplified Audio Functions
   , sdlOpenAudioDeviceStream
@@ -180,7 +182,7 @@ pattern SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK = (#{const SDL_AUDIO_DEVICE_DEFAULT_PL
 pattern SDL_AUDIO_DEVICE_DEFAULT_RECORDING = (#{const SDL_AUDIO_DEVICE_DEFAULT_RECORDING}) :: SDLAudioDeviceID
 
 -- Callback types
-type SDLAudioStreamCallback = Ptr () -> Ptr SDLAudioStream -> CInt -> CInt -> IO ()
+type SDLAudioStreamCallback = Ptr () -> SDLAudioStream -> CInt -> CInt -> IO ()
 type SDLAudioPostmixCallback = Ptr () -> Ptr SDLAudioSpec -> Ptr CFloat -> CInt -> IO ()
 
 -- Helper functions for wrapping callbacks
