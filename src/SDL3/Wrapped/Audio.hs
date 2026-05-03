@@ -1,30 +1,36 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module SDL3.Wrapped.Audio
-  ( SDLAudioFormatUnknown
-  , SDLAudioFormatU8
-  , SDLAudioFormatS8
-  , SDLAudioFormatS16LE
-  , SDLAudioFormatS16BE
-  , SDLAudioFormatS32LE
-  , SDLAudioFormatS32BE
-  , SDLAudioFormatF32LE
-  , SDLAudioFormatF32BE
-  , SDLAudioFormatS16
-  , SDLAudioFormatS32
-  , SDLAudioFormatF32
-  , SDLAudioSpec
+  ( SDLAudioFormatUnknown(..)
+  , SDLAudioFormatU8(..)
+  , SDLAudioFormatS8(..)
+  , SDLAudioFormatS16LE(..)
+  , SDLAudioFormatS16BE(..)
+  , SDLAudioFormatS32LE(..)
+  , SDLAudioFormatS32BE(..)
+  , SDLAudioFormatF32LE(..)
+  , SDLAudioFormatF32BE(..)
+  , SDLAudioFormatS16(..)
+  , SDLAudioFormatS32(..)
+  , SDLAudioFormatF32(..)
+  , SDLAudioSpec(..)
+  , SomeSDLAudioSpec(..)
+  , toSomeSDLAudioSpec
   , sdlAudioSpec
   , SDLAudioStream
   , SDLAudioDeviceID
+  , sdlPutAudioStreamDataBytes
+  , sdlGetAudioStreamDataBytes
   , sdlDefaultDevicePlayback
   , sdlDefaultDeviceRecording
     -- * Audio Driver Functions
@@ -108,6 +114,7 @@ import Foreign.ForeignPtr
 import Foreign.Ptr
 import Foreign.Storable
 import System.IO.Unsafe (unsafePerformIO)
+import SDL3.Wrapped.IOStream (SDLIOStream)
 import qualified SDL3.Raw.Audio as Raw
 
 
@@ -228,6 +235,31 @@ instance Native SDLAudioFormatS32 where {}
 instance Native SDLAudioFormatF32 where {}
 
 
+-- | Existential wrapper for 'SDLAudioSpec' when the format is only known at runtime.
+data SomeSDLAudioSpec where
+  SomeSDLAudioSpec :: SDLAudioSpec f -> SomeSDLAudioSpec
+
+deriving instance Show SomeSDLAudioSpec
+
+-- | Convert a raw 'SDLAudioSpec' into an existentially-quantified wrapped spec
+-- based on its runtime audio format.
+toSomeSDLAudioSpec :: Raw.SDLAudioSpec -> SomeSDLAudioSpec
+toSomeSDLAudioSpec raw =
+  case Raw.audioFormat raw of
+    f | f == Raw.SDL_AUDIO_U8    -> SomeSDLAudioSpec (SDLAudioSpec raw :: SDLAudioSpec SDLAudioFormatU8)
+      | f == Raw.SDL_AUDIO_S8    -> SomeSDLAudioSpec (SDLAudioSpec raw :: SDLAudioSpec SDLAudioFormatS8)
+      | f == Raw.SDL_AUDIO_S16LE -> SomeSDLAudioSpec (SDLAudioSpec raw :: SDLAudioSpec SDLAudioFormatS16LE)
+      | f == Raw.SDL_AUDIO_S16BE -> SomeSDLAudioSpec (SDLAudioSpec raw :: SDLAudioSpec SDLAudioFormatS16BE)
+      | f == Raw.SDL_AUDIO_S32LE -> SomeSDLAudioSpec (SDLAudioSpec raw :: SDLAudioSpec SDLAudioFormatS32LE)
+      | f == Raw.SDL_AUDIO_S32BE -> SomeSDLAudioSpec (SDLAudioSpec raw :: SDLAudioSpec SDLAudioFormatS32BE)
+      | f == Raw.SDL_AUDIO_F32LE -> SomeSDLAudioSpec (SDLAudioSpec raw :: SDLAudioSpec SDLAudioFormatF32LE)
+      | f == Raw.SDL_AUDIO_F32BE -> SomeSDLAudioSpec (SDLAudioSpec raw :: SDLAudioSpec SDLAudioFormatF32BE)
+      | f == Raw.SDL_AUDIO_S16   -> SomeSDLAudioSpec (SDLAudioSpec raw :: SDLAudioSpec SDLAudioFormatS16)
+      | f == Raw.SDL_AUDIO_S32   -> SomeSDLAudioSpec (SDLAudioSpec raw :: SDLAudioSpec SDLAudioFormatS32)
+      | f == Raw.SDL_AUDIO_F32   -> SomeSDLAudioSpec (SDLAudioSpec raw :: SDLAudioSpec SDLAudioFormatF32)
+      | otherwise                -> SomeSDLAudioSpec (SDLAudioSpec raw :: SDLAudioSpec SDLAudioFormatUnknown)
+
+
 -- For the typeclasses below, we can split the implementations into two sets,
 -- `Endian` and `Native` (by adding constraints on the instances), because
 -- some `Native` versions could be done more efficiently than the `Endian`.
@@ -283,21 +315,16 @@ instance
 instance (Native getFormat, SDLAudioFormat getFormat, Storable (SampleFor getFormat))
   => SDLAudioStreamGet VS.Vector getFormat where
   sdlGetAudioStreamData (SDLAudioStream stream) maxLen = liftIO do
-    -- TODO this should use the raw `c_sdlGetAudioStreamData` function instead
-    -- so we can go directly from a ptr to making a Vector without having to use
-    -- a ByteString as an itermediary
-    streamData <- Raw.sdlGetAudioStreamData stream maxLen
-    forM streamData \(bytes, bytesRead) -> do
-      let numSamples = bytesRead `div` sizeOf (undefined :: SampleFor getFormat)
-      BS.unsafeUseAsCStringLen bytes \(ptr, _) -> do
-        fptr <- newForeignPtr_ (castPtr ptr)
-        let vec = VS.unsafeFromForeignPtr0 fptr numSamples -- in-place
-        tvec <- VS.unsafeThaw vec -- in-place
-        -- this makes a copy; the ByteString already copied the data to managed
-        -- memory so this copy is superfluous, but we need it because the ByteString
-        -- will be deallocated (so we can't use `unsafeFreeze` here or return
-        -- the original `vec`)
-        VS.freeze tvec
+    let maxSamples = maxLen `div` sizeOf (undefined :: SampleFor getFormat)
+    mvec <- VSM.new maxSamples
+    VSM.unsafeWith mvec $ \ptr -> do
+      bytesRead <- Raw.sdlGetAudioStreamDataPtr stream (castPtr ptr) maxLen
+      if bytesRead < 0
+        then return Nothing
+        else do
+          let samplesRead = bytesRead `div` sizeOf (undefined :: SampleFor getFormat)
+          vec <- VS.unsafeFreeze (VSM.slice 0 samplesRead mvec)
+          return (Just vec)
 
 -- TODO Endian Vector.Unboxed
 -- TODO Native Vector.Unboxed
@@ -338,13 +365,24 @@ instance (SDLAudioFormat putFormat, Traversable container)
 instance (Native putFormat, SDLAudioFormat putFormat, Storable (SampleFor putFormat))
   => SDLAudioStreamPut VS.Vector putFormat where
   sdlPutAudioStreamData (SDLAudioStream stream) vec = liftIO do
-    let numBytes = VS.length vec * sizeOf (0::Float)
+    let numBytes = VS.length vec * sizeOf (undefined :: SampleFor putFormat)
     VS.unsafeWith vec \audioPtr -> do
-      byteString <- BS.unsafePackCStringLen (castPtr audioPtr, numBytes)
-      Raw.sdlPutAudioStreamData stream byteString
+      Raw.sdlPutAudioStreamDataPtr stream (castPtr audioPtr) numBytes
 
 -- TODO Endian Vector.Unboxed
 -- TODO Native Vector.Unboxed
+
+
+-- | Escape-hatch for putting raw 'ByteString' data into a stream. Useful when
+-- the data originates from runtime-loaded sources (e.g. 'sdlLoadWAV') where the
+-- phantom type can't easily be matched.
+sdlPutAudioStreamDataBytes :: MonadIO m => SDLAudioStream getFormat putFormat -> BS.ByteString -> m Bool
+sdlPutAudioStreamDataBytes (SDLAudioStream stream) bs = liftIO $ Raw.sdlPutAudioStreamData stream bs
+
+-- | Escape-hatch for reading raw 'ByteString' data from a stream, returning the
+-- number of bytes read alongside the data.
+sdlGetAudioStreamDataBytes :: MonadIO m => SDLAudioStream getFormat putFormat -> Int -> m (Maybe (BS.ByteString, Int))
+sdlGetAudioStreamDataBytes (SDLAudioStream stream) maxLen = liftIO $ Raw.sdlGetAudioStreamData stream maxLen
 
 
 --------------------------------
@@ -411,7 +449,7 @@ wrapAudioPostmixCallback callback = liftIO $
   castFunPtr <$> Raw.wrapAudioPostmixCallback \userData specPtr bufPtr buflen -> do
     spec <- SDLAudioSpec <$> peek specPtr
     -- cast from CFloat to Float. Easier here than after creating the vector
-    bufForeignPtr <- castForeignPtr <$> newForeignPtr_ bufPtr
+    bufForeignPtr <- newForeignPtr_ (castPtr bufPtr :: Ptr Float)
     let len = (fromIntegral buflen `div` sizeOf (0::Float))
     let buffer = VSM.unsafeFromForeignPtr0 bufForeignPtr len
     callback userData spec buffer
@@ -420,11 +458,13 @@ wrapAudioPostmixCallback callback = liftIO $
 --------------------------------
 
 
-streamCallbackRefs
-  :: IORef [(SDLAudioStream getFormat putFormat
-           , FunPtr (SDLAudioStreamCallback getFormat putFormat))]
+streamCallbackRefs :: IORef [(Raw.SDLAudioStream, FunPtr Raw.SDLAudioStreamCallback)]
 streamCallbackRefs = unsafePerformIO (newIORef [])
 {-# NOINLINE streamCallbackRefs #-}
+
+streamPutCallbackRefs :: IORef [(Raw.SDLAudioStream, FunPtr Raw.SDLAudioStreamCallback)]
+streamPutCallbackRefs = unsafePerformIO (newIORef [])
+{-# NOINLINE streamPutCallbackRefs #-}
 
 postmixCallbackRefs :: IORef [(SDLAudioDeviceID, FunPtr SDLAudioPostmixCallback)]
 postmixCallbackRefs = unsafePerformIO (newIORef [])
@@ -432,11 +472,26 @@ postmixCallbackRefs = unsafePerformIO (newIORef [])
 
 replaceStreamCallback
   :: (MonadIO m)
-  => SDLAudioStream getFormat putFormat
-  -> Maybe (FunPtr (SDLAudioStreamCallback getFormat putFormat))
-  -> m [FunPtr (SDLAudioStreamCallback getFormat putFormat)]
+  => Raw.SDLAudioStream
+  -> Maybe (FunPtr Raw.SDLAudioStreamCallback)
+  -> m [FunPtr Raw.SDLAudioStreamCallback]
 replaceStreamCallback stream newCallback = liftIO $
   atomicModifyIORef' streamCallbackRefs $ \entries ->
+    let (matches, rest) = foldr partition ([], []) entries
+        updated = maybe rest (\callbackPtr -> (stream, callbackPtr) : rest) newCallback
+    in (updated, map snd matches)
+  where
+    partition pair@(currentStream, _) (hits, misses)
+      | currentStream == stream = (pair : hits, misses)
+      | otherwise = (hits, pair : misses)
+
+replaceStreamPutCallback
+  :: (MonadIO m)
+  => Raw.SDLAudioStream
+  -> Maybe (FunPtr Raw.SDLAudioStreamCallback)
+  -> m [FunPtr Raw.SDLAudioStreamCallback]
+replaceStreamPutCallback stream newCallback = liftIO $
+  atomicModifyIORef' streamPutCallbackRefs $ \entries ->
     let (matches, rest) = foldr partition ([], []) entries
         updated = maybe rest (\callbackPtr -> (stream, callbackPtr) : rest) newCallback
     in (updated, map snd matches)
@@ -469,9 +524,16 @@ sdlGetCurrentAudioDriver = liftIO Raw.sdlGetCurrentAudioDriver
 sdlGetAudioPlaybackDevices = liftIO Raw.sdlGetAudioPlaybackDevices
 sdlGetAudioRecordingDevices = liftIO Raw.sdlGetAudioRecordingDevices
 sdlGetAudioDeviceName = liftIO . Raw.sdlGetAudioDeviceName
-sdlGetAudioDeviceFormat = liftIO . Raw.sdlGetAudioDeviceFormat
+sdlGetAudioDeviceFormat :: MonadIO m => SDLAudioDeviceID -> m (Maybe (SomeSDLAudioSpec, Maybe Int))
+sdlGetAudioDeviceFormat devid = liftIO $ do
+  result <- Raw.sdlGetAudioDeviceFormat devid
+  pure $ case result of
+    Nothing -> Nothing
+    Just (rawSpec, mFrames) -> Just (toSomeSDLAudioSpec rawSpec, mFrames)
+
 sdlGetAudioDeviceChannelMap = liftIO . Raw.sdlGetAudioDeviceChannelMap
-sdlOpenAudioDevice devid maybeSpec = liftIO $ Raw.sdlOpenAudioDevice devid maybeSpec
+sdlOpenAudioDevice :: MonadIO m => SDLAudioDeviceID -> Maybe (SDLAudioSpec format) -> m (Maybe SDLAudioDeviceID)
+sdlOpenAudioDevice devid maybeSpec = liftIO $ Raw.sdlOpenAudioDevice devid (toRawAudioSpec <$> maybeSpec)
 sdlIsAudioDevicePhysical = liftIO . Raw.sdlIsAudioDevicePhysical
 sdlIsAudioDevicePlayback = liftIO . Raw.sdlIsAudioDevicePlayback
 sdlPauseAudioDevice = liftIO . Raw.sdlPauseAudioDevice
@@ -536,38 +598,71 @@ sdlClearAudioStream = liftIO . Raw.sdlClearAudioStream . toRawAudioStream
 sdlLockAudioStream = liftIO . Raw.sdlLockAudioStream . toRawAudioStream
 sdlUnlockAudioStream = liftIO . Raw.sdlUnlockAudioStream . toRawAudioStream
 
-convertPair
-  :: (SDLAudioStreamCallback getFormat putFormat, Ptr ())
-  -> (Raw.SDLAudioStreamCallback, Ptr ())
-convertPair (callback, ptr) = (makeRawStreamCallback callback, ptr)
-
 sdlSetAudioStreamGetCallback
   :: (MonadIO m)
   => SDLAudioStream getFormat putFormat
   -> Maybe (SDLAudioStreamCallback getFormat putFormat, Ptr ())
   -> m Bool
-sdlSetAudioStreamGetCallback stream maybeCallback = liftIO $
-  Raw.sdlSetAudioStreamGetCallback (toRawAudioStream stream) (convertPair <$> maybeCallback)
+sdlSetAudioStreamGetCallback stream maybeCallback = liftIO $ do
+  let rawStream = toRawAudioStream stream
+  case maybeCallback of
+    Nothing -> do
+      success <- Raw.sdlSetAudioStreamGetCallback rawStream Nothing
+      when success $ do
+        oldCallbacks <- replaceStreamCallback rawStream Nothing
+        releaseCallbacks oldCallbacks
+      pure success
+    Just (callback, userdata) -> do
+      callbackPtr <- wrapAudioStreamCallback callback
+      success <- Raw.sdlSetAudioStreamGetCallback rawStream (Just (castFunPtr callbackPtr, userdata))
+      if success
+        then do
+          oldCallbacks <- replaceStreamCallback rawStream (Just (castFunPtr callbackPtr))
+          releaseCallbacks oldCallbacks
+          pure True
+        else do
+          freeHaskellFunPtr callbackPtr
+          pure False
 
 sdlSetAudioStreamPutCallback
   :: (MonadIO m)
   => SDLAudioStream getFormat putFormat
   -> Maybe (SDLAudioStreamCallback getFormat putFormat, Ptr ())
   -> m Bool
-sdlSetAudioStreamPutCallback stream maybeCallback = liftIO $
-  Raw.sdlSetAudioStreamPutCallback (toRawAudioStream stream) (convertPair <$> maybeCallback)
+sdlSetAudioStreamPutCallback stream maybeCallback = liftIO $ do
+  let rawStream = toRawAudioStream stream
+  case maybeCallback of
+    Nothing -> do
+      success <- Raw.sdlSetAudioStreamPutCallback rawStream Nothing
+      when success $ do
+        oldCallbacks <- replaceStreamPutCallback rawStream Nothing
+        releaseCallbacks oldCallbacks
+      pure success
+    Just (callback, userdata) -> do
+      callbackPtr <- wrapAudioStreamCallback callback
+      success <- Raw.sdlSetAudioStreamPutCallback rawStream (Just (castFunPtr callbackPtr, userdata))
+      if success
+        then do
+          oldCallbacks <- replaceStreamPutCallback rawStream (Just (castFunPtr callbackPtr))
+          releaseCallbacks oldCallbacks
+          pure True
+        else do
+          freeHaskellFunPtr callbackPtr
+          pure False
 
 sdlDestroyAudioStream :: (MonadIO m) => SDLAudioStream getFormat putFormat -> m ()
 sdlDestroyAudioStream stream = liftIO do
-  Raw.sdlDestroyAudioStream (toRawAudioStream stream)
-  oldCallbacks <- replaceStreamCallback stream Nothing
-  releaseCallbacks oldCallbacks
+  let rawStream = toRawAudioStream stream
+  Raw.sdlDestroyAudioStream rawStream
+  oldGetCallbacks <- replaceStreamCallback rawStream Nothing
+  oldPutCallbacks <- replaceStreamPutCallback rawStream Nothing
+  releaseCallbacks (oldGetCallbacks ++ oldPutCallbacks)
 
 sdlOpenAudioDeviceStream
   :: (MonadIO m)
   => SDLAudioDeviceID
   -> Maybe (SDLAudioSpec format)
-  -> Maybe (SDLAudioStreamCallback getFormat putFormat, Ptr ())
+  -> Maybe (SDLAudioStreamCallback format format, Ptr ())
   -> m (Maybe (SDLAudioStream format format))
 sdlOpenAudioDeviceStream devid maybeSpec maybeCallback = liftIO do
   (callbackPtr, userdata) <-
@@ -588,13 +683,18 @@ sdlOpenAudioDeviceStream devid maybeSpec maybeCallback = liftIO do
       if callbackPtr == nullFunPtr
         then pure ()
         else do
-          oldCallbacks <- replaceStreamCallback (SDLAudioStream stream) (Just callbackPtr)
+          oldCallbacks <- replaceStreamCallback stream (Just (castFunPtr callbackPtr))
           releaseCallbacks oldCallbacks
       pure (Just (SDLAudioStream stream))
 
-sdlPauseAudioStreamDevice = liftIO . Raw.sdlPauseAudioStreamDevice
-sdlResumeAudioStreamDevice = liftIO . Raw.sdlResumeAudioStreamDevice
-sdlAudioStreamDevicePaused = liftIO . Raw.sdlAudioStreamDevicePaused
+sdlPauseAudioStreamDevice :: MonadIO m => SDLAudioStream getFormat putFormat -> m Bool
+sdlPauseAudioStreamDevice = liftIO . Raw.sdlPauseAudioStreamDevice . toRawAudioStream
+
+sdlResumeAudioStreamDevice :: MonadIO m => SDLAudioStream getFormat putFormat -> m Bool
+sdlResumeAudioStreamDevice = liftIO . Raw.sdlResumeAudioStreamDevice . toRawAudioStream
+
+sdlAudioStreamDevicePaused :: MonadIO m => SDLAudioStream getFormat putFormat -> m Bool
+sdlAudioStreamDevicePaused = liftIO . Raw.sdlAudioStreamDevicePaused . toRawAudioStream
 
 sdlSetAudioPostmixCallback
   :: (MonadIO m)
@@ -621,10 +721,26 @@ sdlSetAudioPostmixCallback devid (Just (callback, userdata)) =
         freeHaskellFunPtr callbackPtr
         pure False
 
-sdlLoadWAV_IO stream closeIo = liftIO $ Raw.sdlLoadWAV_IO stream closeIo
-sdlLoadWAV = liftIO . Raw.sdlLoadWAV
+sdlLoadWAV_IO :: MonadIO m => SDLIOStream -> Bool -> m (Maybe (SomeSDLAudioSpec, BS.ByteString))
+sdlLoadWAV_IO stream closeIo = liftIO $ fmap (\(spec, bs) -> (toSomeSDLAudioSpec spec, bs)) <$> Raw.sdlLoadWAV_IO stream closeIo
 
-sdlMixAudio dst src format volume = liftIO $ Raw.sdlMixAudio dst src format volume
-sdlConvertAudioSamples srcSpec srcData dstSpec = liftIO $ Raw.sdlConvertAudioSamples srcSpec srcData dstSpec
-sdlGetAudioFormatName = liftIO . Raw.sdlGetAudioFormatName
-sdlGetSilenceValueForFormat = liftIO . Raw.sdlGetSilenceValueForFormat
+sdlLoadWAV :: MonadIO m => FilePath -> m (Maybe (SomeSDLAudioSpec, BS.ByteString))
+sdlLoadWAV = liftIO . fmap (fmap (\(spec, bs) -> (toSomeSDLAudioSpec spec, bs))) . Raw.sdlLoadWAV
+
+sdlMixAudio :: forall m format. (MonadIO m, SDLAudioFormat format, Storable (SampleFor format)) => VSM.IOVector (SampleFor format) -> VS.Vector (SampleFor format) -> format -> Float -> m Bool
+sdlMixAudio dst src fmt volume = liftIO $
+  VSM.unsafeWith dst $ \dstPtr ->
+  VS.unsafeWith src $ \srcPtr ->
+    if VSM.length dst /= VS.length src
+      then return False
+      else Raw.sdlMixAudio (castPtr dstPtr) (castPtr srcPtr) (VS.length src * sizeOf (undefined :: SampleFor format)) (sdlAudioFormatFor fmt) volume
+
+sdlConvertAudioSamples :: MonadIO m => SomeSDLAudioSpec -> BS.ByteString -> SomeSDLAudioSpec -> m (Maybe BS.ByteString)
+sdlConvertAudioSamples (SomeSDLAudioSpec srcSpec) srcData (SomeSDLAudioSpec dstSpec) =
+  liftIO $ Raw.sdlConvertAudioSamples (toRawAudioSpec srcSpec) srcData (toRawAudioSpec dstSpec)
+
+sdlGetAudioFormatName :: (MonadIO m, SDLAudioFormat format) => format -> m String
+sdlGetAudioFormatName fmt = liftIO $ Raw.sdlGetAudioFormatName (sdlAudioFormatFor fmt)
+
+sdlGetSilenceValueForFormat :: (MonadIO m, SDLAudioFormat format) => format -> m Int
+sdlGetSilenceValueForFormat fmt = liftIO $ Raw.sdlGetSilenceValueForFormat (sdlAudioFormatFor fmt)

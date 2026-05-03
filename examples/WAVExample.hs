@@ -15,7 +15,7 @@
 import Control.Monad (unless, when)
 import qualified Data.ByteString as BS
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
-import Foreign
+import Data.Word (Word64)
 import SDL3 hiding (round, sin)
 import System.Exit (exitFailure, exitSuccess)
 import Text.Printf (printf)
@@ -41,13 +41,13 @@ main = do
       sdlLog "Failed to load WAV file!"
       sdlQuit
       exitFailure
-    Just (spec, wavData) -> do
+    Just (SomeSDLAudioSpec spec, wavData) -> do
       sdlLog $ "Loaded WAV spec: " ++ show spec
       let wavDataLen = BS.length wavData
       sdlLog $ "WAV data length: " ++ show wavDataLen
 
       -- Open the audio stream
-      maybeStream <- sdlOpenAudioDeviceStream SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK (Just spec) Nothing
+      maybeStream <- sdlOpenAudioDeviceStream sdlDefaultDevicePlayback (Just spec) Nothing
       case maybeStream of
         Nothing -> do
           err <- sdlGetError
@@ -64,7 +64,7 @@ main = do
               exitFailure
             else do
               -- Initial feed of WAV data
-              successPut <- sdlPutAudioStreamData stream wavData
+              successPut <- sdlPutAudioStreamDataBytes stream wavData
               if not successPut
                 then do
                   sdlLog "Failed to put initial audio data into stream!"
@@ -101,7 +101,7 @@ main = do
   exitSuccess
 
 -- | Event loop to handle audio streaming and key interrupts
-eventLoop :: SDLAudioStream -> BS.ByteString -> Int -> Word64 -> Word64 -> IORef Double -> IO ()
+eventLoop :: SDLAudioStream f f -> BS.ByteString -> Int -> Word64 -> Word64 -> IORef Double -> IO ()
 eventLoop stream wavData wavDataLen lastTime freq deltaTimeRef = do
   -- Update timing
   currentTime <- sdlGetPerformanceCounter
@@ -117,7 +117,7 @@ eventLoop stream wavData wavDataLen lastTime freq deltaTimeRef = do
     Just q -> do
       -- sdlLog $ printf "Bytes queued: %d" q
       when (q < wavDataLen) $ do
-        successPut <- sdlPutAudioStreamData stream wavData
+        successPut <- sdlPutAudioStreamDataBytes stream wavData
         if not successPut
           then sdlLog "Failed to put additional audio data into stream"
           else sdlLog "Added more data to stream"
