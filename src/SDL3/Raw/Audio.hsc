@@ -84,13 +84,17 @@ module SDL3.Raw.Audio
   , sdlSetAudioStreamInputChannelMap
   , sdlSetAudioStreamOutputChannelMap
   , sdlPutAudioStreamData
+  , sdlPutAudioStreamDataPtr
   , sdlGetAudioStreamData
+  , sdlGetAudioStreamDataPtr
   , sdlGetAudioStreamAvailable
   , sdlGetAudioStreamQueued
   , sdlFlushAudioStream
   , sdlClearAudioStream
   , sdlLockAudioStream
   , sdlUnlockAudioStream
+  , sdlSetAudioStreamGetCallback
+  , sdlSetAudioStreamPutCallback
   , sdlDestroyAudioStream
     -- * Simplified Audio Functions
   , sdlOpenAudioDeviceStream
@@ -115,6 +119,7 @@ import Foreign
 import Foreign.C.Types
 import Foreign.C.String
 import SDL3.Raw.IOStream (SDLIOStream(..))
+import qualified SDL3.Raw.Stdinc as Stdinc
 import SDL3.Raw.Properties
 import Control.Exception (bracket)
 import Data.ByteString (ByteString)
@@ -180,7 +185,7 @@ pattern SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK = (#{const SDL_AUDIO_DEVICE_DEFAULT_PL
 pattern SDL_AUDIO_DEVICE_DEFAULT_RECORDING = (#{const SDL_AUDIO_DEVICE_DEFAULT_RECORDING}) :: SDLAudioDeviceID
 
 -- Callback types
-type SDLAudioStreamCallback = Ptr () -> Ptr SDLAudioStream -> CInt -> CInt -> IO ()
+type SDLAudioStreamCallback = Ptr () -> SDLAudioStream -> CInt -> CInt -> IO ()
 type SDLAudioPostmixCallback = Ptr () -> Ptr SDLAudioSpec -> Ptr CFloat -> CInt -> IO ()
 
 -- Helper functions for wrapping callbacks
@@ -658,6 +663,13 @@ sdlPutAudioStreamData (SDLAudioStream stream) bs =
   unsafeUseAsCStringLen bs $ \(buf, len) ->
     fromCBool <$> c_sdlPutAudioStreamData stream (castPtr buf) (fromIntegral len)
 
+-- | Put raw data from a pointer into the stream.
+--
+-- Data must match the current input format. Returns 'False' on failure.
+sdlPutAudioStreamDataPtr :: SDLAudioStream -> Ptr () -> Int -> IO Bool
+sdlPutAudioStreamDataPtr (SDLAudioStream stream) ptr len =
+  fromCBool <$> c_sdlPutAudioStreamData stream ptr (fromIntegral len)
+
 -- | Get converted/resampled data from the stream.
 --
 -- Returns the data as a ByteString and the number of bytes read, or 'Nothing' on failure.
@@ -670,6 +682,13 @@ sdlGetAudioStreamData (SDLAudioStream stream) maxLen =
       else do
         bs <- BS.packCStringLen (castPtr buf, fromIntegral bytesRead)
         return $ Just (bs, fromIntegral bytesRead)
+
+-- | Get raw data from the stream into a pointer.
+--
+-- Returns the number of bytes read, or a negative value on failure.
+sdlGetAudioStreamDataPtr :: SDLAudioStream -> Ptr () -> Int -> IO Int
+sdlGetAudioStreamDataPtr (SDLAudioStream stream) ptr len =
+  fromIntegral <$> c_sdlGetAudioStreamData stream ptr (fromIntegral len)
 
 -- | Get the number of converted/resampled bytes available in the stream.
 --
@@ -731,25 +750,21 @@ sdlUnlockAudioStream (SDLAudioStream stream) = fromCBool <$> c_sdlUnlockAudioStr
 --
 -- The callback fires before data is obtained, allowing on-demand addition via 'sdlPutAudioStreamData'.
 -- Pass 'Nothing' for the callback to disable it. Returns 'False' on failure (e.g., if stream is null).
-sdlSetAudioStreamGetCallback :: SDLAudioStream -> Maybe (SDLAudioStreamCallback, Ptr ()) -> IO Bool
+sdlSetAudioStreamGetCallback :: SDLAudioStream -> Maybe (FunPtr SDLAudioStreamCallback, Ptr ()) -> IO Bool
 sdlSetAudioStreamGetCallback (SDLAudioStream stream) maybeCallback =
   case maybeCallback of
     Nothing -> fromCBool <$> c_sdlSetAudioStreamGetCallback stream nullFunPtr nullPtr
-    Just (callback, userdata) -> do
-      callbackPtr <- makeAudioStreamCallback callback
-      fromCBool <$> c_sdlSetAudioStreamGetCallback stream callbackPtr userdata
+    Just (callbackPtr, userdata) -> fromCBool <$> c_sdlSetAudioStreamGetCallback stream callbackPtr userdata
 
 -- | Set a callback that runs when data is added to an audio stream.
 --
 -- The callback fires after data is added, allowing immediate retrieval via 'sdlGetAudioStreamData'.
 -- Pass 'Nothing' for the callback to disable it. Returns 'False' on failure (e.g., if stream is null).
-sdlSetAudioStreamPutCallback :: SDLAudioStream -> Maybe (SDLAudioStreamCallback, Ptr ()) -> IO Bool
+sdlSetAudioStreamPutCallback :: SDLAudioStream -> Maybe (FunPtr SDLAudioStreamCallback, Ptr ()) -> IO Bool
 sdlSetAudioStreamPutCallback (SDLAudioStream stream) maybeCallback =
   case maybeCallback of
     Nothing -> fromCBool <$> c_sdlSetAudioStreamPutCallback stream nullFunPtr nullPtr
-    Just (callback, userdata) -> do
-      callbackPtr <- makeAudioStreamCallback callback
-      fromCBool <$> c_sdlSetAudioStreamPutCallback stream callbackPtr userdata
+    Just (callbackPtr, userdata) -> fromCBool <$> c_sdlSetAudioStreamPutCallback stream callbackPtr userdata
 
 -- | Free an audio stream, releasing all allocated data and unbinding it from devices.
 --
@@ -788,9 +803,9 @@ sdlSetAudioPostmixCallback devid callbackPtr userdata =
 -- If 'closeio' is True, the stream is closed even on error.
 sdlLoadWAV_IO :: SDLIOStream -> Bool -> IO (Maybe (SDLAudioSpec, ByteString))
 sdlLoadWAV_IO (SDLIOStream src) closeio =
-  bracket (malloc :: IO (Ptr SDLAudioSpec)) free $ \specPtr ->
-  bracket (malloc :: IO (Ptr (Ptr Word8))) free $ \bufPtr ->
-  bracket (malloc :: IO (Ptr Word32)) free $ \lenPtr -> do
+  bracket (malloc :: IO (Ptr SDLAudioSpec)) Foreign.free $ \specPtr ->
+  bracket (malloc :: IO (Ptr (Ptr Word8))) Foreign.free $ \bufPtr ->
+  bracket (malloc :: IO (Ptr Word32)) Foreign.free $ \lenPtr -> do
     success <- c_sdlLoadWAV_IO src (fromBool closeio) specPtr bufPtr lenPtr
     if not (fromCBool success)
       then return Nothing
@@ -799,7 +814,7 @@ sdlLoadWAV_IO (SDLIOStream src) closeio =
         buf <- peek bufPtr
         len <- fromIntegral <$> peek lenPtr
         bs <- BS.packCStringLen (castPtr buf, len)
-        free buf  -- Caller must free the buffer
+        Stdinc.free buf  -- Caller must free the buffer with SDL_free
         return $ Just (spec, bs)
 
 -- | Load WAV data from a file path.
@@ -808,9 +823,9 @@ sdlLoadWAV_IO (SDLIOStream src) closeio =
 sdlLoadWAV :: String -> IO (Maybe (SDLAudioSpec, ByteString))
 sdlLoadWAV path =
   withCString path $ \cpath ->
-  bracket (malloc :: IO (Ptr SDLAudioSpec)) free $ \specPtr ->
-  bracket (malloc :: IO (Ptr (Ptr Word8))) free $ \bufPtr ->
-  bracket (malloc :: IO (Ptr Word32)) free $ \lenPtr -> do
+  bracket (malloc :: IO (Ptr SDLAudioSpec)) Foreign.free $ \specPtr ->
+  bracket (malloc :: IO (Ptr (Ptr Word8))) Foreign.free $ \bufPtr ->
+  bracket (malloc :: IO (Ptr Word32)) Foreign.free $ \lenPtr -> do
     success <- c_sdlLoadWAV cpath specPtr bufPtr lenPtr
     if not (fromCBool success)
       then return Nothing
@@ -819,19 +834,15 @@ sdlLoadWAV path =
         buf <- peek bufPtr
         len <- fromIntegral <$> peek lenPtr
         bs <- BS.packCStringLen (castPtr buf, len)
-        free buf  -- Caller must free the buffer
+        Stdinc.free buf  -- Caller must free the buffer with SDL_free
         return $ Just (spec, bs)
 
 -- | Mix audio data into a destination buffer with volume adjustment.
 --
 -- Both buffers must be in the same format and length. Returns 'False' on failure.
-sdlMixAudio :: ByteString -> ByteString -> SDLAudioFormat -> Float -> IO Bool
-sdlMixAudio dst src format volume =
-  unsafeUseAsCStringLen dst $ \(dstPtr, dstLen) ->
-  unsafeUseAsCStringLen src $ \(srcPtr, srcLen) ->
-    if dstLen /= srcLen
-      then return False
-      else fromCBool <$> c_sdlMixAudio (castPtr dstPtr) (castPtr srcPtr) format (fromIntegral dstLen) (realToFrac volume)
+sdlMixAudio :: Ptr Word8 -> Ptr Word8 -> Int -> SDLAudioFormat -> Float -> IO Bool
+sdlMixAudio dst src len format volume =
+  fromCBool <$> c_sdlMixAudio dst src format (fromIntegral len) (realToFrac volume)
 
 -- | Convert audio samples from one format to another.
 --
@@ -839,11 +850,11 @@ sdlMixAudio dst src format volume =
 -- Not suitable for block-wise conversion; use 'SDLAudioStream' for that.
 sdlConvertAudioSamples :: SDLAudioSpec -> ByteString -> SDLAudioSpec -> IO (Maybe ByteString)
 sdlConvertAudioSamples srcSpec srcData dstSpec =
-  bracket (new $ toCAudioSpec srcSpec) free $ \srcSpecPtr ->
+  bracket (new $ toCAudioSpec srcSpec) Foreign.free $ \srcSpecPtr ->
   unsafeUseAsCStringLen srcData $ \(srcPtr, srcLen) ->
-  bracket (new $ toCAudioSpec dstSpec) free $ \dstSpecPtr ->
-  bracket (malloc :: IO (Ptr (Ptr Word8))) free $ \dstPtr ->
-  bracket (malloc :: IO (Ptr CInt)) free $ \dstLenPtr -> do
+  bracket (new $ toCAudioSpec dstSpec) Foreign.free $ \dstSpecPtr ->
+  bracket (malloc :: IO (Ptr (Ptr Word8))) Foreign.free $ \dstPtr ->
+  bracket (malloc :: IO (Ptr CInt)) Foreign.free $ \dstLenPtr -> do
     success <- c_sdlConvertAudioSamples srcSpecPtr (castPtr srcPtr) (fromIntegral srcLen) dstSpecPtr dstPtr dstLenPtr
     if not (fromCBool success)
       then return Nothing
@@ -851,7 +862,7 @@ sdlConvertAudioSamples srcSpec srcData dstSpec =
         dstBuf <- peek dstPtr
         dstLen <- fromIntegral <$> peek dstLenPtr
         bs <- BS.packCStringLen (castPtr dstBuf, dstLen)
-        free dstBuf  -- Caller must free the buffer
+        Stdinc.free dstBuf  -- Caller must free the buffer with SDL_free
         return $ Just bs
   where
     toCAudioSpec spec = SDLAudioSpec (audioFormat spec) (audioChannels spec) (audioFreq spec)
