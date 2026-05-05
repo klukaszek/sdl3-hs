@@ -77,8 +77,7 @@ cabal run -fexamples init
 - `static-linking`: static SDL linking where supported (`cabal build -fstatic-linking`)
 - `pkgconfig` (default on): use `pkg-config` for SDL3 discovery
 
-Static linking is not supported on macOS. See `DISTRIBUTION.md` for full
-distribution guidance and platform details.
+Static linking is not supported on macOS.
 
 Refresh the generated binding-status block in this README:
 

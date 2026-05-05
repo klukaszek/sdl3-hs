@@ -49,8 +49,8 @@ secondMipSlices = [0, 1, 0, 1, 7]
 data AppResources = AppResources
   { resSrcTextures :: [SDLGPUTexture], -- 5 source textures
     resDstTextures :: [SDLGPUTexture], -- 5 dest textures
-    resBaseMips :: [Ptr SDLSurface], -- 4 base mip surfaces
-    resSecondMips :: [Ptr SDLSurface] -- 4 second mip surfaces
+    resBaseMips :: [SDLSurface], -- 4 base mip surfaces
+    resSecondMips :: [SDLSurface] -- 4 second mip surfaces
   }
   deriving (Show)
 
@@ -176,18 +176,16 @@ createResources Context {..} = do
               return Nothing
 
 -- | uploadTextureData
-uploadTextureData :: SDLGPUDevice -> [SDLGPUTexture] -> [Ptr SDLSurface] -> [Ptr SDLSurface] -> IO Bool
+uploadTextureData :: SDLGPUDevice -> [SDLGPUTexture] -> [SDLSurface] -> [SDLSurface] -> IO Bool
 uploadTextureData device srcTextures baseMips secondMips = do
   -- Calculate sizes
-  surf0 <- peek (head baseMips)
-  let w0 = surfaceW surf0
-      h0 = surfaceH surf0
-      baseDataSize = fromIntegral (w0 * h0 * 4) :: Int
+  w0 <- sdlGetSurfaceWidth (head baseMips)
+  h0 <- sdlGetSurfaceHeight (head baseMips)
+  let baseDataSize = fromIntegral (w0 * h0 * 4) :: Int
 
-  surf1 <- peek (head secondMips)
-  let w1 = surfaceW surf1
-      h1 = surfaceH surf1
-      secondDataSize = fromIntegral (w1 * h1 * 4) :: Int
+  w1 <- sdlGetSurfaceWidth (head secondMips)
+  h1 <- sdlGetSurfaceHeight (head secondMips)
+  let secondDataSize = fromIntegral (w1 * h1 * 4) :: Int
 
   let totalSize = fromIntegral (4 * (baseDataSize + secondDataSize)) :: Word32
 
@@ -206,11 +204,13 @@ uploadTextureData device srcTextures baseMips secondMips = do
               let offset = i * (baseDataSize + secondDataSize)
                   destPtr = castPtr ptr `plusPtr` offset
 
-              s0 <- peek (baseMips !! i)
-              copyBytes destPtr (surfacePixels s0) baseDataSize
-
-              s1 <- peek (secondMips !! i)
-              copyBytes (destPtr `plusPtr` baseDataSize) (surfacePixels s1) secondDataSize
+              maybePixels0 <- sdlGetSurfacePixels (baseMips !! i)
+              maybePixels1 <- sdlGetSurfacePixels (secondMips !! i)
+              case (maybePixels0, maybePixels1) of
+                (Just pixels0, Just pixels1) -> do
+                  copyBytes destPtr pixels0 baseDataSize
+                  copyBytes (destPtr `plusPtr` baseDataSize) pixels1 secondDataSize
+                _ -> return ()
             return True
 
       if mapSuccess

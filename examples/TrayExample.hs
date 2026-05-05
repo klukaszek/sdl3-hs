@@ -4,7 +4,6 @@ import Control.Concurrent (threadDelay)
 import Control.Monad (unless, when)
 import Data.IORef
 import Foreign.Ptr (nullPtr)
-import Foreign.Storable (peek)
 import SDL3
 import System.Exit (exitFailure, exitSuccess)
 
@@ -31,29 +30,26 @@ main = do
   mapM_ printSubsystem initializedSystems
 
   -- Load the tray icon
-  mSurfacePtr <- sdlLoadBMP "examples/Content/Images/ravioli.bmp"
-  case mSurfacePtr of
+  mSurface <- sdlLoadBMP "examples/Content/Images/ravioli.bmp"
+  case mSurface of
     Nothing -> do
       err <- sdlGetError
       sdlLog $ "Failed to load ravioli.bmp: " ++ err
       sdlQuit
       exitFailure
-    Just surfacePtr -> do
-      -- Inspect the surface
-      surface <- peek surfacePtr
-      sdlLog $ "Surface details: " ++ show surface
-
+    Just surface -> do
+      sdlLog $ "Loaded tray icon surface with size placeholder"
       -- Create the tray
-      mTray <- sdlCreateTray (Just surfacePtr) (Just "SDL3 Haskell Tray Example")
+      mTray <- sdlCreateTray (Just surface) (Just "SDL3 Haskell Tray Example")
       case mTray of
         Nothing -> do
           err <- sdlGetError
           sdlLog $ "Failed to create tray: " ++ err
-          sdlDestroySurface surfacePtr
+          sdlDestroySurface surface
           sdlQuit
           exitFailure
         Just tray -> do
-          sdlSetTrayIcon tray (Just surfacePtr)
+          sdlSetTrayIcon tray (Just surface)
           sdlSetTrayTooltip tray (Just "SDL3 Haskell Tray Example - Use menu to quit")
 
           -- Create a quit flag that can be shared between callbacks and main loop
@@ -98,7 +94,7 @@ main = do
 
           -- Cleanup
           sdlDestroyTray tray
-          sdlDestroySurface surfacePtr
+          sdlDestroySurface surface
           sdlLog "Tray destroyed."
 
   sdlLog "Shutting down SDL..."

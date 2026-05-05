@@ -2,7 +2,7 @@ module Main where
 
 import Control.Monad
 import Data.Word (Word64)
-import Foreign.C.String (CString, peekCString, withCString)
+import Foreign.C.String (peekCString, withCString)
 import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Marshal.Array (copyArray)
 import Foreign.Ptr (Ptr, castPtr, nullPtr)
@@ -71,7 +71,7 @@ main = do
   exitSuccess
 
 -- Helper to wait for storage to be ready
-waitForStorageReady :: Ptr SDLStorage -> IO ()
+waitForStorageReady :: SDLStorage -> IO ()
 waitForStorageReady storage = do
   sdlLog "Waiting for storage to be ready..."
   let checkReady = do
@@ -83,7 +83,7 @@ waitForStorageReady storage = do
   sdlLog "Storage is ready."
 
 -- Write a test file
-writeTestFile :: Ptr SDLStorage -> IO ()
+writeTestFile :: SDLStorage -> IO ()
 writeTestFile storage = do
   sdlLog "Writing test file..."
   let content = "Hello, SDL Storage!"
@@ -101,7 +101,7 @@ writeTestFile storage = do
         sdlLog $ "Error: " ++ err
 
 -- Read the test file back
-readTestFile :: Ptr SDLStorage -> IO ()
+readTestFile :: SDLStorage -> IO ()
 readTestFile storage = do
   sdlLog "Reading test file..."
   mSize <- sdlGetStorageFileSize storage "test.txt"
@@ -124,14 +124,12 @@ readTestFile storage = do
       free buf -- Use Haskell's free for mallocBytes
 
 -- List directory contents
-listDirectory :: Ptr SDLStorage -> IO ()
+listDirectory :: SDLStorage -> IO ()
 listDirectory storage = do
   sdlLog "Listing directory contents..."
-  let callback :: Ptr () -> CString -> CString -> IO SDLEnumerationResult
+  let callback :: Ptr () -> String -> String -> IO SDLEnumerationResult
       callback _ path name = do
-        pathStr <- peekCString path
-        nameStr <- peekCString name
-        sdlLog $ " - " ++ pathStr ++ "/" ++ nameStr
+        sdlLog $ " - " ++ path ++ "/" ++ name
         return SDL_ENUM_SUCCESS
   success <- sdlEnumerateStorageDirectory storage Nothing callback nullPtr
   unless success $ do

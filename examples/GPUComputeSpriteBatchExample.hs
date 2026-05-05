@@ -119,10 +119,9 @@ createResources Context {..} = do
       maybeAtlasSurface <- loadImage ("Content" </> "Images" </> "ravioli_atlas.bmp")
 
       case (maybeRenderPipeline, maybeComputePipeline, maybeAtlasSurface) of
-        (Just rp, Just cp, Just surfPtr) -> do
-          surf <- peek surfPtr
-          let w = fromIntegral $ surfaceW surf
-              h = fromIntegral $ surfaceH surf
+        (Just rp, Just cp, Just surf) -> do
+          w <- fromIntegral <$> sdlGetSurfaceWidth surf
+          h <- fromIntegral <$> sdlGetSurfaceHeight surf
 
           let texCI = (defaultTextureCreateInfo w h) {texInfoUsage = SDL_GPU_TEXTUREUSAGE_SAMPLER}
           maybeTex <- sdlCreateGPUTexture contextDevice texCI
@@ -160,7 +159,11 @@ createResources Context {..} = do
 
                   mAtlasPtr <- sdlMapGPUTransferBuffer contextDevice atb False
                   case mAtlasPtr of
-                    Just ptr -> copyBytes ptr (castPtr $ surfacePixels surf) (fromIntegral $ w * h * 4) >> sdlUnmapGPUTransferBuffer contextDevice atb
+                    Just ptr ->
+                      maybe
+                        (return ())
+                        (\pixelsPtr -> copyBytes ptr (castPtr pixelsPtr) (fromIntegral $ w * h * 4) >> sdlUnmapGPUTransferBuffer contextDevice atb)
+                        =<< sdlGetSurfacePixels surf
                     Nothing -> return ()
 
                   maybeCmd <- sdlAcquireGPUCommandBuffer contextDevice
@@ -184,7 +187,7 @@ createResources Context {..} = do
 
                   sdlReleaseGPUTransferBuffer contextDevice itb
                   sdlReleaseGPUTransferBuffer contextDevice atb
-                  sdlDestroySurface surfPtr
+                  sdlDestroySurface surf
                   sdlReleaseGPUShader contextDevice vs
                   sdlReleaseGPUShader contextDevice fs
 

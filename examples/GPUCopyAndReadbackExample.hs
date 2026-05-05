@@ -27,7 +27,7 @@ import Data.Bits ((.|.))
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BSU
 import Data.IORef
-import Data.Maybe (isJust)
+import Data.Maybe (fromJust, isJust)
 import Data.Word (Word32)
 import Foreign.Marshal.Array (peekArray, pokeArray)
 import Foreign.Marshal.Utils (copyBytes)
@@ -91,15 +91,15 @@ createAndTestResources Context {..} = do
     (\case Just surf -> sdlDestroySurface surf; _ -> pure ())
     $ \case
       Nothing -> sdlLog "!!! Failed to load source image." >> return Nothing
-      Just surfacePtr ->
+      Just surface ->
         -- This inner bracket is to ensure the loaded surfacePtr is freed
         -- after we're done with its pixel data, even if later steps fail.
-        bracketOnError (pure surfacePtr) (\_ -> sdlLog "Releasing loaded surface from inner bracket" >> sdlDestroySurface surfacePtr) $ \surf -> do
-          surfaceData <- peek surf
-          let imgW = surfaceW surfaceData
-          let imgH = surfaceH surfaceData
-          let imgPitch = surfacePitch surfaceData
-          let imgPixelsPtr = surfacePixels surfaceData
+        bracketOnError (pure surface) (\_ -> sdlLog "Releasing loaded surface from inner bracket" >> sdlDestroySurface surface) $ \surf -> do
+          imgW <- sdlGetSurfaceWidth surf
+          imgH <- sdlGetSurfaceHeight surf
+          imgPitch <- sdlGetSurfacePitch surf
+          maybeImgPixelsPtr <- sdlGetSurfacePixels surf
+          let imgPixelsPtr = fromJust maybeImgPixelsPtr
           let imgDataSize = imgH * imgPitch
           originalBS <- BSU.unsafePackCStringLen (castPtr imgPixelsPtr, imgDataSize)
 

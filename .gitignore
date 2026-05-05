@@ -30,5 +30,8 @@ broken/
 /sdl/
 sample-project/
 
+.DS_Store
+
 # Zed
 AGENTS.MD
+.claude/

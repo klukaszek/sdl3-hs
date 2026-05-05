@@ -2,7 +2,6 @@ module Main where
 
 import Control.Concurrent (threadDelay)
 import Control.Monad
-import Foreign.C.String (peekCString)
 import SDL3
 import System.Exit (exitFailure, exitSuccess)
 
@@ -49,8 +48,8 @@ main = do
           sdlLog "Joystick opened successfully."
 
           -- Query joystick properties
-          name <- peekCString =<< sdlGetJoystickName (unSDLJoystick joy)
-          sdlLog $ "Joystick name: " ++ name
+          name <- sdlGetJoystickName joy
+          sdlLog $ "Joystick name: " ++ maybe "Unknown" id name
 
           axes <- sdlGetNumJoystickAxes (unSDLJoystick joy)
           sdlLog $ "Number of axes: " ++ show axes
@@ -93,8 +92,8 @@ main = do
           sdlLog "Haptic device opened successfully."
 
           -- Query haptic properties
-          name <- peekCString =<< sdlGetHapticName haptic
-          sdlLog $ "Haptic device name: " ++ name
+          name <- sdlGetHapticName haptic
+          sdlLog $ "Haptic device name: " ++ maybe "Unknown" id name
 
           maxEffects <- sdlGetMaxHapticEffects haptic
           sdlLog $ "Max effects: " ++ show maxEffects

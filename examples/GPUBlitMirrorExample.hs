@@ -71,11 +71,10 @@ createResources Context {..} = do
     Nothing -> do
       sdlLog "!!! Failed to load ravioli.bmp."
       return Nothing
-    Just surfPtr -> do
-      surfData <- peek surfPtr
-      let texWidth = fromIntegral $ surfaceW surfData
-          texHeight = fromIntegral $ surfaceH surfData
-          byteCount = texWidth * texHeight * 4
+    Just surf -> do
+      texWidth <- fromIntegral <$> sdlGetSurfaceWidth surf
+      texHeight <- fromIntegral <$> sdlGetSurfaceHeight surf
+      let byteCount = texWidth * texHeight * 4
 
       sdlLog $ "Loaded ravioli.bmp (" ++ show texWidth ++ "x" ++ show texHeight ++ ")."
 
@@ -97,7 +96,7 @@ createResources Context {..} = do
       case maybeTex of
         Nothing -> do
           sdlLog "!!! Failed to create texture."
-          sdlDestroySurface surfPtr
+          sdlDestroySurface surf
           return Nothing
         Just tex -> do
           -- Upload texture
@@ -112,9 +111,11 @@ createResources Context {..} = do
                   (\mptr -> when (isJust mptr) $ sdlUnmapGPUTransferBuffer contextDevice tb)
                   $ \case
                     Nothing -> return False
-                    Just ptr -> do
-                      copyBytes (castPtr ptr) (surfacePixels surfData) (fromIntegral byteCount)
-                      return True
+                    Just ptr ->
+                      maybe
+                        (return False)
+                        (\pixelsPtr -> copyBytes (castPtr ptr) pixelsPtr (fromIntegral byteCount) >> return True)
+                        =<< sdlGetSurfacePixels surf
 
                 if mapOk
                   then bracket
@@ -136,7 +137,7 @@ createResources Context {..} = do
                             sdlSubmitGPUCommandBuffer cmd
                   else return False
 
-          sdlDestroySurface surfPtr
+          sdlDestroySurface surf
 
           if uploadSuccess
             then do

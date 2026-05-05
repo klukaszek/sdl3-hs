@@ -420,12 +420,12 @@ loadCubeImages ptr bytesPerImage = go 0
         Nothing -> do
           sdlLog $ "!!! Failed to load " ++ (cubeImageNames !! i)
           return False
-        Just surfPtr -> do
-          surfData <- peek surfPtr
+        Just surf -> do
           let destPtr = plusPtr ptr (fromIntegral $ bytesPerImage * fromIntegral i)
-          copyBytes (castPtr destPtr) (surfacePixels surfData) (fromIntegral bytesPerImage)
-          sdlDestroySurface surfPtr
-          go (i + 1)
+          maybe
+            (return False)
+            (\pixelsPtr -> copyBytes (castPtr destPtr) pixelsPtr (fromIntegral bytesPerImage) >> sdlDestroySurface surf >> go (i + 1))
+            =<< sdlGetSurfacePixels surf
 
 -- | releaseResources
 releaseResources :: Context -> Maybe AppResources -> IO ()
